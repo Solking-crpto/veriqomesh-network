@@ -24,7 +24,11 @@ contracts:
 
 chains:
   - id: 10143
-    rpc: https://testnet-rpc.monad.xyz
+    hypersync_config:
+      url: https://10143.hypersync.xyz
+    rpc:
+      - url: https://testnet-rpc.monad.xyz
+        for: fallback
     start_block: 65000000
     contracts:
       - name: TrustMeshEscrow
