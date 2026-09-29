@@ -34,10 +34,10 @@ $$\text{Intent} \longrightarrow \text{Agreement} \longrightarrow \text{Protectio
 
 ## 2. Why Monad?
 
-Autonomous agentic commerce requires sub-second finality, micro-fee predictability, and extreme transaction throughput:
-- **10,000 TPS & 1-Second Finality**: Enables real-time escrow locking and instant multi-party verification attestations without multi-block stalls.
-- **Parallel EVM Execution**: Permits hundreds of concurrent micro-escrows and independent judge ballot submissions to execute in parallel without sequential state contention.
-- **Low Gas Overhead**: Micro-escrow transactions (e.g. 0.001 MON deliveries) remain economically viable with sub-cent gas fees on Monad Metropolis.
+VeriqoMesh is designed to leverage Monad Metropolis as its target execution environment, relying on Monad's architectural capabilities:
+- **Target 10,000 TPS & 1-Second Finality (Monad Network Architecture)**: Monad's designed high throughput and rapid finality provide the necessary infrastructure for sub-second escrow state transitions and multi-party verification attestations without long settlement stalls.
+- **Parallel EVM Execution (Monad Design)**: Monad's parallel execution engine is designed to allow high-volume concurrent micro-escrows and independent judge ballot submissions to process in parallel across independent state paths.
+- **Micro-Fee Predictability (Testnet Economics)**: Monad's gas efficiency ensures that high-frequency commercial micro-escrows (such as our 0.001 MON live testnet transaction) remain economically viable with sub-cent transaction fees.
 
 ---
 
@@ -55,15 +55,15 @@ VeriqoMesh implements a strict, non-negotiable **AI Firewall**:
 
 ### Verification Model vs Dispute Adjudication
 VeriqoMesh enforces two distinct paths:
-1. **Normal Transaction (Automated / Independent Verification)**:
-   $$\text{Authorized Agent} \to \text{Policy Gate} \to \text{Agreement} \to \text{Escrow} \to \text{Evidence} \to \text{Independent Verifier PASS} \to \text{Authorized Release} \to \text{Trust Receipt}$$
-   *Humans do NOT manually approve normal, verified transactions.*
+1. **Normal Transaction (Independent Verification Flow)**:
+   $$\text{AI-Assisted Intent / Policy} \to \text{Authorized Wallet Signing} \to \text{Agreement} \to \text{Escrow Funding} \to \text{Evidence Anchoring} \to \text{Independent Verifier PASS} \to \text{Authorized Release} \to \text{Trust Receipt}$$
+   *Normal verified transactions proceed through AI-assisted intent and policy processing, followed by authorized wallet- or policy-controlled onchain financial execution, with release gated by designated independent verification. Autonomous AI models never hold direct or unconstrained financial execution authority.*
 2. **Contested Transaction (Human Dispute Adjudication)**:
    $$\text{Evidence Conflict} \to \text{Escrow Protected} \to \text{Advisory AI Dossier} \to \text{3 Independent Human Judges} \to \text{Deterministic Median Consensus} \to \text{Onchain Resolution} \to \text{Trust Receipt}$$
    *Human adjudication is strictly invoked when verification is INCONCLUSIVE or disputed.*
 
 ### Privacy Model
-- **Selective Cryptographic Disclosure**: Commercial contracts, invoices, and serial numbers remain offchain. Only cryptographic roots and zero-knowledge commitments touch the public blockchain.
+- **Selective Cryptographic Disclosure**: Commercial contracts, invoices, and serial numbers remain offchain. Only cryptographic roots, hashes, and commitments touch the public blockchain.
 - **Audit Trails**: Counterparties can selectively prove fulfillment and receipt issuance to auditors or regulators using offchain preimage data matching onchain commitments.
 
 ---
@@ -127,8 +127,8 @@ The smart contracts are deployed and verified on **Monad Metropolis Testnet** (`
 ### Setup & Run
 ```bash
 # Clone the repository
-git clone https://github.com/veriqomesh/trustmesh.git
-cd trustmesh
+git clone https://github.com/Solking-crpto/veriqomesh-network.git
+cd veriqomesh-network
 
 # Install dependencies across monorepo workspaces
 npm install
