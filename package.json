@@ -1,0 +1,37 @@
+{
+  "name": "trustmesh-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "VeriqoMesh Network: Programmable trust and transaction infrastructure for humans, businesses, and AI agents",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*",
+    "tests"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,sol}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,sol}\"",
+    "contracts:build": "forge build contracts/",
+    "contracts:test": "forge test contracts/"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "ethers": "^6.17.0",
+    "hardhat": "^3.17.0",
+    "prettier": "^3.5.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "npm@11.19.1"
+}

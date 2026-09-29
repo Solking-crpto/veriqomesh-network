@@ -1,0 +1,23 @@
+{
+  "name": "@trustmesh/service-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TrustMesh AI Service - Provider-Agnostic Intent Parsing & Dispute Docket Organization",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/index.js",
+    "dev": "tsc -w"
+  },
+  "dependencies": {
+    "@trustmesh/config": "*",
+    "@trustmesh/sdk": "*",
+    "@trustmesh/types": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "typescript": "^5.7.3"
+  }
+}

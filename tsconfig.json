@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
+  },
+  "include": [],
+  "references": [
+    { "path": "./packages/types" },
+    { "path": "./packages/config" },
+    { "path": "./packages/sdk" },
+    { "path": "./services/api" },
+    { "path": "./services/ai" },
+    { "path": "./services/verification" },
+    { "path": "./services/dispute" },
+    { "path": "./tests" }
+  ]
+}

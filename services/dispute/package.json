@@ -1,0 +1,24 @@
+{
+  "name": "@trustmesh/service-dispute",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TrustMesh Dispute Service - Human Judge Network Coordination & Quorum Aggregation",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/index.js",
+    "dev": "tsc -w"
+  },
+  "dependencies": {
+    "@trustmesh/config": "*",
+    "@trustmesh/sdk": "*",
+    "@trustmesh/types": "*",
+    "ethers": "^6.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "typescript": "^5.7.3"
+  }
+}

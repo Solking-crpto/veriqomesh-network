@@ -1,0 +1,11 @@
+{
+  "name": "@trustmesh/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Smart contract interfaces and implementation for TrustMesh Protocol on Monad Metropolis",
+  "scripts": {
+    "build": "forge build",
+    "test": "forge test",
+    "clean": "forge clean"
+  }
+}

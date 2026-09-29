@@ -1,0 +1,123 @@
+{
+  "item1_newTransactionId": "0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4",
+  "item2_allLifecycleTxHashes": {
+    "fundingBuyer": "PRE_CONFIRMED",
+    "fundingSeller": "PRE_CONFIRMED",
+    "fundingVerifier": "PRE_CONFIRMED",
+    "createTransactionWithVerifier": "PRE_CONFIRMED",
+    "agreeTransaction": "PRE_CONFIRMED",
+    "fundEscrow": "PRE_CONFIRMED",
+    "startWork": "PRE_CONFIRMED",
+    "anchorEvidence": "PRE_CONFIRMED",
+    "requestVerification": "PRE_CONFIRMED",
+    "submitVerification": "PRE_CONFIRMED",
+    "openDispute": "0xb01a687de4c65113a647b7bd7f3db23d440c7088eda0445bf5d32a05495106e4",
+    "resolveDispute": "0x91ff62584f4386250ccb09f28808453bb373273d9fa5f56cf04378c2a78084ba"
+  },
+  "item3_ephemeralParticipantAddresses": {
+    "buyer": "0x287196Cdbf41da13Cb7083392e47eaAf105b58A0",
+    "seller": "0x6f30D20b8c5bE781bADD86341415b556fB13c873",
+    "verifier": "0x16D7bD08Ad79bBCdBa116A652f68589FE5d6F4EA"
+  },
+  "item4_verificationOutcome": "INCONCLUSIVE (3)",
+  "item5_disputeStateTransitions": [
+    "0 (DRAFT)",
+    "1 (PROPOSED)",
+    "3 (AGREED)",
+    "4 (FUNDED)",
+    "5 (IN_PROGRESS)",
+    "6 (EVIDENCE_SUBMITTED)",
+    "7 (VERIFICATION)",
+    "8 (DISPUTED)",
+    "11 (SETTLED)"
+  ],
+  "item6_judgeAddresses": [
+    "0x76B91831E5a64eA4458B7473C6B5c65DD40Fb853",
+    "0x41CE425F6bc95472d376e315f81A141dBE1D4439",
+    "0x3EAf44302D651EC101d82C754a7bbc51Bc1dc82a"
+  ],
+  "item7_conflictAttestationResults": [
+    {
+      "judge": "0x76B91831E5a64eA4458B7473C6B5c65DD40Fb853",
+      "declaration": "I declare that I have no known conflict of interest with the parties, verifier, judges, or adjudication of this test transaction.",
+      "timestamp": 1790201722,
+      "signature": "0xfa59e5e87e8bd650cb278f44efc4e0f33d84a8b8ea25fe3fa333a4d7a3515c5863420f66f340a49fb7622951b07dc44b24a981703c034f3e36f0576501b0aec41c",
+      "status": "CLEARED_NO_CONFLICT"
+    },
+    {
+      "judge": "0x41CE425F6bc95472d376e315f81A141dBE1D4439",
+      "declaration": "I declare that I have no known conflict of interest with the parties, verifier, judges, or adjudication of this test transaction.",
+      "timestamp": 1790201722,
+      "signature": "0xf5d70059bff9e72c4464068ec123541016d016e5c6f40093b7e9db1200aa54d62f936ebe602c6a89f02fafe6377e38721953b7a0f703905ad35bd6a503dcae471c",
+      "status": "CLEARED_NO_CONFLICT"
+    },
+    {
+      "judge": "0x3EAf44302D651EC101d82C754a7bbc51Bc1dc82a",
+      "declaration": "I declare that I have no known conflict of interest with the parties, verifier, judges, or adjudication of this test transaction.",
+      "timestamp": 1790201722,
+      "signature": "0x5617fe29659db88f53cbf9376b3dc59bc19000ebdf73aac93ecce020150929bf4ff304357e029e8261d0be9436108e2d11aa89dff803a1274e3c1063c56a009e1c",
+      "status": "CLEARED_NO_CONFLICT"
+    }
+  ],
+  "item8_threeBallots": [
+    {
+      "judge": "0x76B91831E5a64eA4458B7473C6B5c65DD40Fb853",
+      "buyerShareBps": 1000,
+      "rationale": "Minor defect noted; 10% buyer allocation is justified.",
+      "submittedAt": "2026-09-23T22:15:22.893Z",
+      "signature": "0xd4ee79adbb710edbf5feec3a33e337f27eb13d068446deaef8e8d6b3847039e30b6eeb061fc6116436a74f52f4cbd82535bce8ea1598865dd0b428a968343ec11b"
+    },
+    {
+      "judge": "0x41CE425F6bc95472d376e315f81A141dBE1D4439",
+      "buyerShareBps": 1500,
+      "rationale": "Supported by evidence; 15% refund aligns with defective portion.",
+      "submittedAt": "2026-09-23T22:15:22.900Z",
+      "signature": "0x1d2825cacc1afa4f7be83c324881d2447b5489337b7ca63a71bdfbe9c7f1c86c7f244363bccb4abe5620830b60fcd395f0582ec8312d025a3a2a8490051303831b"
+    },
+    {
+      "judge": "0x3EAf44302D651EC101d82C754a7bbc51Bc1dc82a",
+      "buyerShareBps": 2000,
+      "rationale": "Evidence supports 20% refund to compensate rework costs.",
+      "submittedAt": "2026-09-23T22:15:22.907Z",
+      "signature": "0xbbddc54a1acde416e0f6b236e27da42ce763ee4c096e1f86b8455a96a9ab59d55f2e3f456d041a1adb42a23397dbcd31862b1927f98f4af26794fd56d6eb693a1b"
+    }
+  ],
+  "item9_medianBps": 1500,
+  "item10_spreadBps": 1000,
+  "item11_polarizationResult": "NON-POLARIZED (Spread 1000 <= 4000)",
+  "item12_adjudicationRecord": {
+    "hash": "0xc96f219ed2bb504dab6407309aa95f71cf7197b979c53224ba740d0f80aebf89",
+    "cid": "ipfs://bafy-adjudication-c96f219ed2bb504d"
+  },
+  "item13_settlementAuthorizationGateResult": {
+    "authorized": true,
+    "consensusBuyerShareBps": 1500,
+    "dispatchedBy": "0x12f9e53c31F7629aCAE0BA70588794945EC6c35E"
+  },
+  "item14_resolveDisputeTxHash": "0x91ff62584f4386250ccb09f28808453bb373273d9fa5f56cf04378c2a78084ba",
+  "item14_resolveDisputeBlock": 65129932,
+  "item15_buyerPayout": "+0.00015 MON (15% refund)",
+  "item16_sellerPayout": "+0.00085 MON (85% payout)",
+  "item17_newTransactionFinalState": "11 (SETTLED)",
+  "item18_trustReceiptId": "#2",
+  "item18_trustReceiptRecord": {
+    "receiptId": "2",
+    "type": "VeriqoMesh Trust Receipt Record (non-transferable accountability record)",
+    "partyA": "0x287196Cdbf41da13Cb7083392e47eaAf105b58A0",
+    "partyB": "0x6f30D20b8c5bE781bADD86341415b556fB13c873",
+    "settledAmountWei": "1000000000000000",
+    "outcome": 11,
+    "termsSummaryHash": "0x76d78fa0565ff73844d5a51cdda6c21cc7e8ce81906f704cf5108d084c2c7696",
+    "evidenceRoot": "0xe8fd73f129c4c1124fa548c0d28ed31a769f983186b08cf51ed849f177903ad4",
+    "issuedAt": 1790201739
+  },
+  "item19_finalEscrowBalance": "0.001 MON",
+  "item20_finalAggregateLiabilities": "0.001 MON",
+  "item21_finalRegistryBalance": "0.0 MON",
+  "item22_resolverBalanceAndNonce": {
+    "balance": "0.067526566 MON",
+    "nonce": 1
+  },
+  "item23_oldResolverIsolationConfirmed": true,
+  "item24_zeroUnexpectedTransactionsConfirmed": true
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@trustmesh/tests",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Integration and unit tests for VeriqoMesh deterministic state machine and contracts",
+  "type": "module",
+  "scripts": {
+    "test": "node --test dist/**/*.test.js",
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@trustmesh/config": "*",
+    "@trustmesh/sdk": "*",
+    "@trustmesh/service-dispute": "*",
+    "@trustmesh/types": "*",
+    "ethers": "^6.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "typescript": "^5.7.3"
+  }
+}
