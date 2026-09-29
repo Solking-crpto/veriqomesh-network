@@ -160,36 +160,62 @@ npm run test
 
 ---
 
-## 8. Navigating the Public Demo
+## 8. Navigating the Public Demo & Video Studio
 
-The web application clearly distinguishes between live blockchain execution and simulated demonstrations:
+The web application provides both interactive exploration and verifiable blockchain auditability:
 
-1. **Tab A: Autonomous Procurement (SIMULATED)**:
-   - Walkthrough of AI agent commercial intent generation, natural language parameter negotiation, and automated settlement. Clearly labeled **`SIMULATED DEMO`**.
-2. **Tab B: Contested Freight Dispute (LIVE READ-ONLY AUDIT)**:
-   - Live audit record of Canonical Testnet Transaction `0x2b57...afcc4`, demonstrating the 3-judge human consensus protocol that resolved into onchain settlement and **Trust Receipt #2**.
-3. **Tab C: Live Monad Testnet (FRESH LIVE TRANSACTION)**:
-   - Full live verification room for Transaction `0x961c...54e1`, showing all 10 verified onchain milestones, verifier attestations, and **Trust Receipt #3**.
+1. **Verified Normal Flow (Flow A — Canonical Live Monad Testnet)**:
+   - Live settlement room for Transaction `0x961c...54e1`, demonstrating all onchain milestones from intent and funding through PASS verification, authorized wallet release, and Trust Receipt issuance.
+2. **Contested Dispute Resolution (Flow B — Canonical Live Monad Testnet)**:
+   - Live audit record of Canonical Testnet Transaction `0x2b57...afcc4`, demonstrating inconclusive evidence, the 3-judge human consensus protocol, deterministic median calculation (1,500 bps refund / 8,500 bps release), and **Trust Receipt #2**.
+3. **Demo Video Studio (`/demo-video`)**:
+   - Master video player presenting the full end-to-end architecture, dual-track execution model, and live Monad testnet settlement proof.
+4. **Trust Receipts Vault & Onchain Provenance (`/trust`)**:
+   - Live event ledger powered by Envio HyperIndex with automatic Monad RPC fallback, plus Soulbound receipt verification.
 
 ---
 
-## 9. Known Limitations & Security Assumptions
+## 9. Onchain Provenance & Trust Activity (Powered by Envio HyperIndex)
+
+VeriqoMesh Network integrates [Envio HyperIndex](https://envio.dev) as a high-performance, read-only event indexing and provenance layer for smart contracts on Monad Metropolis Testnet.
+
+### Key Capabilities
+- **12 Lifecycle Events Indexed**: Full coverage from `TransactionCreated`, `EvidenceAnchored`, and `VerificationSubmitted` to `DisputeResolved` and `TrustReceiptIssued`.
+- **Unified GraphQL API**: Queryable schema for `Transaction`, `EvidenceAnchor`, `VerificationAttestation`, `DisputeRecord`, `TrustReceipt`, and chronological `LifecycleEvent` entities.
+- **Resilient Fallback**: The Next.js frontend (`apps/web`) seamlessly reads from the Envio HyperIndex GraphQL endpoint when active, and automatically falls back to direct Monad RPC queries and authoritative onchain traces when GraphQL is unset or offline, ensuring 100% uptime and data integrity.
+
+### Running the Indexer Locally
+```bash
+cd indexer
+npm install
+npm run codegen
+npm run dev
+```
+
+---
+
+## 10. Known Limitations & Security Assumptions
 
 - **Testnet Environment**: Operates exclusively on Monad Metropolis Testnet (`Chain ID: 10143`). Testnet assets have no real-world monetary value.
-- **Storage Decentralization**: Current offchain IPFS references (`ipfs://`) serve as content-hash integrity commitments. Production mainnet deployment will integrate permanent decentralized storage pinning (e.g., Filecoin/Arweave).
+- **Storage References**: Offchain IPFS references (`ipfs://`) serve as content-hash integrity commitments. Production mainnet deployment will integrate permanent decentralized storage pinning (e.g., Filecoin/Arweave).
 - **Resolver Centralization in Testnet**: Stage 4 human dispute settlement is currently dispatched via a designated testnet resolver address (`0x12f9...c35E`) that enforces consensus signatures offchain before dispatching `resolveDispute`. Future iterations will deploy onchain multi-sig or ZK consensus verification.
 
 ---
 
-## 10. Monorepo Structure
+## 11. Monorepo Structure
 
 ```
 trustmesh/
 ├── apps/
-│   └── web/                   # Next.js 15 Web Application & Transaction Rooms
+│   └── web/                   # Next.js 15 Web Application, Trust Activity & Video Studio
 ├── contracts/
 │   ├── src/                   # Solidity Contracts: TrustMeshEscrow, TrustReceiptRegistry
 │   └── test/                  # Foundry Unit, Fuzz, and Solvency Invariant Tests
+├── indexer/                   # Envio HyperIndex GraphQL Indexer (Monad Testnet 10143)
+│   ├── config.yaml            # Envio contract & event configuration
+│   ├── schema.graphql         # Provenance data model & entity definitions
+│   ├── abis/                  # Authoritative Escrow & Registry ABIs
+│   └── src/EventHandlers.ts   # Event processing handlers
 ├── services/
 │   ├── ai/                    # Advisory AI Intent & Docket Generator
 │   ├── api/                   # Orchestration API
@@ -205,8 +231,9 @@ trustmesh/
 
 ---
 
-## 11. Hackathon Provenance & License
+## 12. Hackathon Provenance & License
 
 - **Hackathon Build Window**: September 23, 2026 – September 28, 2026.
 - **Built for**: Monad Metropolis Hackathon
 - **License**: MIT
+

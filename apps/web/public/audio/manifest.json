@@ -1,56 +1,56 @@
 [
-    {
-        "id":  "scene1",
-        "duration":  43.75,
-        "file":  "scene1.wav",
-        "text":  "Today, commerce still depends heavily on trust between parties -- and that becomes even harder when humans, businesses, and AI agents transact with each other. VeriqoMesh is programmable trust infrastructure for human and AI commerce. Authorized AI agents can execute normal transactions within policy bounds. Evidence and verification establish what happened. And when an outcome is genuinely contested, AI organizes the evidence, humans adjudicate, and the blockchain enforces the authorized settlement. AI executes. Humans adjudicate. Blockchain enforces."
-    },
-    {
-        "id":  "scene2",
-        "duration":  19.82,
-        "file":  "scene2.wav",
-        "text":  "The important design choice is that human intervention is not required for every transaction. Normal transactions can be executed autonomously by an authorized AI agent. Human adjudication is reserved for the exception -- when evidence becomes inconclusive or the outcome is contested."
-    },
-    {
-        "id":  "scene3",
-        "duration":  39.57,
-        "file":  "scene3.wav",
-        "text":  "Here is the normal path. The transaction begins with an authorized AI agent operating within a predefined policy. The agent can create the agreement, fund the protected transaction, coordinate execution, and provide evidence. An independent verifier evaluates the evidence. When verification returns PASS, the settlement condition is satisfied. Under the buyer agent\u0027s pre-approved mandate, the authorized agent executes releaseEscrow() autonomously, without requiring a human to manually approve every normal transaction."
-    },
-    {
-        "id":  "scene4",
-        "duration":  19.99,
-        "file":  "scene4.wav",
-        "text":  "But commerce has a harder case. What happens when the evidence does not establish a clear outcome? VeriqoMesh does not give the AI unilateral authority to decide the dispute. The transaction remains protected, and the dispute moves into structured human adjudication."
-    },
-    {
-        "id":  "scene5",
-        "duration":  34.64,
-        "file":  "scene5.wav",
-        "text":  "This is the live Monad testnet dispute record. The transaction reached verification, but the evidence was inconclusive. That prevented the normal release path and moved the transaction into dispute. AI is still useful here. It organizes the timeline, compares evidence, identifies contradictions, and prepares a structured dossier for the human adjudicators. But the AI dossier is advisory. It does not vote, authorize settlement, or control the funds."
-    },
-    {
-        "id":  "scene6",
-        "duration":  28.09,
-        "file":  "scene6.wav",
-        "text":  "Three assigned judges independently submitted signed ballots. Their positions were one thousand, fifteen hundred, and two thousand basis points. The deterministic consensus rule takes the median. That produces fifteen hundred basis points, with a spread of one thousand basis points -- below the polarization threshold. The result is therefore eligible for the settlement authorization path."
-    },
-    {
-        "id":  "scene7",
-        "duration":  22.73,
-        "file":  "scene7.wav",
-        "text":  "Once the adjudication satisfies the authorization rules, the designated resolver dispatches the existing onchain settlement primitive. The blockchain enforces the final state. This live transaction reached State 11 -- SETTLED. The resulting VeriqoMesh Trust Receipt is an accountability record of what happened."
-    },
-    {
-        "id":  "scene8",
-        "duration":  14.06,
-        "file":  "scene8.wav",
-        "text":  "That is the VeriqoMesh model. Autonomy where the transaction is clear. Accountability where the outcome is contested. And deterministic blockchain enforcement at the settlement layer."
-    },
-    {
-        "id":  "scene9",
-        "duration":  33.03,
-        "file":  "scene9.wav",
-        "text":  "As AI becomes a participant in commerce, trust cannot depend only on who is operating the system. The transaction itself needs an accountable record of what was agreed, what happened, how it was verified, and how it was resolved. That is VeriqoMesh Network. AI executes. Humans adjudicate. Blockchain enforces. Define the deal. Protect the transaction. Verify the outcome."
-    }
+  {
+    "id": "scene1",
+    "duration": 43.75,
+    "file": "scene1.wav",
+    "text": "Today, commerce still depends heavily on trust between parties -- and that becomes even harder when humans, businesses, and AI agents transact with each other. VeriqoMesh is programmable trust infrastructure for human and AI commerce. AI assists with structuring terms and organizing evidence. Authorized wallets authorize financial actions. Independent verifiers evaluate deliverables. And when an outcome is contested, human judges render consensus, and the blockchain enforces the authorized settlement. AI assists. Humans authorize. Verifiers verify. Blockchain enforces."
+  },
+  {
+    "id": "scene2",
+    "duration": 19.82,
+    "file": "scene2.wav",
+    "text": "The architecture enforces two distinct paths. Normal transactions proceed through AI-assisted terms, authorized wallet funding, evidence anchoring, and independent verification. When verification passes, the authorized release path unlocks. Human dispute review is reserved for the exception -- when evidence is inconclusive or the outcome is contested."
+  },
+  {
+    "id": "scene3",
+    "duration": 39.57,
+    "file": "scene3.wav",
+    "text": "Here is the normal verified path. The transaction begins with an AI-assisted workflow and structured commercial terms. The buyer wallet funds the protected escrow on Monad. The seller starts work and anchors cryptographic evidence onchain. An independent verifier audits the deliverable and attests PASS. With the verification condition satisfied, releaseEscrow() is authorized and executed by the authorized wallet, delivering 0.001 MON to the seller and issuing a non-transferable Trust Receipt."
+  },
+  {
+    "id": "scene4",
+    "duration": 19.99,
+    "file": "scene4.wav",
+    "text": "But commerce has a harder case. What happens when the evidence does not establish a clear outcome? VeriqoMesh does not give AI unilateral authority to decide disputes or transfer funds. The transaction remains protected in escrow, and the case escalates to structured human adjudication."
+  },
+  {
+    "id": "scene5",
+    "duration": 34.64,
+    "file": "scene5.wav",
+    "text": "This is the live Monad testnet dispute record. The transaction reached verification, but the evidence was inconclusive. That halted the normal release path and moved the transaction into dispute. AI is still useful here. It organizes the timeline, compares evidence, identifies contradictions, and prepares a structured dossier for the human adjudicators. But the AI dossier is advisory. It does not vote, authorize settlement, or control the funds."
+  },
+  {
+    "id": "scene6",
+    "duration": 28.09,
+    "file": "scene6.wav",
+    "text": "Three assigned judges independently submitted signed ballots. Their positions were one thousand, fifteen hundred, and two thousand basis points. The deterministic consensus rule takes the median. That produces fifteen hundred basis points, with a spread of one thousand basis points -- below the polarization threshold. The result is therefore eligible for the settlement authorization path."
+  },
+  {
+    "id": "scene7",
+    "duration": 22.73,
+    "file": "scene7.wav",
+    "text": "Once the adjudication satisfies the authorization rules, the designated resolver dispatches the existing onchain settlement primitive. The blockchain enforces the final state. This live transaction reached State 11 -- SETTLED. The resulting VeriqoMesh Trust Receipt is an accountability record of what happened."
+  },
+  {
+    "id": "scene8",
+    "duration": 14.06,
+    "file": "scene8.wav",
+    "text": "That is the VeriqoMesh model. Verified release where the transaction is clear. Accountability where the outcome is contested. And deterministic blockchain enforcement at the settlement layer."
+  },
+  {
+    "id": "scene9",
+    "duration": 33.03,
+    "file": "scene9.wav",
+    "text": "As AI becomes a participant in commerce, trust cannot depend only on who is operating the system. The transaction itself needs an accountable record of what was agreed, what happened, how it was verified, and how it was resolved. That is VeriqoMesh Network. AI assists. Humans authorize. Verifiers verify. Blockchain enforces. Define the deal. Protect the transaction. Verify the outcome."
+  }
 ]

@@ -1,0 +1,104 @@
+# Envio HyperIndex GraphQL Schema for VeriqoMesh Network
+
+enum TransactionStatus {
+  CREATED
+  AGREED
+  FUNDED
+  STARTED
+  VERIFYING
+  DISPUTED
+  SETTLED
+  REFUNDED
+}
+
+enum VerificationOutcomeStatus {
+  NONE
+  PASS
+  FAIL
+  INCONCLUSIVE
+}
+
+type Transaction {
+  id: ID! # bytes32 transactionId hex string
+  buyer: String!
+  seller: String!
+  verifier: String
+  amount: BigInt!
+  status: TransactionStatus!
+  verificationOutcome: VerificationOutcomeStatus
+  createdAt: BigInt!
+  agreedAt: BigInt
+  fundedAt: BigInt
+  workStartedAt: BigInt
+  verificationRequestedAt: BigInt
+  verificationSubmittedAt: BigInt
+  disputeOpenedAt: BigInt
+  settledAt: BigInt
+  refundedAt: BigInt
+  isDisputed: Boolean!
+  disputeResolver: String
+  buyerShareBps: Int
+  createdBlock: Int!
+  createdTxHash: String!
+  evidenceCount: Int!
+  receiptId: BigInt
+  updatedAt: BigInt!
+}
+
+type EvidenceAnchor {
+  id: ID! # txId-contentHash
+  transactionId: String!
+  contentHash: String!
+  submitter: String!
+  blockNumber: Int!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+type VerificationAttestation {
+  id: ID! # txId-verifier
+  transactionId: String!
+  verifier: String!
+  outcome: VerificationOutcomeStatus!
+  reportHash: String!
+  blockNumber: Int!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+type DisputeRecord {
+  id: ID! # transactionId
+  transactionId: String!
+  initiator: String!
+  resolver: String
+  buyerShareBps: Int
+  isResolved: Boolean!
+  openedBlock: Int!
+  openedTimestamp: BigInt!
+  openedTxHash: String!
+  resolvedBlock: Int
+  resolvedTimestamp: BigInt
+  resolvedTxHash: String
+}
+
+type TrustReceipt {
+  id: ID! # receiptId
+  transactionId: String!
+  partyA: String!
+  partyB: String!
+  outcome: Int!
+  issuedBlock: Int!
+  issuedTimestamp: BigInt!
+  txHash: String!
+}
+
+type LifecycleEvent {
+  id: ID! # txHash-logIndex
+  eventType: String!
+  transactionId: String!
+  actor: String!
+  details: String!
+  blockNumber: Int!
+  timestamp: BigInt!
+  txHash: String!
+}

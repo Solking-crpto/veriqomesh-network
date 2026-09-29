@@ -1997,7 +1997,7 @@ export function TransactionRoom({
                   </div>
                 )}
 
-                {/* Outcome Display: PASS (Demo A Flow - Autonomous Agent Release) */}
+                {/* Outcome Display: PASS (Flow A - Authorized Wallet Release) */}
                 {tx.verificationOutcome === VerificationOutcome.PASS && (
                   <div className="p-3 bg-emerald-950/40 rounded border border-emerald-800 space-y-2">
                     <div className="text-xs text-emerald-300 font-semibold font-mono">

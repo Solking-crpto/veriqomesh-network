@@ -285,7 +285,7 @@ export default function CreateIntentPage() {
             <div className="p-2.5 rounded-xl bg-black/40 border border-gray-800/80">
               <div className="text-emerald-400 font-bold font-mono text-[11px] mb-1">NORMAL EXECUTION</div>
               <div className="text-gray-300 text-[11px] leading-snug">
-                AI executes within authorized policy bounds.
+                AI assists within policy bounds; authorized wallet executes onchain.
               </div>
             </div>
             <div className="p-2.5 rounded-xl bg-black/40 border border-gray-800/80">
