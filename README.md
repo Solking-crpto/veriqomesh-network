@@ -23,7 +23,7 @@ Modern distributed commerce and autonomous AI agent workflows separate what shou
 VeriqoMesh unifies these isolated layers into an end-to-end, non-custodial, programmable transaction lifecycle:
 $$\text{Intent} \longrightarrow \text{Agreement} \longrightarrow \text{Protection} \longrightarrow \text{Execution} \longrightarrow \text{Evidence} \longrightarrow \text{Verification} \longrightarrow \text{Dispute (Contested Only)} \longrightarrow \text{Settlement} \longrightarrow \text{Trust Receipt}$$
 
-1. **Intent & Agreement**: Human principals or authorized AI agents negotiate structured commercial terms, milestone criteria, and designated verification roles under explicit policy constraints.
+1. **Intent & Agreement**: Human principals or AI-assisted workflows negotiate structured commercial terms, milestone criteria, and designated verification roles under explicit policy constraints.
 2. **Escrow Protection**: Non-custodial escrow on high-throughput Monad locks native MON or ERC-20 assets under a formal 14-state machine ensuring mathematical solvency ($V_{\text{bal}} \ge \sum L$).
 3. **Execution & Evidence Anchoring**: Raw deliverables remain offchain; cryptographic commitments (Keccak-256 content hashes, metadata hashes, and storage URI hashes) are immutably anchored onchain.
 4. **Independent Verification**: A designated independent verifier evaluates deliverable evidence and registers factual attestations (`PASS`, `FAIL`, `INCONCLUSIVE`).
@@ -37,7 +37,7 @@ $$\text{Intent} \longrightarrow \text{Agreement} \longrightarrow \text{Protectio
 VeriqoMesh is designed to leverage Monad Metropolis as its target execution environment, relying on Monad's architectural capabilities:
 - **Target 10,000 TPS & 1-Second Finality (Monad Network Architecture)**: Monad's designed high throughput and rapid finality provide the necessary infrastructure for sub-second escrow state transitions and multi-party verification attestations without long settlement stalls.
 - **Parallel EVM Execution (Monad Design)**: Monad's parallel execution engine is designed to allow high-volume concurrent micro-escrows and independent judge ballot submissions to process in parallel across independent state paths.
-- **Micro-Fee Predictability (Testnet Economics)**: Monad's gas efficiency ensures that high-frequency commercial micro-escrows (such as our 0.001 MON live testnet transaction) remain economically viable with sub-cent transaction fees.
+- **Micro-Fee Predictability (Testnet Economics)**: Monad's gas efficiency is well suited to high-frequency commercial micro-escrows, including the 0.001 MON live testnet transaction demonstrated here.
 
 ---
 
@@ -46,7 +46,7 @@ VeriqoMesh is designed to leverage Monad Metropolis as its target execution envi
 ### The AI Firewall & Safety Boundary
 VeriqoMesh implements a strict, non-negotiable **AI Firewall**:
 - **Zero Direct Financial Execution Authority**: AI models may structure natural language intent, extract terms, summarize evidence, and construct case dossiers. AI **never** releases funds, refunds escrow, alters terms, or bypasses verification.
-- **Human & Wallet Policy Gates**: All onchain state changes, deposits, and settlement releases require explicit cryptographic signatures from authorized browser wallets (MetaMask) or policy-bounded agent signers.
+- **Human & Wallet Policy Gates**: All onchain state changes, deposits, and settlement releases require explicit cryptographic signatures from authorized wallets. AI models do not possess unrestricted financial execution authority.
 - **No Hidden Private Keys**: The protocol architecture never relies on embedded or server-side private keys for normal user or verifier roles.
 
 ### Evidence Model: Anchors vs References
