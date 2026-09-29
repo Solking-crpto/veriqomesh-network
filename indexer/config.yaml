@@ -1,33 +1,35 @@
-# Envio HyperIndex Configuration for VeriqoMesh Network
-# Network: Monad Metropolis Testnet (Chain ID: 10143)
-
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
 name: veriqomesh-indexer
 description: Read-only provenance and lifecycle indexing for VeriqoMesh Network on Monad Metropolis Testnet
-networks:
+
+contracts:
+  - name: TrustMeshEscrow
+    handler: src/EventHandlers.ts
+    events:
+      - event: TransactionCreated(bytes32 indexed transactionId, address indexed buyer, address indexed seller, address verifier, uint256 amount)
+      - event: TransactionAgreed(bytes32 indexed transactionId, address indexed seller)
+      - event: TransactionFunded(bytes32 indexed transactionId, address indexed funder, uint256 amount)
+      - event: TransactionStarted(bytes32 indexed transactionId, address indexed seller)
+      - event: EvidenceAnchored(bytes32 indexed transactionId, bytes32 indexed contentHash, address indexed submitter)
+      - event: VerificationStarted(bytes32 indexed transactionId, address indexed verifier)
+      - event: VerificationSubmitted(bytes32 indexed transactionId, address indexed verifier, uint8 outcome, bytes32 reportHash)
+      - event: DisputeOpened(bytes32 indexed transactionId, address indexed initiator)
+      - event: DisputeResolved(bytes32 indexed transactionId, address indexed resolver, uint16 buyerShareBps)
+      - event: TransactionSettled(bytes32 indexed transactionId, address indexed recipient, uint256 amount)
+      - event: TransactionRefunded(bytes32 indexed transactionId, address indexed recipient, uint256 amount)
+  - name: TrustReceiptRegistry
+    handler: src/EventHandlers.ts
+    events:
+      - event: TrustReceiptIssued(uint256 indexed receiptId, bytes32 indexed transactionId, address indexed partyA, address partyB, uint8 outcome)
+
+chains:
   - id: 10143
-    rpc_config:
-      url: https://testnet-rpc.monad.xyz
+    rpc: https://testnet-rpc.monad.xyz
     start_block: 65000000
     contracts:
       - name: TrustMeshEscrow
         address:
           - "0x925ea880cA53DE0352b84B24d0C0dee5B258015A"
-        handler: src/EventHandlers.ts
-        events:
-          - event: TransactionCreated(bytes32 indexed transactionId, address indexed buyer, address indexed seller, address verifier, uint256 amount)
-          - event: TransactionAgreed(bytes32 indexed transactionId, address indexed seller)
-          - event: TransactionFunded(bytes32 indexed transactionId, address indexed funder, uint256 amount)
-          - event: TransactionStarted(bytes32 indexed transactionId, address indexed seller)
-          - event: EvidenceAnchored(bytes32 indexed transactionId, bytes32 indexed contentHash, address indexed submitter)
-          - event: VerificationStarted(bytes32 indexed transactionId, address indexed verifier)
-          - event: VerificationSubmitted(bytes32 indexed transactionId, address indexed verifier, uint8 outcome, bytes32 reportHash)
-          - event: DisputeOpened(bytes32 indexed transactionId, address indexed initiator)
-          - event: DisputeResolved(bytes32 indexed transactionId, address indexed resolver, uint16 buyerShareBps)
-          - event: TransactionSettled(bytes32 indexed transactionId, address indexed recipient, uint256 amount)
-          - event: TransactionRefunded(bytes32 indexed transactionId, address indexed recipient, uint256 amount)
       - name: TrustReceiptRegistry
         address:
           - "0xE1994e0dF7CD5A836be4b02AE2164A542418B819"
-        handler: src/EventHandlers.ts
-        events:
-          - event: TrustReceiptIssued(uint256 indexed receiptId, bytes32 indexed transactionId, address indexed partyA, address partyB, uint8 outcome)
