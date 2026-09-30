@@ -2,12 +2,12 @@
 // Contract: TrustReceiptRegistry
 // Network: Monad Metropolis Testnet (Chain ID: 10143)
 
-import {
-  TrustReceiptRegistry,
-} from "generated";
+import { indexer } from "envio";
 
 // 12. TrustReceiptIssued (from TrustReceiptRegistry)
-TrustReceiptRegistry.TrustReceiptIssued.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "TrustReceiptRegistry", event: "TrustReceiptIssued" },
+  async ({ event, context }) => {
   const txId = event.params.transactionId;
   const receiptId = event.params.receiptId;
 
