@@ -4,8 +4,8 @@
 
 import { indexer } from "envio";
 
-function outcomeToString(outcome: number): "NONE" | "PASS" | "FAIL" | "INCONCLUSIVE" {
-  switch (outcome) {
+function outcomeToString(outcome: number | bigint): "NONE" | "PASS" | "FAIL" | "INCONCLUSIVE" {
+  switch (Number(outcome)) {
     case 1:
       return "PASS";
     case 2:
@@ -313,11 +313,13 @@ indexer.onEvent(
     const txId = event.params.transactionId;
     const dispute = await context.DisputeRecord.get(txId);
 
+    const buyerShareBps = Number(event.params.buyerShareBps);
+
     if (dispute) {
       context.DisputeRecord.set({
         ...dispute,
         resolver: event.params.resolver.toLowerCase(),
-        buyerShareBps: event.params.buyerShareBps,
+        buyerShareBps: buyerShareBps,
         isResolved: true,
         resolvedBlock: event.block.number,
         resolvedTimestamp: BigInt(event.block.timestamp),
@@ -331,7 +333,7 @@ indexer.onEvent(
         ...tx,
         status: "SETTLED",
         disputeResolver: event.params.resolver.toLowerCase(),
-        buyerShareBps: event.params.buyerShareBps,
+        buyerShareBps: buyerShareBps,
         updatedAt: BigInt(event.block.timestamp),
       });
     }
@@ -341,7 +343,7 @@ indexer.onEvent(
       eventType: "DisputeResolved",
       transactionId: txId,
       actor: event.params.resolver.toLowerCase(),
-      details: `Dispute resolved via quorum consensus with buyer share ${event.params.buyerShareBps} BPS`,
+      details: `Dispute resolved via quorum consensus with buyer share ${buyerShareBps} BPS`,
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
       txHash: event.transaction.hash,

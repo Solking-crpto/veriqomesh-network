@@ -11,12 +11,14 @@ indexer.onEvent(
   const txId = event.params.transactionId;
   const receiptId = event.params.receiptId;
 
+  const outcomeNum = Number(event.params.outcome);
+
   context.TrustReceipt.set({
     id: receiptId.toString(),
     transactionId: txId,
     partyA: event.params.partyA.toLowerCase(),
     partyB: event.params.partyB.toLowerCase(),
-    outcome: event.params.outcome,
+    outcome: outcomeNum,
     issuedBlock: event.block.number,
     issuedTimestamp: BigInt(event.block.timestamp),
     txHash: event.transaction.hash,
