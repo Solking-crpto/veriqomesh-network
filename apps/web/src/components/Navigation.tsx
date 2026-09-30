@@ -5,28 +5,42 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useDemoNetwork } from '../context/DemoNetworkContext';
 
+interface NavLinkItem {
+  label: string;
+  href: string;
+  badge?: number;
+}
+
 export function Navigation() {
   const pathname = usePathname();
   const { role, switchRole, initiator, receiver, requests, wallet } = useDemoNetwork();
+
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   const pendingIncomingCount = requests.filter(
     (r) => r.status === 'AWAITING_RECEIVER_ACCEPTANCE'
   ).length;
 
-  const navLinks = [
+  const primaryNavLinks: NavLinkItem[] = [
     { label: 'Home', href: '/' },
-    { label: 'Initiator', href: '/initiator' },
-    { label: 'Receiver', href: '/receiver' },
-    { label: 'Discover', href: '/receivers' },
+    { label: 'Your Transactions', href: '/transactions' },
+    { label: 'Public Demo', href: '/transactions?tab=demo' },
+    { label: 'Trust', href: '/trust' },
+  ];
+
+  const secondaryNavLinks: NavLinkItem[] = [
     {
       label: 'Requests',
       href: '/requests',
       badge: role === 'RECEIVER' && pendingIncomingCount > 0 ? pendingIncomingCount : undefined,
     },
-    { label: 'Transactions', href: '/transactions' },
+    { label: 'Discover', href: '/receivers' },
+    { label: 'Initiator', href: '/initiator' },
+    { label: 'Receiver', href: '/receiver' },
     { label: 'Evidence', href: '/evidence' },
-    { label: 'Trust', href: '/trust' },
   ];
+
+  const allDesktopNavLinks = [...primaryNavLinks, ...secondaryNavLinks];
 
   return (
     <header className="sticky top-0 z-50 bg-[#090a10]/95 backdrop-blur-md border-b border-gray-800">
@@ -54,7 +68,7 @@ export function Navigation() {
           <span className="hidden md:inline">Registry: <code className="text-gray-300">0xE1994e...B819</code></span>
           <span className="hidden md:inline">•</span>
           <span className="hidden sm:inline">Resolver: <code className="text-purple-300">0x12f9e5...c35E</code></span>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <Link
             href="/demo-video"
             className="px-2.5 py-0.5 rounded bg-purple-950/90 hover:bg-purple-900 border border-purple-600/70 text-purple-200 font-bold transition flex items-center gap-1.5 text-[10px]"
@@ -81,15 +95,21 @@ export function Navigation() {
                 </span>
               </div>
               <div className="text-[9px] text-gray-400 font-sans hidden sm:block">
-                Trusted Commerce for Humans & AI
+                Trusted Commerce for Humans &amp; AI
               </div>
             </div>
           </Link>
 
-          {/* Nav Items */}
+          {/* Desktop Nav Items */}
           <nav className="hidden lg:flex items-center gap-1 text-xs font-mono">
-            {navLinks.map((item) => {
-              const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+            {allDesktopNavLinks.map((item) => {
+              const isActive =
+                item.href === '/transactions?tab=demo'
+                  ? pathname === '/transactions' && typeof window !== 'undefined' && window.location.search.includes('tab=demo')
+                  : item.href === '/transactions'
+                  ? pathname === '/transactions' && (typeof window === 'undefined' || !window.location.search.includes('tab=demo'))
+                  : pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+
               return (
                 <Link
                   key={item.href}
@@ -156,9 +176,9 @@ export function Navigation() {
             </div>
           )}
 
-          {/* 1-Click Role Switcher */}
-          <div className="flex items-center rounded-lg bg-gray-950 border border-gray-800 p-0.5 text-[11px] font-mono">
-            <span className="px-2 text-gray-500 text-[10px] uppercase font-bold hidden sm:inline">
+          {/* Role Switcher (Desktop) */}
+          <div className="hidden sm:flex items-center rounded-lg bg-gray-950 border border-gray-800 p-0.5 text-[11px] font-mono">
+            <span className="px-2 text-gray-500 text-[10px] uppercase font-bold">
               Role:
             </span>
             <button
@@ -194,42 +214,129 @@ export function Navigation() {
             className="px-2.5 py-1 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-700/80 text-gray-300 text-xs font-mono transition flex items-center gap-2"
           >
             <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-purple-800 to-indigo-600 flex items-center justify-center text-[10px] text-white font-bold">
-              {role === 'INITIATOR' ? 'I' : 'R'}
+              {wallet.isConnected ? (role === 'INITIATOR' ? 'I' : 'R') : '?'}
             </div>
             <div className="hidden md:block text-left text-[11px] leading-tight">
               <div className="text-white font-semibold truncate max-w-[120px]">
-                {role === 'INITIATOR' ? initiator.name : receiver.name}
+                {wallet.isConnected
+                  ? `${wallet.address?.slice(0, 6)}...${wallet.address?.slice(-4)}`
+                  : 'Demo Persona'}
               </div>
               <div className="text-[9px] text-gray-400">
-                {role === 'INITIATOR' ? 'Initiator' : 'Receiver'}
+                {wallet.isConnected
+                  ? (role === 'INITIATOR' ? 'Initiator' : 'Receiver')
+                  : `${role === 'INITIATOR' ? initiator.name : receiver.name}`}
               </div>
             </div>
           </Link>
+
+          {/* Mobile Menu Toggle Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-300 hover:text-white transition"
+            title="Toggle Menu"
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? '✕' : '☰'}
+          </button>
         </div>
       </div>
 
-      {/* Mobile Subnav */}
-      <div className="lg:hidden flex items-center overflow-x-auto px-4 py-1.5 border-t border-gray-900 gap-1 text-[11px] font-mono">
-        {navLinks.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`px-2 py-1 rounded whitespace-nowrap ${
-                isActive ? 'bg-purple-900/60 text-white font-bold' : 'text-gray-400'
-              }`}
-            >
-              {item.label}
-              {item.badge !== undefined && (
-                <span className="ml-1 px-1 rounded-full bg-amber-500 text-black text-[9px] font-bold">
-                  {item.badge}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+      {/* Mobile Primary Nav Bar */}
+      <div className="lg:hidden flex items-center justify-between px-3 py-1.5 border-t border-gray-900 bg-gray-950/80 font-mono text-[11px]">
+        <div className="flex items-center gap-1 overflow-x-auto">
+          {primaryNavLinks.map((item) => {
+            const isActive =
+              item.href === '/transactions?tab=demo'
+                ? pathname === '/transactions' && typeof window !== 'undefined' && window.location.search.includes('tab=demo')
+                : item.href === '/transactions'
+                ? pathname === '/transactions' && (typeof window === 'undefined' || !window.location.search.includes('tab=demo'))
+                : pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`px-2 py-1 rounded whitespace-nowrap ${
+                  isActive ? 'bg-purple-900/70 text-white font-bold' : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="text-purple-400 hover:text-purple-300 text-[10px] px-2 py-1 font-bold whitespace-nowrap"
+        >
+          {mobileMenuOpen ? 'Close ▲' : 'More ▼'}
+        </button>
       </div>
+
+      {/* Mobile Expandable Drawer */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden px-4 py-3 border-t border-gray-800 bg-[#0c0d14] space-y-3 font-mono text-xs">
+          <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">
+            Workspace Modules
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {secondaryNavLinks.map((item) => {
+              const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`p-2 rounded-lg border transition flex items-center justify-between ${
+                    isActive
+                      ? 'bg-purple-950/80 border-purple-700 text-white font-bold'
+                      : 'bg-gray-900/60 border-gray-800 text-gray-300 hover:border-gray-700'
+                  }`}
+                >
+                  <span>{item.label}</span>
+                  {item.badge !== undefined && (
+                    <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-black text-[9px] font-extrabold animate-pulse">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Mobile Role Switcher */}
+          <div className="pt-2 border-t border-gray-900 flex items-center justify-between">
+            <span className="text-[10px] text-gray-400 uppercase font-bold">
+              Demo Persona:
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => {
+                  switchRole('INITIATOR');
+                  setMobileMenuOpen(false);
+                }}
+                className={`px-2 py-1 rounded text-[10px] font-bold ${
+                  role === 'INITIATOR' ? 'bg-purple-700 text-white' : 'bg-gray-900 text-gray-400'
+                }`}
+              >
+                Initiator
+              </button>
+              <button
+                onClick={() => {
+                  switchRole('RECEIVER');
+                  setMobileMenuOpen(false);
+                }}
+                className={`px-2 py-1 rounded text-[10px] font-bold ${
+                  role === 'RECEIVER' ? 'bg-blue-600 text-white' : 'bg-gray-900 text-gray-400'
+                }`}
+              >
+                Receiver
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
