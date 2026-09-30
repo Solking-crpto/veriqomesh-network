@@ -10,7 +10,7 @@
     "test": "node -e \"console.log('Envio HyperIndex configuration and schema valid')\""
   },
   "dependencies": {
-    "envio": "^3.12.1"
+    "envio": "3.12.1"
   },
   "devDependencies": {
     "typescript": "^5.4.5"

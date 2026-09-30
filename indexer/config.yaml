@@ -4,7 +4,7 @@ description: Read-only provenance and lifecycle indexing for VeriqoMesh Network 
 
 contracts:
   - name: TrustMeshEscrow
-    handler: src/EventHandlers.ts
+    handler: src/TrustMeshEscrow.ts
     events:
       - event: TransactionCreated(bytes32 indexed transactionId, address indexed buyer, address indexed seller, address verifier, uint256 amount)
       - event: TransactionAgreed(bytes32 indexed transactionId, address indexed seller)
@@ -18,7 +18,7 @@ contracts:
       - event: TransactionSettled(bytes32 indexed transactionId, address indexed recipient, uint256 amount)
       - event: TransactionRefunded(bytes32 indexed transactionId, address indexed recipient, uint256 amount)
   - name: TrustReceiptRegistry
-    handler: src/EventHandlers.ts
+    handler: src/TrustReceiptRegistry.ts
     events:
       - event: TrustReceiptIssued(uint256 indexed receiptId, bytes32 indexed transactionId, address indexed partyA, address partyB, uint8 outcome)
 
@@ -29,6 +29,8 @@ chains:
     rpc:
       - url: https://testnet-rpc.monad.xyz
         for: fallback
+        initial_block_interval: 100
+        interval_ceiling: 100
     start_block: 65000000
     contracts:
       - name: TrustMeshEscrow
