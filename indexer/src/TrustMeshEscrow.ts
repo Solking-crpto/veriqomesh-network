@@ -45,21 +45,21 @@ indexer.onEvent(
       disputeResolver: null,
       buyerShareBps: null,
       createdBlock: event.block.number,
-      createdTxHash: event.transaction.hash,
+      createdTxHash: event.transaction?.hash ?? "",
       evidenceCount: current?.evidenceCount ?? 0,
       receiptId: current?.receiptId ?? null,
       updatedAt: BigInt(event.block.timestamp),
     });
 
     context.LifecycleEvent.set({
-      id: `${event.transaction.hash}-${event.logIndex}`,
+      id: `${event.transaction?.hash ?? event.block.number}-${event.logIndex}`,
       eventType: "TransactionCreated",
       transactionId: txId,
       actor: event.params.buyer.toLowerCase(),
       details: `Created transaction for ${event.params.amount.toString()} base units with seller ${event.params.seller.toLowerCase()}`,
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
-      txHash: event.transaction.hash,
+      txHash: event.transaction?.hash ?? "",
     });
   }
 );
@@ -81,14 +81,14 @@ indexer.onEvent(
     }
 
     context.LifecycleEvent.set({
-      id: `${event.transaction.hash}-${event.logIndex}`,
+      id: `${event.transaction?.hash ?? event.block.number}-${event.logIndex}`,
       eventType: "TransactionAgreed",
       transactionId: txId,
       actor: event.params.seller.toLowerCase(),
       details: `Seller agreed to commercial terms onchain`,
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
-      txHash: event.transaction.hash,
+      txHash: event.transaction?.hash ?? "",
     });
   }
 );
@@ -110,14 +110,14 @@ indexer.onEvent(
     }
 
     context.LifecycleEvent.set({
-      id: `${event.transaction.hash}-${event.logIndex}`,
+      id: `${event.transaction?.hash ?? event.block.number}-${event.logIndex}`,
       eventType: "TransactionFunded",
       transactionId: txId,
       actor: event.params.funder.toLowerCase(),
       details: `Escrow funded with ${event.params.amount.toString()} base units`,
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
-      txHash: event.transaction.hash,
+      txHash: event.transaction?.hash ?? "",
     });
   }
 );
@@ -139,14 +139,14 @@ indexer.onEvent(
     }
 
     context.LifecycleEvent.set({
-      id: `${event.transaction.hash}-${event.logIndex}`,
+      id: `${event.transaction?.hash ?? event.block.number}-${event.logIndex}`,
       eventType: "TransactionStarted",
       transactionId: txId,
       actor: event.params.seller.toLowerCase(),
       details: `Seller commenced work execution under agreed mandate`,
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
-      txHash: event.transaction.hash,
+      txHash: event.transaction?.hash ?? "",
     });
   }
 );
@@ -165,7 +165,7 @@ indexer.onEvent(
       submitter: event.params.submitter.toLowerCase(),
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
-      txHash: event.transaction.hash,
+      txHash: event.transaction?.hash ?? "",
     });
 
     const tx = await context.Transaction.get(txId);
@@ -178,14 +178,14 @@ indexer.onEvent(
     }
 
     context.LifecycleEvent.set({
-      id: `${event.transaction.hash}-${event.logIndex}`,
+      id: `${event.transaction?.hash ?? event.block.number}-${event.logIndex}`,
       eventType: "EvidenceAnchored",
       transactionId: txId,
       actor: event.params.submitter.toLowerCase(),
       details: `Cryptographic evidence anchored: ${contentHash}`,
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
-      txHash: event.transaction.hash,
+      txHash: event.transaction?.hash ?? "",
     });
   }
 );
@@ -208,14 +208,14 @@ indexer.onEvent(
     }
 
     context.LifecycleEvent.set({
-      id: `${event.transaction.hash}-${event.logIndex}`,
+      id: `${event.transaction?.hash ?? event.block.number}-${event.logIndex}`,
       eventType: "VerificationStarted",
       transactionId: txId,
       actor: event.params.verifier.toLowerCase(),
       details: `Independent verifier initiated deliverable evaluation`,
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
-      txHash: event.transaction.hash,
+      txHash: event.transaction?.hash ?? "",
     });
   }
 );
@@ -235,7 +235,7 @@ indexer.onEvent(
       reportHash: event.params.reportHash,
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
-      txHash: event.transaction.hash,
+      txHash: event.transaction?.hash ?? "",
     });
 
     const tx = await context.Transaction.get(txId);
@@ -249,14 +249,14 @@ indexer.onEvent(
     }
 
     context.LifecycleEvent.set({
-      id: `${event.transaction.hash}-${event.logIndex}`,
+      id: `${event.transaction?.hash ?? event.block.number}-${event.logIndex}`,
       eventType: "VerificationSubmitted",
       transactionId: txId,
       actor: event.params.verifier.toLowerCase(),
       details: `Verifier attestation submitted: ${outcomeStr} (Report Hash: ${event.params.reportHash})`,
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
-      txHash: event.transaction.hash,
+      txHash: event.transaction?.hash ?? "",
     });
   }
 );
@@ -276,7 +276,7 @@ indexer.onEvent(
       isResolved: false,
       openedBlock: event.block.number,
       openedTimestamp: BigInt(event.block.timestamp),
-      openedTxHash: event.transaction.hash,
+      openedTxHash: event.transaction?.hash ?? null,
       resolvedBlock: null,
       resolvedTimestamp: null,
       resolvedTxHash: null,
@@ -294,14 +294,14 @@ indexer.onEvent(
     }
 
     context.LifecycleEvent.set({
-      id: `${event.transaction.hash}-${event.logIndex}`,
+      id: `${event.transaction?.hash ?? event.block.number}-${event.logIndex}`,
       eventType: "DisputeOpened",
       transactionId: txId,
       actor: event.params.initiator.toLowerCase(),
       details: `Dispute opened due to inconclusive verification or contested deliverable`,
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
-      txHash: event.transaction.hash,
+      txHash: event.transaction?.hash ?? "",
     });
   }
 );
@@ -323,7 +323,7 @@ indexer.onEvent(
         isResolved: true,
         resolvedBlock: event.block.number,
         resolvedTimestamp: BigInt(event.block.timestamp),
-        resolvedTxHash: event.transaction.hash,
+        resolvedTxHash: event.transaction?.hash ?? null,
       });
     }
 
@@ -339,14 +339,14 @@ indexer.onEvent(
     }
 
     context.LifecycleEvent.set({
-      id: `${event.transaction.hash}-${event.logIndex}`,
+      id: `${event.transaction?.hash ?? event.block.number}-${event.logIndex}`,
       eventType: "DisputeResolved",
       transactionId: txId,
       actor: event.params.resolver.toLowerCase(),
       details: `Dispute resolved via quorum consensus with buyer share ${buyerShareBps} BPS`,
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
-      txHash: event.transaction.hash,
+      txHash: event.transaction?.hash ?? "",
     });
   }
 );
@@ -368,14 +368,14 @@ indexer.onEvent(
     }
 
     context.LifecycleEvent.set({
-      id: `${event.transaction.hash}-${event.logIndex}`,
+      id: `${event.transaction?.hash ?? event.block.number}-${event.logIndex}`,
       eventType: "TransactionSettled",
       transactionId: txId,
       actor: event.params.recipient.toLowerCase(),
       details: `Settlement disbursed: ${event.params.amount.toString()} base units to ${event.params.recipient.toLowerCase()}`,
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
-      txHash: event.transaction.hash,
+      txHash: event.transaction?.hash ?? "",
     });
   }
 );
@@ -397,14 +397,14 @@ indexer.onEvent(
     }
 
     context.LifecycleEvent.set({
-      id: `${event.transaction.hash}-${event.logIndex}`,
+      id: `${event.transaction?.hash ?? event.block.number}-${event.logIndex}`,
       eventType: "TransactionRefunded",
       transactionId: txId,
       actor: event.params.recipient.toLowerCase(),
       details: `Escrow refunded: ${event.params.amount.toString()} base units to ${event.params.recipient.toLowerCase()}`,
       blockNumber: event.block.number,
       timestamp: BigInt(event.block.timestamp),
-      txHash: event.transaction.hash,
+      txHash: event.transaction?.hash ?? "",
     });
   }
 );

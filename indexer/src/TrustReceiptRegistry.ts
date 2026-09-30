@@ -21,7 +21,7 @@ indexer.onEvent(
     outcome: outcomeNum,
     issuedBlock: event.block.number,
     issuedTimestamp: BigInt(event.block.timestamp),
-    txHash: event.transaction.hash,
+    txHash: event.transaction?.hash ?? "",
   });
 
   const tx = await context.Transaction.get(txId);
@@ -34,13 +34,13 @@ indexer.onEvent(
   }
 
   context.LifecycleEvent.set({
-    id: `${event.transaction.hash}-${event.logIndex}`,
+    id: `${event.transaction?.hash ?? event.block.number}-${event.logIndex}`,
     eventType: "TrustReceiptIssued",
     transactionId: txId,
     actor: event.params.partyA.toLowerCase(),
     details: `Non-transferable Soulbound Trust Receipt #${receiptId.toString()} issued for transaction outcome ${event.params.outcome}`,
     blockNumber: event.block.number,
     timestamp: BigInt(event.block.timestamp),
-    txHash: event.transaction.hash,
+    txHash: event.transaction?.hash ?? "",
   });
 });

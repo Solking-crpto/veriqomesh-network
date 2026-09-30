@@ -75,7 +75,7 @@ type DisputeRecord {
   isResolved: Boolean!
   openedBlock: Int!
   openedTimestamp: BigInt!
-  openedTxHash: String!
+  openedTxHash: String
   resolvedBlock: Int
   resolvedTimestamp: BigInt
   resolvedTxHash: String

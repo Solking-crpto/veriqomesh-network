@@ -2,6 +2,10 @@
 name: veriqomesh-indexer
 description: Read-only provenance and lifecycle indexing for VeriqoMesh Network on Monad Metropolis Testnet
 
+field_selection:
+  transaction_fields:
+    - hash
+
 contracts:
   - name: TrustMeshEscrow
     handler: src/TrustMeshEscrow.ts
