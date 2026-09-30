@@ -83,24 +83,25 @@ async function audit() {
 
   // Registry audit: total receipts, receipt by txId, etc.
   try {
-    const receiptCount = await registry.receiptCount();
-    console.log('Receipt Registry receiptCount:', receiptCount.toString());
-    for (let r = 1; r <= Number(receiptCount); r++) {
+    const totalReceipts = await registry.totalReceipts();
+    console.log('Receipt Registry totalReceipts:', totalReceipts.toString());
+    for (let r = 1; r <= Number(totalReceipts); r++) {
       const rec = await registry.getReceipt(r);
       console.log(`Receipt #${r}:`, {
-        receiptNumber: rec.receiptNumber.toString(),
+        receiptNumber: r,
         transactionId: rec.transactionId,
-        buyer: rec.buyer,
-        seller: rec.seller,
-        verifier: rec.verifier,
-        settlementAmount: ethers.formatEther(rec.settlementAmount) + ' MON',
+        partyA: rec.partyA,
+        partyB: rec.partyB,
+        tokenAddress: rec.tokenAddress,
+        settledAmount: ethers.formatEther(rec.settledAmount) + ' MON',
         outcome: Number(rec.outcome),
+        termsSummaryHash: rec.termsSummaryHash,
         evidenceRoot: rec.evidenceRoot,
-        timestamp: Number(rec.timestamp)
+        issuedAt: Number(rec.issuedAt)
       });
     }
-    const txReceiptId = await registry.getReceiptByTransaction(targetTxId);
-    console.log('getReceiptByTransaction for targetTxId:', txReceiptId.receiptNumber.toString());
+    const txReceipt = await registry.getReceiptByTransaction(targetTxId);
+    console.log('getReceiptByTransaction for targetTxId exists:', txReceipt.transactionId === targetTxId);
   } catch (e) {
     console.log('Error querying registry:', e.message);
   }

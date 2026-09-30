@@ -28,7 +28,7 @@ export default function TrustReceiptsPage() {
         'Escrow locked upon inconclusive physical depot verification. Three accredited human judges submitted independent signed ballots; the protocol calculated the deterministic median of 1,500 bps and executed atomic distribution via the Monad resolver contract.',
     },
     {
-      id: 1,
+      id: 3,
       tag: 'CANONICAL MONAD TESTNET VERIFIED SETTLEMENT',
       isTestnet: true,
       title: 'Verified Deliverable Release (100% Payout to Seller)',
@@ -42,7 +42,7 @@ export default function TrustReceiptsPage() {
       termsSummaryHash: '0xebb931936199ae988129d1eed8501a6ad3311035f0d72dd0e52e0c92454a125f',
       evidenceRoot: '0x08a30b2c4935050f1ffbda42a5a6565ab54fc1b090bb47c036afd47aaad2edff',
       resolverContract: 'Uncontested (Direct Escrow Release)',
-      onchainTxHash: '0x691f7a80d65fe1deece2f4415fa316d3e70cf278832a8e8e8ce1693e5066c0d8',
+      onchainTxHash: '0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52',
       network: 'Monad Metropolis Testnet (Chain ID: 10143)',
       issuedAt: '2026-09-24T10:25:00Z',
       accountability:

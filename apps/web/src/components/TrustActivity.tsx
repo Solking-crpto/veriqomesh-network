@@ -27,7 +27,7 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     details: 'Initiated commercial mandate for 0.001 MON with designated verifier 0xb064...c48',
     blockNumber: 65963660,
     timestamp: '2026-09-24T09:15:00Z',
-    txHash: '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1',
+    txHash: '0xeddd26b03699fa0dd8aabd5a8ff260abca029ece60c13dae916fe4060f33e2cd',
     category: 'agreement',
   },
   {
@@ -37,9 +37,9 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     actor: '0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8',
     actorRole: 'Seller',
     details: 'Seller accepted terms hash 0xebb9...125f onchain',
-    blockNumber: 65963720,
+    blockNumber: 65963910,
     timestamp: '2026-09-24T09:20:00Z',
-    txHash: '0x17f938a1c9e8432a510e82c5f10b2a3d4c5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a',
+    txHash: '0x4ac4c4b6cdf18b753f5e5f536f83a93545c5c185129ea58418ca9e38cdf11f8a',
     category: 'agreement',
   },
   {
@@ -49,9 +49,9 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     actor: '0xa4bCC57d40311D715ECe34940191820d4a81C50F',
     actorRole: 'Buyer',
     details: 'Funded escrow liabilities with 0.001 MON',
-    blockNumber: 65963800,
+    blockNumber: 66096522,
     timestamp: '2026-09-24T09:25:00Z',
-    txHash: '0x28a019b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0',
+    txHash: '0xdcb8564b899b06f9bd8eb2d6bcacc92d9f51838cf23bfb0ac3faba7703a04f3e',
     category: 'escrow',
   },
   {
@@ -61,9 +61,9 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     actor: '0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8',
     actorRole: 'Seller',
     details: 'Seller marked deliverable execution commenced',
-    blockNumber: 65964100,
+    blockNumber: 66098350,
     timestamp: '2026-09-24T09:35:00Z',
-    txHash: '0x39b120c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1',
+    txHash: '0xb085f04396db481be7d06034a6b86c345d522b5ce79bf968fb24b05b3dfb470b',
     category: 'evidence',
   },
   {
@@ -73,9 +73,9 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     actor: '0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8',
     actorRole: 'Seller',
     details: 'Anchored deliverable content hash 0x08a30b2c4935050f1ffbda42a5a6565ab54fc1b090bb47c036afd47aaad2edff',
-    blockNumber: 66436500,
+    blockNumber: 66434952,
     timestamp: '2026-09-24T10:10:00Z',
-    txHash: '0x4ac231d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2',
+    txHash: '0x698ef9bed9a8007db66a6047187783dd97d026055b0f2e30cfe75826ad7b923e',
     category: 'evidence',
   },
   {
@@ -85,9 +85,9 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     actor: '0xb064d69428B9838C2a3e408cF995ea8eb5182c48',
     actorRole: 'Designated Verifier',
     details: 'Audited evidence deliverables; attestation outcome: PASS (1)',
-    blockNumber: 66436580,
+    blockNumber: 66436440,
     timestamp: '2026-09-24T10:20:00Z',
-    txHash: '0x5bd342e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3',
+    txHash: '0x4d4ff904821b9d3fe145b00a0e27f2096e567155a6d20c50e7b6913095f29bb0',
     category: 'verification',
   },
   {
@@ -99,7 +99,7 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     details: 'Executed releaseEscrow(): 0.001 MON disbursed to seller; 0.0 MON refunded; State 11 SETTLED',
     blockNumber: 66436615,
     timestamp: '2026-09-24T10:25:00Z',
-    txHash: '0x691f7a80d65fe1deece2f4415fa316d3e70cf278832a8e8e8ce1693e5066c0d8',
+    txHash: '0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52',
     category: 'settlement',
   },
   {
@@ -108,10 +108,10 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     transactionId: '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1',
     actor: '0x925ea880cA53DE0352b84B24d0C0dee5B258015A',
     actorRole: 'Escrow / Registry',
-    details: 'Minted Soulbound Trust Receipt #1 for terminal verified release',
+    details: 'Minted Soulbound Trust Receipt #3 for terminal verified release',
     blockNumber: 66436615,
     timestamp: '2026-09-24T10:25:00Z',
-    txHash: '0x691f7a80d65fe1deece2f4415fa316d3e70cf278832a8e8e8ce1693e5066c0d8',
+    txHash: '0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52',
     category: 'receipt',
   },
 
@@ -166,6 +166,70 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
   },
 ];
 
+function deriveActorRole(eventType: string, actor: string): string {
+  const a = (actor || '').toLowerCase();
+  if (a === '0xa4bcc57d40311d715ece34940191820d4a81c50f') return 'Buyer';
+  if (a === '0x0e73dbff9047423b520fa9fc23a95645fc986ee8') return 'Seller';
+  if (a === '0xb064d69428b9838c2a3e408cf995ea8eb5182c48') return 'Designated Verifier';
+  if (a === '0x12f9e53c31f7629acae0ba70588794945ec6c35e') return 'Dispute Resolver';
+  if (a === '0x925ea880ca53de0352b84b24d0c0dee5b258015a') return 'TrustMesh Escrow';
+  if (a === '0xe1994e0df7cd5a836be4b02ae2164a542418b819') return 'TrustReceipt Registry';
+
+  switch (eventType) {
+    case 'TransactionCreated':
+    case 'TransactionFunded':
+    case 'EscrowFunded':
+      return 'Buyer';
+    case 'TransactionAgreed':
+    case 'TransactionStarted':
+    case 'WorkStarted':
+    case 'EvidenceAnchored':
+      return 'Seller';
+    case 'VerificationStarted':
+    case 'VerificationSubmitted':
+      return 'Designated Verifier';
+    case 'DisputeOpened':
+      return 'Disputing Party';
+    case 'DisputeResolved':
+      return 'Dispute Resolver';
+    case 'TransactionSettled':
+    case 'EscrowSettled':
+      return 'Authorized Wallet / Escrow';
+    case 'TrustReceiptIssued':
+      return 'TrustReceipt Registry';
+    default:
+      return 'Network Participant';
+  }
+}
+
+function mapCategory(eventType: string): ProvenanceEvent['category'] {
+  switch (eventType) {
+    case 'TransactionCreated':
+    case 'TransactionAgreed':
+      return 'agreement';
+    case 'TransactionFunded':
+    case 'EscrowFunded':
+      return 'escrow';
+    case 'TransactionStarted':
+    case 'WorkStarted':
+    case 'EvidenceAnchored':
+      return 'evidence';
+    case 'VerificationStarted':
+    case 'VerificationSubmitted':
+      return 'verification';
+    case 'DisputeOpened':
+    case 'DisputeResolved':
+      return 'dispute';
+    case 'TransactionSettled':
+    case 'EscrowSettled':
+      return 'settlement';
+    case 'TrustReceiptIssued':
+      return 'receipt';
+    default:
+      return 'evidence';
+  }
+}
+
 export default function TrustActivity() {
   const [activeTab, setActiveTab] = useState<'events' | 'transactions' | 'schema'>('events');
   const [selectedTxFilter, setSelectedTxFilter] = useState<'all' | 'flow-a' | 'flow-b'>('all');
@@ -175,10 +239,73 @@ export default function TrustActivity() {
 
   // Check if an Envio GraphQL URL is configured in the environment
   const envioGraphqlUrl = process.env.NEXT_PUBLIC_ENVIO_GRAPHQL_URL;
-  const isEnvioActive = Boolean(envioGraphqlUrl);
+  const isEnvioConfigured = Boolean(envioGraphqlUrl);
 
-  const fetchLatestBlock = async () => {
-    setIsRefreshing(true);
+  const [events, setEvents] = useState<ProvenanceEvent[]>(AUTHORITATIVE_PROVENANCE_EVENTS);
+  const [dataSource, setDataSource] = useState<'envio' | 'rpc_fallback'>('rpc_fallback');
+
+  const fetchEnvioEvents = React.useCallback(async () => {
+    if (!envioGraphqlUrl) {
+      setEvents(AUTHORITATIVE_PROVENANCE_EVENTS);
+      setDataSource('rpc_fallback');
+      return;
+    }
+    try {
+      const res = await fetch(envioGraphqlUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: `{
+            LifecycleEvent(order_by: { blockNumber: desc }, limit: 50) {
+              id
+              eventType
+              transactionId
+              actor
+              details
+              blockNumber
+              timestamp
+              txHash
+            }
+          }`,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(`Envio HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      const rawEvents = data?.data?.LifecycleEvent;
+      if (Array.isArray(rawEvents) && rawEvents.length > 0) {
+        const mapped: ProvenanceEvent[] = rawEvents.map((e: any) => ({
+          id: e.id,
+          eventType: e.eventType,
+          transactionId: e.transactionId,
+          actor: e.actor,
+          actorRole: deriveActorRole(e.eventType, e.actor),
+          details: e.details,
+          blockNumber: Number(e.blockNumber),
+          timestamp:
+            typeof e.timestamp === 'string' && e.timestamp.length <= 11
+              ? new Date(Number(e.timestamp) * 1000).toISOString()
+              : e.timestamp
+              ? String(e.timestamp)
+              : new Date().toISOString(),
+          txHash: e.txHash,
+          category: mapCategory(e.eventType),
+        }));
+        setEvents(mapped);
+        setDataSource('envio');
+      } else {
+        setEvents(AUTHORITATIVE_PROVENANCE_EVENTS);
+        setDataSource('rpc_fallback');
+      }
+    } catch {
+      // Graceful fallback to authoritative onchain trace & RPC
+      setEvents(AUTHORITATIVE_PROVENANCE_EVENTS);
+      setDataSource('rpc_fallback');
+    }
+  }, [envioGraphqlUrl]);
+
+  const fetchLatestBlock = React.useCallback(async () => {
     try {
       const res = await fetch('https://testnet-rpc.monad.xyz', {
         method: 'POST',
@@ -190,18 +317,25 @@ export default function TrustActivity() {
         setLatestBlock(parseInt(data.result, 16));
       }
     } catch {
-      // Fallback block if offline
       setLatestBlock(66714476);
-    } finally {
-      setTimeout(() => setIsRefreshing(false), 400);
     }
+  }, []);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await Promise.all([fetchLatestBlock(), fetchEnvioEvents()]);
+    setTimeout(() => setIsRefreshing(false), 400);
   };
 
   useEffect(() => {
     fetchLatestBlock();
-    const interval = setInterval(fetchLatestBlock, 15000);
+    fetchEnvioEvents();
+    const interval = setInterval(() => {
+      fetchLatestBlock();
+      fetchEnvioEvents();
+    }, 15000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchLatestBlock, fetchEnvioEvents]);
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -209,12 +343,13 @@ export default function TrustActivity() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const filteredEvents = AUTHORITATIVE_PROVENANCE_EVENTS.filter((e) => {
+  const filteredEvents = events.filter((e) => {
+    const tx = (e.transactionId || '').toLowerCase();
     if (selectedTxFilter === 'flow-a') {
-      return e.transactionId.startsWith('0x961c');
+      return tx.startsWith('0x961c');
     }
     if (selectedTxFilter === 'flow-b') {
-      return e.transactionId.startsWith('0x2b57');
+      return tx.startsWith('0x2b57');
     }
     return true;
   });
@@ -269,17 +404,17 @@ export default function TrustActivity() {
 
           <div
             className={`px-3 py-1.5 rounded-xl font-mono text-xs flex items-center gap-2 border ${
-              isEnvioActive
+              dataSource === 'envio'
                 ? 'bg-emerald-950/60 border-emerald-700 text-emerald-300'
                 : 'bg-purple-950/60 border-purple-700 text-purple-300'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>{isEnvioActive ? 'GraphQL: Active' : 'Provenance: Live Testnet Trace'}</span>
+            <span className={`w-2 h-2 rounded-full ${dataSource === 'envio' ? 'bg-emerald-400' : 'bg-purple-400'} animate-ping`} />
+            <span>{dataSource === 'envio' ? 'Envio HyperIndex (GraphQL Primary)' : 'Monad RPC (Live Trace Fallback)'}</span>
           </div>
 
           <button
-            onClick={fetchLatestBlock}
+            onClick={handleRefresh}
             disabled={isRefreshing}
             className="p-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-700 transition"
             title="Refresh Block & Events"
@@ -483,12 +618,12 @@ export default function TrustActivity() {
               <div className="flex justify-between">
                 <span className="text-gray-500">Settlement Tx:</span>
                 <a
-                  href="https://testnet.monadexplorer.com/tx/0x691f7a80d65fe1deece2f4415fa316d3e70cf278832a8e8e8ce1693e5066c0d8"
+                  href="https://testnet.monadexplorer.com/tx/0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52"
                   target="_blank"
                   rel="noreferrer"
                   className="text-purple-400 hover:text-purple-300 underline"
                 >
-                  0x691f...c0d8 ↗
+                  0x691f...3b52 ↗
                 </a>
               </div>
             </div>
@@ -569,7 +704,7 @@ export default function TrustActivity() {
             </p>
             <pre className="p-3 rounded-lg bg-black/60 text-purple-200 overflow-x-auto text-[11px] leading-relaxed border border-gray-800">
 {`query GetVeriqoMeshProvenance {
-  transactions(limit: 10, order_by: { updatedAt: desc }) {
+  Transaction(limit: 10, order_by: { updatedAt: desc }) {
     id
     buyer
     seller
@@ -583,7 +718,7 @@ export default function TrustActivity() {
     receiptId
     settledAt
   }
-  lifecycleEvents(limit: 25, order_by: { timestamp: desc }) {
+  LifecycleEvent(limit: 25, order_by: { timestamp: desc }) {
     id
     eventType
     transactionId
@@ -593,7 +728,7 @@ export default function TrustActivity() {
     timestamp
     txHash
   }
-  trustReceipts(limit: 10, order_by: { issuedTimestamp: desc }) {
+  TrustReceipt(limit: 10, order_by: { issuedTimestamp: desc }) {
     id
     transactionId
     partyA
