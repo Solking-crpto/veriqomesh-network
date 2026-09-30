@@ -2,6 +2,10 @@
   "name": "veriqomesh-indexer",
   "version": "1.0.0",
   "description": "Envio HyperIndex for VeriqoMesh Network on Monad Metropolis Testnet",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "private": true,
   "scripts": {
     "codegen": "envio codegen",
