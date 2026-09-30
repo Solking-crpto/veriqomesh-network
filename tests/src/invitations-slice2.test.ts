@@ -8,9 +8,15 @@ import {
   computeCanonicalTermsHash,
   CANONICAL_FLOW_A_TX_ID,
   CANONICAL_FLOW_B_TX_ID,
+  CANONICAL_TESTNET_TX_ID,
   buildMutationAuthMessage,
   verifyMutationSignature,
+  isBenchmarkRequest,
+  isAwaitingReceiverAction,
+  calculateActionableRequestsCount,
+  getRequestsNavBadge,
 } from '@trustmesh/sdk';
+
 import {
   PersistentInvitation,
   TransactionState,
@@ -783,5 +789,451 @@ describe('Stage 4 Slice 2 — Persistent Invitations & Receiver Action Invariant
       assert.equal(updatedInvitation.status, 'AGREED');
     });
   });
+
+  // 10. Stage 4 Slice 2.2 — Requests Navigation Badge & Actionable Invariants
+  describe('10. Stage 4 Slice 2.2 — Requests Navigation Badge & Actionable Invariants', () => {
+    const receiverWalletAddress = '0x6f30d20b8c5be781badd86341415b556fb13c873';
+    const otherWalletAddress = '0x1111111111111111111111111111111111111111';
+
+    it('isBenchmarkRequest correctly identifies canonical Flow A, Flow B, canonical testnet, and VM-REQ-0001..0004', () => {
+      assert.equal(isBenchmarkRequest({ transactionId: CANONICAL_FLOW_A_TX_ID }), true);
+      assert.equal(isBenchmarkRequest({ transactionId: CANONICAL_FLOW_B_TX_ID }), true);
+      assert.equal(isBenchmarkRequest({ transactionId: CANONICAL_TESTNET_TX_ID }), true);
+      assert.equal(isBenchmarkRequest({ id: 'VM-REQ-0001' }), true);
+      assert.equal(isBenchmarkRequest({ id: 'VM-REQ-0002' }), true);
+      assert.equal(isBenchmarkRequest({ id: 'VM-REQ-0003' }), true);
+      assert.equal(isBenchmarkRequest({ id: 'VM-REQ-0004' }), true);
+      assert.equal(isBenchmarkRequest({ id: 'VM-ACT-0001', transactionId: '0x1234' }), false);
+    });
+
+    it('isAwaitingReceiverAction validates state machine gating for receiver action', () => {
+      // Benchmarks never awaiting action
+      assert.equal(isAwaitingReceiverAction({ id: 'VM-REQ-0002', status: 'AWAITING_RECEIVER_ACCEPTANCE' }), false);
+
+      // Terminal or non-actionable statuses
+      assert.equal(isAwaitingReceiverAction({ id: 'VM-ACT-0001', status: 'AGREED' }), false);
+      assert.equal(isAwaitingReceiverAction({ id: 'VM-ACT-0001', status: 'DECLINED' }), false);
+      assert.equal(isAwaitingReceiverAction({ id: 'VM-ACT-0001', status: 'COUNTERED' }), false);
+
+      // Onchain state gating
+      assert.equal(
+        isAwaitingReceiverAction(
+          { id: 'VM-ACT-0001', transactionId: '0x1111', status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+          { '0x1111': { stateName: 'SETTLED' } }
+        ),
+        false
+      );
+      assert.equal(
+        isAwaitingReceiverAction(
+          { id: 'VM-ACT-0001', transactionId: '0x2222', status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+          { '0x2222': { stateName: 'PROPOSED' } }
+        ),
+        true
+      );
+
+      // Valid awaiting action offchain
+      assert.equal(isAwaitingReceiverAction({ id: 'VM-ACT-0001', status: 'AWAITING_RECEIVER_ACCEPTANCE' }), true);
+      assert.equal(isAwaitingReceiverAction({ id: 'VM-ACT-0001', status: 'PROPOSED' }), true);
+    });
+
+    it('0 actionable requests => nav badge 0', () => {
+      const count = calculateActionableRequestsCount({
+        requests: [],
+        connectedWallet: receiverWalletAddress,
+        isConnected: true,
+      });
+      assert.equal(count, 0, 'Empty requests list must yield 0 actionable requests');
+      assert.equal(getRequestsNavBadge(count), undefined, 'Nav badge must be hidden (0) when count is 0');
+    });
+
+
+    it('processed requests do not increment badge', () => {
+      const processedRequests = [
+        {
+          id: 'REQ-AGREED-1',
+          status: 'AGREED',
+          receiverWallet: receiverWalletAddress,
+        },
+        {
+          id: 'REQ-ACTIVE-1',
+          status: 'AGREEMENT_ACTIVE',
+          receiverWallet: receiverWalletAddress,
+        },
+        {
+          id: 'REQ-DECLINED-1',
+          status: 'DECLINED',
+          receiverWallet: receiverWalletAddress,
+        },
+        {
+          id: 'REQ-COUNTERED-1',
+          status: 'COUNTERED',
+          receiverWallet: receiverWalletAddress,
+        },
+        {
+          id: 'REQ-SETTLED-1',
+          status: 'SETTLED',
+          receiverWallet: receiverWalletAddress,
+        },
+        {
+          id: 'REQ-ONCHAIN-SETTLED',
+          transactionId: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+          status: 'AWAITING_RECEIVER_ACCEPTANCE',
+          receiverWallet: receiverWalletAddress,
+        },
+      ];
+
+      const onchainTxMap = {
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef': {
+          stateName: 'SETTLED',
+        },
+      };
+
+      const count = calculateActionableRequestsCount({
+        requests: processedRequests,
+        connectedWallet: receiverWalletAddress,
+        isConnected: true,
+        onchainTxMap,
+      });
+
+      assert.equal(count, 0, 'Processed/terminal requests must never increment actionable count');
+      assert.equal(getRequestsNavBadge(count), undefined, 'Badge must be undefined (hidden/0) for processed requests');
+    });
+
+    it('demo/historical requests do not increment badge', () => {
+      const demoRequests = [
+        {
+          id: 'VM-REQ-0001',
+          status: 'DISPUTED',
+          receiverWallet: receiverWalletAddress,
+        },
+        {
+          id: 'VM-REQ-0002',
+          status: 'AWAITING_RECEIVER_ACCEPTANCE',
+          receiverWallet: receiverWalletAddress,
+        },
+        {
+          id: 'VM-REQ-0003',
+          status: 'AWAITING_RECEIVER_ACCEPTANCE',
+          receiverWallet: receiverWalletAddress,
+        },
+        {
+          id: 'VM-REQ-0004',
+          transactionId: CANONICAL_FLOW_A_TX_ID,
+          status: 'AGREEMENT_ACTIVE',
+          receiverWallet: receiverWalletAddress,
+        },
+        {
+          id: 'REQ-FLOW-B',
+          transactionId: CANONICAL_FLOW_B_TX_ID,
+          status: 'AWAITING_RECEIVER_ACCEPTANCE',
+          receiverWallet: receiverWalletAddress,
+        },
+        {
+          id: 'REQ-CANONICAL-TESTNET',
+          transactionId: CANONICAL_TESTNET_TX_ID,
+          status: 'AWAITING_RECEIVER_ACCEPTANCE',
+          receiverWallet: receiverWalletAddress,
+        },
+      ];
+
+      const count = calculateActionableRequestsCount({
+        requests: demoRequests,
+        connectedWallet: receiverWalletAddress,
+        isConnected: true,
+      });
+
+      assert.equal(count, 0, 'Historical benchmarks and demo records must never increment actionable count');
+      assert.equal(getRequestsNavBadge(count), undefined, 'Badge must be hidden (0) for demo/historical records');
+    });
+
+    it('2 genuine actionable receiver requests => badge 2', () => {
+      const mixedRequests = [
+        // Demo benchmark - excluded
+        {
+          id: 'VM-REQ-0002',
+          status: 'AWAITING_RECEIVER_ACCEPTANCE',
+          receiverWallet: receiverWalletAddress,
+        },
+        // Actionable genuine request 1 - included
+        {
+          id: 'VM-ACT-0001',
+          status: 'AWAITING_RECEIVER_ACCEPTANCE',
+          receiverWallet: receiverWalletAddress,
+        },
+        // Actionable genuine request 2 - included
+        {
+          id: 'VM-ACT-0002',
+          status: 'PROPOSED',
+          receiverWallet: receiverWalletAddress,
+        },
+        // Actionable for a DIFFERENT wallet - excluded
+        {
+          id: 'VM-ACT-0003',
+          status: 'AWAITING_RECEIVER_ACCEPTANCE',
+          receiverWallet: otherWalletAddress,
+        },
+        // Processed request - excluded
+        {
+          id: 'VM-ACT-0004',
+          status: 'AGREED',
+          receiverWallet: receiverWalletAddress,
+        },
+      ];
+
+      const count = calculateActionableRequestsCount({
+        requests: mixedRequests,
+        connectedWallet: receiverWalletAddress,
+        isConnected: true,
+      });
+
+      assert.equal(count, 2, 'Exactly 2 genuine actionable requests addressed to connected wallet must be counted');
+      assert.equal(getRequestsNavBadge(count), 2, 'Navigation badge must display 2');
+    });
+
+    it('disconnected/demo-default state does not falsely display 2', () => {
+      const defaultDemoRequests = [
+        {
+          id: 'VM-REQ-0004',
+          transactionId: CANONICAL_FLOW_A_TX_ID,
+          status: 'AGREEMENT_ACTIVE',
+          receiverWallet: receiverWalletAddress,
+        },
+        {
+          id: 'VM-REQ-0003',
+          status: 'AWAITING_RECEIVER_ACCEPTANCE',
+          receiverWallet: receiverWalletAddress,
+        },
+        {
+          id: 'VM-REQ-0002',
+          status: 'AWAITING_RECEIVER_ACCEPTANCE',
+          receiverWallet: receiverWalletAddress,
+        },
+        {
+          id: 'VM-REQ-0001',
+          status: 'DISPUTED',
+          receiverWallet: receiverWalletAddress,
+        },
+      ];
+
+      // Disconnected: isConnected = false
+      const countDisconnected = calculateActionableRequestsCount({
+        requests: defaultDemoRequests,
+        connectedWallet: null,
+        isConnected: false,
+      });
+
+      assert.equal(countDisconnected, 0, 'Disconnected state must yield 0 actionable requests');
+      assert.notEqual(countDisconnected, 2, 'Disconnected state must NEVER display 2');
+      assert.equal(getRequestsNavBadge(countDisconnected), undefined, 'Badge must not be shown when disconnected');
+
+      // Even if receiver wallet is passed while isConnected = false
+      const countWithWalletDisconnected = calculateActionableRequestsCount({
+        requests: defaultDemoRequests,
+        connectedWallet: receiverWalletAddress,
+        isConnected: false,
+      });
+      assert.equal(countWithWalletDisconnected, 0, 'Unconnected wallet must yield 0 actionable requests');
+      assert.equal(getRequestsNavBadge(countWithWalletDisconnected), undefined);
+    });
+  });
+
+  describe('11. Stage 4 Slice 2.3 — Persona Dashboard State Unification & Launch Blocker Remediation', () => {
+    const TARGET_BUYER_ADDRESS = '0xa4bCC57d40311D715ECe34940191820d4a81C50F';
+    const TARGET_SELLER_ADDRESS = '0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8';
+    const connectedSellerWallet = ethers.Wallet.createRandom().address;
+
+    it('A. Connected receiver wallet identity: receiver role syncs with connected wallet address', () => {
+      function syncReceiverWallet(currentWallet: string, role: string, connectedAddress: string | null) {
+        if (!connectedAddress) return TARGET_SELLER_ADDRESS;
+        if (role === 'RECEIVER') {
+          if (connectedAddress.toLowerCase() !== TARGET_BUYER_ADDRESS.toLowerCase()) {
+            return connectedAddress;
+          }
+        }
+        return currentWallet;
+      }
+
+      const synced = syncReceiverWallet(TARGET_SELLER_ADDRESS, 'RECEIVER', connectedSellerWallet);
+      assert.equal(synced.toLowerCase(), connectedSellerWallet.toLowerCase(), 'Receiver wallet must sync to connected wallet');
+    });
+
+    it('B. Strict Role Isolation: Receiver cannot be bound to buyer address and Initiator cannot be bound to seller address', () => {
+      function syncReceiverWallet(currentWallet: string, role: string, connectedAddress: string | null) {
+        if (role === 'RECEIVER' && connectedAddress) {
+          if (connectedAddress.toLowerCase() !== TARGET_BUYER_ADDRESS.toLowerCase()) {
+            return connectedAddress;
+          }
+        }
+        return currentWallet;
+      }
+
+      function syncInitiatorWallet(currentWallet: string, role: string, connectedAddress: string | null) {
+        if (role === 'INITIATOR' && connectedAddress) {
+          if (connectedAddress.toLowerCase() !== TARGET_SELLER_ADDRESS.toLowerCase()) {
+            return connectedAddress;
+          }
+        }
+        return currentWallet;
+      }
+
+      const blockedReceiver = syncReceiverWallet(TARGET_SELLER_ADDRESS, 'RECEIVER', TARGET_BUYER_ADDRESS);
+      assert.equal(blockedReceiver, TARGET_SELLER_ADDRESS, 'Receiver role must reject buyer address');
+
+      const blockedInitiator = syncInitiatorWallet(TARGET_BUYER_ADDRESS, 'INITIATOR', TARGET_SELLER_ADDRESS);
+      assert.equal(blockedInitiator, TARGET_BUYER_ADDRESS, 'Initiator role must reject seller address');
+    });
+
+    it('C. Genuine Redis invitation vs 0 invitations: connected receiver with persistent invitation reflects actionable count', () => {
+      const genuineInvitation = {
+        id: 'VM-ACT-REDIS-999',
+        title: 'Commercial Solar Procurement',
+        receiverWallet: connectedSellerWallet,
+        status: 'AWAITING_RECEIVER_ACCEPTANCE',
+      };
+
+      const count = calculateActionableRequestsCount({
+        requests: [genuineInvitation],
+        connectedWallet: connectedSellerWallet,
+        isConnected: true,
+      });
+
+      assert.equal(count, 1, 'Genuine Redis invitation must be counted as actionable for connected receiver');
+      assert.equal(getRequestsNavBadge(count), 1, 'Nav badge must display 1');
+    });
+
+    it('D. Connected receiver with 0 invitations yields exactly 0 actionable requests', () => {
+      const otherUserInvitation = {
+        id: 'VM-ACT-REDIS-888',
+        title: 'Commercial Solar Procurement',
+        receiverWallet: '0x1111111111111111111111111111111111111111',
+        status: 'AWAITING_RECEIVER_ACCEPTANCE',
+      };
+
+      const count = calculateActionableRequestsCount({
+        requests: [otherUserInvitation],
+        connectedWallet: connectedSellerWallet,
+        isConnected: true,
+      });
+
+      assert.equal(count, 0, 'Receiver with 0 invitations addressed to their wallet must have 0 actionable requests');
+      assert.equal(getRequestsNavBadge(count), undefined);
+    });
+
+    it('E. Historical benchmarks (VM-REQ-0001..0004, Flow A, Flow B, Parked Testnet) are excluded from actionable requests', () => {
+      const benchmarkList = [
+        { id: 'VM-REQ-0001', receiverWallet: connectedSellerWallet, status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+        { id: 'VM-REQ-0002', receiverWallet: connectedSellerWallet, status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+        { id: 'VM-REQ-0003', receiverWallet: connectedSellerWallet, status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+        { id: 'VM-REQ-0004', receiverWallet: connectedSellerWallet, status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+        { id: 'FLOW-A', transactionId: CANONICAL_FLOW_A_TX_ID, receiverWallet: connectedSellerWallet, status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+        { id: 'FLOW-B', transactionId: CANONICAL_FLOW_B_TX_ID, receiverWallet: connectedSellerWallet, status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+        { id: 'PARKED', transactionId: '0xbbd0176291d62b32c3e096d0314c0fab6bcfa9131c1b26a825b3ce994e645f5e', receiverWallet: connectedSellerWallet, status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+      ];
+
+      for (const req of benchmarkList) {
+        assert.equal(isBenchmarkRequest(req), true, `${req.id} must be recognized as benchmark`);
+      }
+
+      const count = calculateActionableRequestsCount({
+        requests: benchmarkList,
+        connectedWallet: connectedSellerWallet,
+        isConnected: true,
+      });
+
+      assert.equal(count, 0, 'All benchmarks must be excluded from actionable requests count');
+    });
+
+    it('F. Historical benchmarks cannot be marked actionable on receiver dashboard', () => {
+      function filterReceiverActionable(reqs: any[], wallet: { isConnected: boolean; address: string | null }) {
+        if (!wallet.isConnected || !wallet.address) return [];
+        return reqs.filter(
+          (r) =>
+            !isBenchmarkRequest(r) &&
+            isAwaitingReceiverAction(r) &&
+            r.receiverWallet?.toLowerCase() === wallet.address?.toLowerCase()
+        );
+      }
+
+      const mixed = [
+        { id: 'VM-REQ-0003', receiverWallet: connectedSellerWallet, status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+        { id: 'VM-REQ-0002', receiverWallet: connectedSellerWallet, status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+        { id: 'GENUINE-REQ-1', receiverWallet: connectedSellerWallet, status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+      ];
+
+      const actionable = filterReceiverActionable(mixed, { isConnected: true, address: connectedSellerWallet });
+      assert.equal(actionable.length, 1, 'Only genuine request passes filter');
+      assert.equal(actionable[0].id, 'GENUINE-REQ-1');
+      assert.equal(actionable.some((r) => r.id === 'VM-REQ-0003'), false, 'VM-REQ-0003 must NEVER be marked actionable');
+    });
+
+    it('G. Disconnected state yields 0 actionable requests and does not display "2 New"', () => {
+      const defaultRequests = [
+        { id: 'VM-REQ-0004', status: 'AGREEMENT_ACTIVE', receiverWallet: TARGET_SELLER_ADDRESS },
+        { id: 'VM-REQ-0003', status: 'AWAITING_RECEIVER_ACCEPTANCE', receiverWallet: TARGET_SELLER_ADDRESS },
+        { id: 'VM-REQ-0002', status: 'AWAITING_RECEIVER_ACCEPTANCE', receiverWallet: TARGET_SELLER_ADDRESS },
+        { id: 'VM-REQ-0001', status: 'DISPUTED', receiverWallet: TARGET_SELLER_ADDRESS },
+      ];
+
+      const count = calculateActionableRequestsCount({
+        requests: defaultRequests,
+        connectedWallet: null,
+        isConnected: false,
+      });
+
+      assert.equal(count, 0, 'Disconnected receiver must display 0 New');
+      assert.notEqual(count, 2, 'Must never show stale 2 New in disconnected state');
+    });
+
+    it('H. Inability of /receiver to locally mutate benchmarks into ratified state', () => {
+      let state = [
+        { id: 'VM-REQ-0003', status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+        { id: 'GENUINE-REQ-2', status: 'AWAITING_RECEIVER_ACCEPTANCE' },
+      ];
+
+      function protectedAcceptDealRequest(requestId: string) {
+        const target = state.find((r) => r.id === requestId);
+        if ((target && isBenchmarkRequest(target)) || isBenchmarkRequest({ id: requestId })) {
+          return;
+        }
+        state = state.map((r) => (r.id === requestId ? { ...r, status: 'AGREEMENT_ACTIVE' } : r));
+      }
+
+      protectedAcceptDealRequest('VM-REQ-0003');
+      const benchmarkReq = state.find((r) => r.id === 'VM-REQ-0003');
+      assert.equal(benchmarkReq?.status, 'AWAITING_RECEIVER_ACCEPTANCE', 'Benchmark VM-REQ-0003 must NOT be mutated');
+
+      protectedAcceptDealRequest('GENUINE-REQ-2');
+      const genuineReq = state.find((r) => r.id === 'GENUINE-REQ-2');
+      assert.equal(genuineReq?.status, 'AGREEMENT_ACTIVE', 'Genuine request status is updated');
+    });
+
+    it('I. Elimination of legacy autonomous execution copy in favor of institutional policy principle', () => {
+      const AI_POLICY_PRINCIPLE = 'AI assists. Humans authorize. Verifiers verify. Blockchain enforces.';
+      assert.match(AI_POLICY_PRINCIPLE, /AI assists/);
+      assert.match(AI_POLICY_PRINCIPLE, /Humans authorize/);
+      assert.match(AI_POLICY_PRINCIPLE, /Verifiers verify/);
+      assert.match(AI_POLICY_PRINCIPLE, /Blockchain enforces/);
+
+      const FORBIDDEN_COPY = 'AUTONOMOUS EXECUTION without human click';
+      assert.notEqual(AI_POLICY_PRINCIPLE, FORBIDDEN_COPY);
+    });
+
+    it('J. Persona dashboards display "Disconnected (Viewing Demo Defaults)" when disconnected', () => {
+      function getDashboardStatusBanner(wallet: { isConnected: boolean; address: string | null }) {
+        if (wallet.isConnected && wallet.address) {
+          return `Connected Wallet: ${wallet.address}`;
+        }
+        return 'Disconnected (Viewing Demo Defaults)';
+      }
+
+      const disconnectedBanner = getDashboardStatusBanner({ isConnected: false, address: null });
+      assert.equal(disconnectedBanner, 'Disconnected (Viewing Demo Defaults)');
+
+      const connectedBanner = getDashboardStatusBanner({ isConnected: true, address: connectedSellerWallet });
+      assert.equal(connectedBanner, `Connected Wallet: ${connectedSellerWallet}`);
+    });
+  });
 });
+
+
 

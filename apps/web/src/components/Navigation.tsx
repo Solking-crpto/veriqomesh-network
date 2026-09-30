@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useDemoNetwork } from '../context/DemoNetworkContext';
+import { getRequestsNavBadge } from '../lib/invitation-utils';
 
 interface NavLinkItem {
   label: string;
@@ -13,13 +14,11 @@ interface NavLinkItem {
 
 export function Navigation() {
   const pathname = usePathname();
-  const { role, switchRole, initiator, receiver, requests, wallet } = useDemoNetwork();
+  const { role, switchRole, initiator, receiver, wallet, actionableRequestsCount } = useDemoNetwork();
 
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
-  const pendingIncomingCount = requests.filter(
-    (r) => r.status === 'AWAITING_RECEIVER_ACCEPTANCE'
-  ).length;
+  const requestsBadge = getRequestsNavBadge(actionableRequestsCount);
 
   const primaryNavLinks: NavLinkItem[] = [
     { label: 'Home', href: '/' },
@@ -32,13 +31,14 @@ export function Navigation() {
     {
       label: 'Requests',
       href: '/requests',
-      badge: role === 'RECEIVER' && pendingIncomingCount > 0 ? pendingIncomingCount : undefined,
+      badge: requestsBadge,
     },
     { label: 'Discover', href: '/receivers' },
     { label: 'Initiator', href: '/initiator' },
     { label: 'Receiver', href: '/receiver' },
     { label: 'Evidence', href: '/evidence' },
   ];
+
 
   const allDesktopNavLinks = [...primaryNavLinks, ...secondaryNavLinks];
 
@@ -202,9 +202,10 @@ export function Navigation() {
             >
               <span className={`w-1.5 h-1.5 rounded-full ${role === 'RECEIVER' ? 'bg-emerald-300' : 'bg-gray-600'}`} />
               <span>RECEIVER</span>
-              {pendingIncomingCount > 0 && role !== 'RECEIVER' && (
+              {actionableRequestsCount > 0 && role !== 'RECEIVER' && (
                 <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
               )}
+
             </button>
           </div>
 

@@ -71,4 +71,10 @@ export {
   verifyMutationSignature,
   type VerifyMutationSignatureParams,
   type VerifyMutationSignatureResult,
+  CANONICAL_TESTNET_TX_ID,
+  isBenchmarkRequest,
+  isAwaitingReceiverAction,
+  calculateActionableRequestsCount,
+  getRequestsNavBadge,
 } from '@trustmesh/sdk';
+

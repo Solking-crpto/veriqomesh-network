@@ -3,9 +3,11 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useMonadWallet, MonadWalletState, MONAD_RPC_URL } from '../hooks/useMonadWallet';
 import { TrustMeshClient } from '@trustmesh/sdk';
-import { TransactionState, VerificationOutcome } from '@trustmesh/types';
+import { TransactionState, VerificationOutcome, PersistentInvitation } from '@trustmesh/types';
+import { calculateActionableRequestsCount, isBenchmarkRequest } from '../lib/invitation-utils';
 
 export type DemoRole = 'INITIATOR' | 'RECEIVER';
+
 
 export const DEPLOYED_ESCROW_ADDRESS = '0x925ea880cA53DE0352b84B24d0C0dee5B258015A';
 export const DEPLOYED_REGISTRY_ADDRESS = '0xE1994e0dF7CD5A836be4b02AE2164A542418B819';
@@ -103,7 +105,11 @@ export interface DealRequest {
   createdAt: string;
   isOnchain?: boolean;
   onchainTxHash?: string;
+  invitationCode?: string;
+  version?: number;
+  parentInvitationCode?: string;
 }
+
 
 interface DemoNetworkContextType {
   role: DemoRole;
@@ -115,6 +121,7 @@ interface DemoNetworkContextType {
   intent: CommercialIntent;
   updateIntent: (data: Partial<CommercialIntent>) => void;
   requests: DealRequest[];
+  allRequests: DealRequest[];
   createDealRequest: (
     receiverName?: string,
     receiverWallet?: string,
@@ -141,7 +148,11 @@ interface DemoNetworkContextType {
   } | null>;
   resetToGuidedDefaults: () => void;
   freshLiveTxId: string;
+  actionableRequestsCount: number;
+  persistentInvitations: PersistentInvitation[];
+  refreshPersistentInvitations: () => Promise<void>;
 }
+
 
 const DemoNetworkContext = createContext<DemoNetworkContextType | undefined>(undefined);
 
@@ -464,6 +475,42 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
     }
   }, [wallet.address, role, initiator.wallet]);
 
+  // Automatically sync receiver wallet with connected wallet when on RECEIVER role
+  useEffect(() => {
+    if (wallet.address && role === 'RECEIVER') {
+      // Enforce role isolation: receiver cannot be bound to the buyer address
+      if (wallet.address.toLowerCase() !== TARGET_BUYER_ADDRESS.toLowerCase()) {
+        if (receiver.wallet !== wallet.address) {
+          setReceiver((prev) => ({
+            ...prev,
+            wallet: wallet.address!,
+            status: 'CONNECTED BROWSER WALLET',
+          }));
+        }
+      }
+    }
+  }, [wallet.address, role, receiver.wallet]);
+
+  // Reset wallet bindings to demo defaults when disconnected
+  useEffect(() => {
+    if (!wallet.isConnected || !wallet.address) {
+      if (initiator.wallet !== TARGET_BUYER_ADDRESS && initiator.status !== 'INITIATOR ACCOUNT ACTIVE') {
+        setInitiator((prev) => ({
+          ...prev,
+          wallet: TARGET_BUYER_ADDRESS,
+          status: 'INITIATOR ACCOUNT ACTIVE',
+        }));
+      }
+      if (receiver.wallet !== TARGET_SELLER_ADDRESS && receiver.status !== 'LIVE VERIFIED NODE') {
+        setReceiver((prev) => ({
+          ...prev,
+          wallet: TARGET_SELLER_ADDRESS,
+          status: 'LIVE VERIFIED NODE',
+        }));
+      }
+    }
+  }, [wallet.isConnected, wallet.address, initiator.wallet, initiator.status, receiver.wallet, receiver.status]);
+
   const createDealRequest = useCallback(
     (
       receiverName = 'Dallas Solar Supply',
@@ -522,13 +569,23 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
   );
 
   const acceptDealRequest = useCallback((requestId: string) => {
+    const target = requests.find((r) => r.id === requestId || r.transactionId === requestId);
+    if ((target && isBenchmarkRequest(target)) || isBenchmarkRequest({ id: requestId })) {
+      console.warn(`[DemoNetworkContext] Mutation rejected: ${requestId} is an immutable historical benchmark`);
+      return;
+    }
     setRequests((prev) =>
       prev.map((r) => (r.id === requestId ? { ...r, status: 'AGREEMENT_ACTIVE' } : r))
     );
-  }, []);
+  }, [requests]);
 
   const counterDealRequest = useCallback(
     (requestId: string, note: string, deadline: number, amount: string) => {
+      const target = requests.find((r) => r.id === requestId || r.transactionId === requestId);
+      if ((target && isBenchmarkRequest(target)) || isBenchmarkRequest({ id: requestId })) {
+        console.warn(`[DemoNetworkContext] Mutation rejected: ${requestId} is an immutable historical benchmark`);
+        return;
+      }
       setRequests((prev) =>
         prev.map((r) =>
           r.id === requestId
@@ -545,14 +602,19 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
         )
       );
     },
-    []
+    [requests]
   );
 
   const declineDealRequest = useCallback((requestId: string) => {
+    const target = requests.find((r) => r.id === requestId || r.transactionId === requestId);
+    if ((target && isBenchmarkRequest(target)) || isBenchmarkRequest({ id: requestId })) {
+      console.warn(`[DemoNetworkContext] Mutation rejected: ${requestId} is an immutable historical benchmark`);
+      return;
+    }
     setRequests((prev) =>
       prev.map((r) => (r.id === requestId ? { ...r, status: 'DECLINED' } : r))
     );
-  }, []);
+  }, [requests]);
 
   // Queries live onchain state from Monad testnet
   const loadOnchainTransaction = useCallback(
@@ -587,6 +649,98 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
     setRequests(DEFAULT_REQUESTS);
   }, []);
 
+  // Load persistent invitations for connected wallet from Upstash Redis
+  const [persistentInvitations, setPersistentInvitations] = useState<PersistentInvitation[]>([]);
+
+  const refreshPersistentInvitations = useCallback(async () => {
+    if (!wallet.isConnected || !wallet.address) {
+      setPersistentInvitations([]);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/invitations?receiver=${wallet.address}`);
+      const data = await res.json();
+      if (data && data.success && Array.isArray(data.invitations)) {
+        setPersistentInvitations(data.invitations);
+      }
+    } catch {
+      // Non-blocking background fetch
+    }
+  }, [wallet.isConnected, wallet.address]);
+
+  useEffect(() => {
+    refreshPersistentInvitations();
+  }, [refreshPersistentInvitations]);
+
+  // Combined requests + persistentInvitations
+  const allRequests = useMemo(() => {
+    const combined: DealRequest[] = [...requests];
+
+    for (const inv of persistentInvitations) {
+      const exists = combined.some(
+        (r) =>
+          (r.transactionId && inv.transactionId && r.transactionId.toLowerCase() === inv.transactionId.toLowerCase()) ||
+          r.id === inv.invitationCode
+      );
+
+      if (!exists) {
+        combined.unshift({
+          id: inv.invitationCode,
+          title: inv.proposal.title,
+          initiator: `${inv.initiatorWallet.slice(0, 6)}...${inv.initiatorWallet.slice(-4)}`,
+          initiatorWallet: inv.initiatorWallet,
+          receiver: `${inv.intendedReceiverWallet.slice(0, 6)}...${inv.intendedReceiverWallet.slice(-4)}`,
+          receiverWallet: inv.intendedReceiverWallet,
+          deliverable: inv.proposal.title,
+          location: 'Designated Delivery Depot',
+          deadlineDays: inv.proposal.deadlineDays,
+          escrowAmountMon: inv.proposal.amount,
+          evidenceRequirements: inv.proposal.evidenceRequirements || [],
+          verifierAddress: inv.roles.verifier,
+          aiPolicy: {
+            maxSpend: inv.proposal.amount,
+            autoExecute: false,
+            humanEscalation: true,
+          },
+          status:
+            inv.status === 'AGREED'
+              ? 'AGREEMENT_ACTIVE'
+              : inv.status === 'COUNTERED'
+              ? 'COUNTERED'
+              : inv.status === 'DECLINED'
+              ? 'DECLINED'
+              : 'AWAITING_RECEIVER_ACCEPTANCE',
+          isOnchain: Boolean(inv.transactionId && inv.transactionId.startsWith('0x')),
+          transactionId: inv.transactionId,
+          onchainTxHash: inv.onchainTxHash,
+          invitationCode: inv.invitationCode,
+          version: inv.version,
+          parentInvitationCode: inv.parentInvitationCode,
+          createdAt: new Date(inv.createdAt).toISOString().split('T')[0],
+        });
+      } else {
+        const existingIdx = combined.findIndex(
+          (r) =>
+            r.transactionId &&
+            inv.transactionId &&
+            r.transactionId.toLowerCase() === inv.transactionId.toLowerCase()
+        );
+        if (existingIdx !== -1) {
+          combined[existingIdx].invitationCode = inv.invitationCode;
+        }
+      }
+    }
+    return combined;
+  }, [requests, persistentInvitations]);
+
+  const actionableRequestsCount = useMemo(() => {
+    return calculateActionableRequestsCount({
+      requests: allRequests,
+      connectedWallet: wallet.address,
+      isConnected: wallet.isConnected,
+    });
+  }, [allRequests, wallet.address, wallet.isConnected]);
+
   return (
     <DemoNetworkContext.Provider
       value={{
@@ -599,6 +753,7 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
         intent,
         updateIntent,
         requests,
+        allRequests,
         createDealRequest,
         acceptDealRequest,
         counterDealRequest,
@@ -609,11 +764,15 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
         loadOnchainTransaction,
         resetToGuidedDefaults,
         freshLiveTxId: FRESH_LIVE_TESTNET_TX_ID,
+        actionableRequestsCount,
+        persistentInvitations,
+        refreshPersistentInvitations,
       }}
     >
       {children}
     </DemoNetworkContext.Provider>
   );
+
 }
 
 export function useDemoNetwork() {

@@ -1,14 +1,37 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { useDemoNetwork } from '../../context/DemoNetworkContext';
+import { isBenchmarkRequest, isAwaitingReceiverAction } from '../../lib/invitation-utils';
 
 export default function ReceiverDashboardPage() {
-  const { role, switchRole, receiver, requests, acceptDealRequest } = useDemoNetwork();
+  const {
+    role,
+    switchRole,
+    receiver,
+    allRequests,
+    actionableRequestsCount,
+    wallet,
+  } = useDemoNetwork();
 
   const isRoleActive = role === 'RECEIVER';
-  const pendingRequests = requests.filter((r) => r.status === 'AWAITING_RECEIVER_ACCEPTANCE');
+
+  // Only genuine actionable requests addressed to this connected wallet
+  const actionableRequests = useMemo(() => {
+    if (!wallet.isConnected || !wallet.address) return [];
+    return allRequests.filter(
+      (r) =>
+        !isBenchmarkRequest(r) &&
+        isAwaitingReceiverAction(r) &&
+        r.receiverWallet?.toLowerCase() === wallet.address?.toLowerCase()
+    );
+  }, [allRequests, wallet.isConnected, wallet.address]);
+
+  // Historical benchmark records for reference and audit
+  const historicalRecords = useMemo(() => {
+    return allRequests.filter((r) => isBenchmarkRequest(r));
+  }, [allRequests]);
 
   return (
     <div className="min-h-screen bg-[#07080d] text-gray-100 py-10 px-4 sm:px-6 lg:px-8 font-sans">
@@ -28,6 +51,29 @@ export default function ReceiverDashboardPage() {
             </button>
           </div>
         )}
+
+        {/* Institutional Connection Status Banner */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-gray-900/60 border border-gray-800 text-xs font-mono">
+          <div className="flex items-center gap-2.5">
+            <span className={`w-2.5 h-2.5 rounded-full ${wallet.isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+            <span className="text-gray-300">
+              {wallet.isConnected ? (
+                <>
+                  Connected Wallet: <code className="text-white font-bold">{wallet.address}</code>
+                </>
+              ) : (
+                <span className="text-amber-300 font-semibold">Disconnected (Viewing Demo Defaults)</span>
+              )}
+            </span>
+          </div>
+          <div className="flex items-center gap-3 text-gray-400 text-[11px]">
+            <span>Actionable Inbound: <strong className={actionableRequestsCount > 0 ? "text-amber-400 font-bold" : "text-gray-300"}>{actionableRequestsCount}</strong></span>
+            <span>•</span>
+            <span>Node Role: <strong className="text-blue-300">RECEIVER</strong></span>
+            <span>•</span>
+            <span>Network: <span className="text-purple-300">Monad Metropolis Testnet (10143)</span></span>
+          </div>
+        </div>
 
         {/* Header & Identity */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-800 pb-6">
@@ -56,9 +102,9 @@ export default function ReceiverDashboardPage() {
               className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs font-bold transition shadow-lg shadow-blue-950 flex items-center gap-2 relative"
             >
               <span>Incoming Requests</span>
-              {pendingRequests.length > 0 && (
+              {actionableRequestsCount > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-black text-[10px] font-black">
-                  {pendingRequests.length}
+                  {actionableRequestsCount}
                 </span>
               )}
             </Link>
@@ -75,26 +121,34 @@ export default function ReceiverDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Incoming Requests</div>
-            <div className="text-2xl font-bold text-amber-400">{pendingRequests.length} New</div>
-            <div className="text-[11px] text-gray-400 mt-1">Awaiting your response</div>
+            <div className="text-2xl font-bold text-amber-400">{actionableRequestsCount} New</div>
+            <div className="text-[11px] text-gray-400 mt-1">
+              {actionableRequestsCount > 0 ? 'Awaiting your onchain response' : 'No action required'}
+            </div>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Active Agreements</div>
             <div className="text-2xl font-bold text-white">{receiver.stats.activeAgreements}</div>
-            <div className="text-[11px] text-blue-400 mt-1">In fulfillment &amp; inspection</div>
+            <div className="text-[11px] text-blue-400 mt-1">
+              {wallet.isConnected ? 'In fulfillment & inspection' : 'Demo benchmark defaults'}
+            </div>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Completed Deals</div>
             <div className="text-2xl font-bold text-emerald-400">{receiver.stats.completed}</div>
-            <div className="text-[11px] text-emerald-400/80 mt-1">98% Attestation Pass Rate</div>
+            <div className="text-[11px] text-emerald-400/80 mt-1">
+              {wallet.isConnected ? '98% Attestation Pass Rate' : 'Demo benchmark defaults'}
+            </div>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Onchain Trust Receipts</div>
             <div className="text-2xl font-bold text-indigo-400">{receiver.stats.trustReceipts}</div>
-            <div className="text-[11px] text-indigo-300 mt-1">Cryptographic proof</div>
+            <div className="text-[11px] text-indigo-300 mt-1">
+              {wallet.isConnected ? 'Cryptographic proof' : 'Demo benchmark defaults'}
+            </div>
           </div>
         </div>
 
@@ -103,9 +157,9 @@ export default function ReceiverDashboardPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white font-mono flex items-center gap-2">
               <span>Inbound Commercial Requests</span>
-              {pendingRequests.length > 0 && (
+              {actionableRequestsCount > 0 && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-amber-900/60 text-amber-300 border border-amber-700 animate-pulse">
-                  {pendingRequests.length} Pending
+                  {actionableRequestsCount} Action Required
                 </span>
               )}
             </h2>
@@ -113,13 +167,13 @@ export default function ReceiverDashboardPage() {
               href="/requests"
               className="text-xs font-mono text-blue-400 hover:text-blue-300 transition"
             >
-              All Requests →
+              All Requests Inbox →
             </Link>
           </div>
 
-          {pendingRequests.length > 0 ? (
+          {actionableRequests.length > 0 ? (
             <div className="space-y-3">
-              {pendingRequests.map((req) => (
+              {actionableRequests.map((req) => (
                 <div
                   key={req.id}
                   className="p-5 rounded-xl bg-gradient-to-r from-blue-950/40 via-gray-900 to-blue-950/20 border border-blue-600/60 font-mono text-xs space-y-4"
@@ -154,26 +208,29 @@ export default function ReceiverDashboardPage() {
                     </div>
                     <div>
                       <span className="text-gray-400 block text-[10px]">VERIFIER:</span>
-                      <span className="text-purple-300">Bureau Veritas Node</span>
+                      <span className="text-purple-300 font-mono text-[10px]">
+                        {req.verifierAddress ? `${req.verifierAddress.slice(0, 6)}...${req.verifierAddress.slice(-4)}` : 'Designated Verifier'}
+                      </span>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-gray-800/80">
                     <span className="text-[11px] text-gray-400">
-                      Sign to ratify mutual agreement and authorize onchain escrow deposit.
+                      Authoritative ratification requires onchain agreement and EIP-191 cryptographic mutation.
                     </span>
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => acceptDealRequest(req.id)}
-                        className="py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-black font-bold text-xs transition shadow-md"
+                      <Link
+                        href={req.invitationCode ? `/requests?invitation=${req.invitationCode}` : '/requests'}
+                        className="py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-black font-bold text-xs transition shadow-md flex items-center gap-1.5"
                       >
-                        Accept &amp; Ratify Agreement ✓
-                      </button>
+                        <span>Review &amp; Ratify Onchain</span>
+                        <span>→</span>
+                      </Link>
                       <Link
                         href="/requests"
                         className="py-2 px-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold transition"
                       >
-                        Review Full Terms
+                        Full Terms
                       </Link>
                     </div>
                   </div>
@@ -181,8 +238,55 @@ export default function ReceiverDashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="p-6 rounded-xl bg-gray-900/40 border border-gray-800 text-center font-mono text-xs text-gray-400">
-              No pending inbound requests. All requests are ratified or fulfilled.
+            <div className="p-6 rounded-xl bg-gray-900/40 border border-gray-800 text-center font-mono text-xs text-gray-400 space-y-2">
+              <div className="text-gray-300 font-semibold">
+                {wallet.isConnected
+                  ? 'No pending inbound requests awaiting your signature.'
+                  : 'Disconnected — Viewing Demo Defaults. Connect your wallet to receive live commercial invitations.'}
+              </div>
+              <p className="text-gray-500 text-[11px] max-w-lg mx-auto">
+                All verified commercial requests require onchain escrow ratification in the /requests inbox.
+              </p>
+            </div>
+          )}
+
+          {/* Historical Benchmark Records for Audit */}
+          {historicalRecords.length > 0 && (
+            <div className="mt-4 space-y-3 pt-2">
+              <div className="flex items-center justify-between text-xs font-mono text-gray-500 px-1">
+                <span>Historical Testnet Benchmarks ({historicalRecords.length} records)</span>
+                <span className="text-[10px] text-gray-600">Immutable Audit Only</span>
+              </div>
+              <div className="space-y-2">
+                {historicalRecords.slice(0, 2).map((req) => (
+                  <div
+                    key={req.id}
+                    className="p-3.5 rounded-xl bg-gray-950/60 border border-gray-800 font-mono text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-gray-400"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-300">{req.id}</span>
+                        <span className="text-gray-600">•</span>
+                        <span className="text-gray-300">{req.deliverable}</span>
+                      </div>
+                      <div className="text-[11px] text-gray-500 mt-0.5">
+                        Escrow: {req.escrowAmountMon} MON • {req.createdAt || 'Benchmark Record'}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded bg-gray-900 text-gray-400 border border-gray-700 text-[10px] font-bold">
+                        HISTORICAL BENCHMARK (READ-ONLY)
+                      </span>
+                      <Link
+                        href={req.transactionId ? `/transactions/${req.transactionId}` : '/requests'}
+                        className="py-1 px-2.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs transition"
+                      >
+                        Audit →
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -244,7 +348,7 @@ export default function ReceiverDashboardPage() {
                   Tier-1 Solar PV (Full Escrow Release)
                 </h3>
                 <p className="text-[11px] text-gray-300 font-sans mb-3">
-                  Delivered to Dallas depot with 100% verified serial manifest. Bureau Veritas attested PASS. 100% escrow capital released autonomously by buyer agent.
+                  Delivered to Dallas depot with 100% verified serial manifest. Bureau Veritas attested PASS. AI agent verified attestation policy; 100% escrow capital released and enforced onchain. AI assists. Humans authorize. Verifiers verify. Blockchain enforces.
                 </p>
                 <div className="bg-gray-950 p-2.5 rounded-lg border border-gray-800 space-y-1 text-[11px] mb-4">
                   <div className="text-gray-400">Escrow Capital: <span className="text-emerald-400 font-bold">12.5 MON</span></div>
@@ -256,7 +360,7 @@ export default function ReceiverDashboardPage() {
                 href="/transactions/story-a"
                 className="w-full text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition text-xs shadow-md"
               >
-                Inspect Autonomous Room →
+                Inspect Settlement Room →
               </Link>
             </div>
           </div>

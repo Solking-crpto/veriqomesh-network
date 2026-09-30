@@ -18,7 +18,10 @@ import {
   CANONICAL_FLOW_A_TX_ID,
   CANONICAL_FLOW_B_TX_ID,
   buildMutationAuthMessage,
+  isBenchmarkRequest,
+  isAwaitingReceiverAction,
 } from '../../lib/invitation-utils';
+
 import { PersistentInvitation } from '../../lib/invitation-types';
 import { TransactionState } from '@trustmesh/types';
 
@@ -213,17 +216,7 @@ export default function RequestsPage() {
   }, [refreshOnchainRequests]);
 
   // Helper: check if record is an immutable historical demo benchmark
-  const isBenchmark = (r: DealRequest) => {
-    const tx = (r.transactionId || '').toLowerCase();
-    return (
-      tx === CANONICAL_FLOW_A_TX_ID.toLowerCase() ||
-      tx === CANONICAL_FLOW_B_TX_ID.toLowerCase() ||
-      tx === CANONICAL_TESTNET_TX_ID.toLowerCase() ||
-      r.id === 'VM-REQ-0001' ||
-      r.id === 'VM-REQ-0002' ||
-      r.id === 'VM-REQ-0003'
-    );
-  };
+  const isBenchmark = (r: DealRequest) => isBenchmarkRequest(r);
 
   // Helper: check if request is ratified onchain or offchain
   const isRequestRatified = (r: DealRequest) => {
@@ -235,15 +228,8 @@ export default function RequestsPage() {
   };
 
   // Helper: check if request is awaiting receiver action
-  const isAwaitingAction = (r: DealRequest) => {
-    if (isBenchmark(r)) return false;
-    if (r.status === 'COUNTERED' || r.status === 'DECLINED') return false;
-    const onchain = r.transactionId ? onchainTxMap[r.transactionId] : null;
-    if (onchain) {
-      return onchain.stateName === 'PROPOSED';
-    }
-    return r.status === 'AWAITING_RECEIVER_ACCEPTANCE';
-  };
+  const isAwaitingAction = (r: DealRequest) => isAwaitingReceiverAction(r, onchainTxMap);
+
 
   // 4. Strict Wallet & Status Partitioning
   // A. Incoming Requests: Awaiting Your Action

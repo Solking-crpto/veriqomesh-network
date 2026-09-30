@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useDemoNetwork } from '../../context/DemoNetworkContext';
 
 export default function InitiatorDashboardPage() {
-  const { role, switchRole, initiator, requests } = useDemoNetwork();
+  const { role, switchRole, initiator, requests, wallet } = useDemoNetwork();
 
   const isRoleActive = role === 'INITIATOR';
 
@@ -27,6 +27,29 @@ export default function InitiatorDashboardPage() {
             </button>
           </div>
         )}
+
+        {/* Institutional Connection Status Banner */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-gray-900/60 border border-gray-800 text-xs font-mono">
+          <div className="flex items-center gap-2.5">
+            <span className={`w-2.5 h-2.5 rounded-full ${wallet.isConnected ? 'bg-purple-400 animate-pulse' : 'bg-amber-400'}`} />
+            <span className="text-gray-300">
+              {wallet.isConnected ? (
+                <>
+                  Connected Wallet: <code className="text-white font-bold">{wallet.address}</code>
+                </>
+              ) : (
+                <span className="text-amber-300 font-semibold">Disconnected (Viewing Demo Defaults)</span>
+              )}
+            </span>
+          </div>
+          <div className="flex items-center gap-3 text-gray-400 text-[11px]">
+            <span>Persona: <strong className="text-purple-300">{initiator.name}</strong></span>
+            <span>•</span>
+            <span>Node Role: <strong className="text-purple-300">INITIATOR</strong></span>
+            <span>•</span>
+            <span>Network: <span className="text-purple-300">Monad Metropolis Testnet (10143)</span></span>
+          </div>
+        </div>
 
         {/* Header & Identity */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-800 pb-6">
@@ -71,25 +94,31 @@ export default function InitiatorDashboardPage() {
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Active Deal Requests</div>
             <div className="text-2xl font-bold text-white">{requests.length}</div>
-            <div className="text-[11px] text-purple-400 mt-1">1 awaiting acceptance</div>
+            <div className="text-[11px] text-purple-400 mt-1">
+              {wallet.isConnected ? 'Registered commercial intents' : 'Demo benchmark defaults'}
+            </div>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Active Escrows</div>
             <div className="text-2xl font-bold text-emerald-400">2</div>
-            <div className="text-[11px] text-gray-400 mt-1">1 Autonomous + 1 Testnet</div>
+            <div className="text-[11px] text-gray-400 mt-1">
+              {wallet.isConnected ? '1 Autonomous + 1 Testnet' : 'Demo benchmark defaults'}
+            </div>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Agent Spending Limit</div>
             <div className="text-2xl font-bold text-white">{initiator.spendingLimitMon} MON</div>
-            <div className="text-[11px] text-gray-400 mt-1">Per transaction cap</div>
+            <div className="text-[11px] text-gray-400 mt-1">Per transaction policy cap</div>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Trust Receipts Held</div>
             <div className="text-2xl font-bold text-indigo-400">2</div>
-            <div className="text-[11px] text-indigo-300 mt-1">Cryptographically verified</div>
+            <div className="text-[11px] text-indigo-300 mt-1">
+              {wallet.isConnected ? 'Cryptographically verified' : 'Demo scenario proof'}
+            </div>
           </div>
         </div>
 
@@ -111,10 +140,10 @@ export default function InitiatorDashboardPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
             <div className="p-3 rounded-lg bg-gray-950/60 border border-gray-800">
-              <span className="text-gray-400 block text-[10px]">AUTONOMOUS EXECUTION:</span>
-              <span className="text-emerald-400 font-semibold">Enabled for Attested PASS</span>
+              <span className="text-gray-400 block text-[10px]">POLICY-ASSISTED VERIFICATION:</span>
+              <span className="text-emerald-400 font-semibold">Pre-Authorized Verification Rule</span>
               <p className="text-gray-400 text-[10px] font-sans mt-1">
-                AI agent is authorized to invoke settlement release without human click when independent inspection passes.
+                When accredited verification attests PASS, policy rules determine the eligible settlement path. Final financial state changes remain subject to cryptographic authorization and onchain contract enforcement.
               </p>
             </div>
             <div className="p-3 rounded-lg bg-gray-950/60 border border-gray-800">
@@ -240,12 +269,12 @@ export default function InitiatorDashboardPage() {
               </Link>
             </div>
 
-            {/* Autonomous Execution Path */}
+            {/* Policy-Assisted Flow */}
             <div className="p-5 rounded-xl bg-gradient-to-b from-[#0e1726] to-[#0a0d16] border border-blue-800/60 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-700 text-[10px] font-bold">
-                    AUTONOMOUS AGENT FLOW
+                    POLICY-ASSISTED FLOW
                   </span>
                   <span className="text-gray-400 text-[10px]">Normal Settlement</span>
                 </div>
@@ -253,7 +282,7 @@ export default function InitiatorDashboardPage() {
                   Tier-1 Solar Panels (Uncontested Delivery)
                 </h3>
                 <p className="text-[11px] text-gray-300 font-sans mb-3">
-                  Depot inspector attests delivery PASS. AI Agent autonomously executes settlement release under pre-authorized spending policy without requiring manual human approval.
+                  Depot inspector attests delivery PASS. Policy-assisted workflow verifies independent attestation against pre-authorized rules; settlement is cryptographically authorized and enforced onchain. AI assists. Humans authorize. Verifiers verify. Blockchain enforces.
                 </p>
                 <div className="bg-gray-950 p-2.5 rounded-lg border border-gray-800 space-y-1 text-[11px] mb-4">
                   <div className="text-gray-400">Scenario: <span className="text-blue-300">Demo Scenario A</span></div>
@@ -265,7 +294,7 @@ export default function InitiatorDashboardPage() {
                 href="/transactions/story-a"
                 className="w-full text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition text-xs shadow-md"
               >
-                Inspect Autonomous Room →
+                Inspect Policy-Assisted Room →
               </Link>
             </div>
           </div>

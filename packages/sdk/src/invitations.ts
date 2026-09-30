@@ -168,3 +168,112 @@ export function verifyMutationSignature(
     isReceiver,
   };
 }
+
+export const CANONICAL_TESTNET_TX_ID =
+  '0xbbd0176291d62b32c3e096d0314c0fab6bcfa9131c1b26a825b3ce994e645f5e';
+
+/**
+ * Checks if a request record is an immutable historical demo benchmark.
+ * These records are immutable audit logs and must never be counted as actionable.
+ */
+export function isBenchmarkRequest(r: { id?: string; transactionId?: string }): boolean {
+  const tx = (r.transactionId || '').toLowerCase();
+  return (
+    tx === CANONICAL_FLOW_A_TX_ID.toLowerCase() ||
+    tx === CANONICAL_FLOW_B_TX_ID.toLowerCase() ||
+    tx === CANONICAL_TESTNET_TX_ID.toLowerCase() ||
+    r.id === 'VM-REQ-0001' ||
+    r.id === 'VM-REQ-0002' ||
+    r.id === 'VM-REQ-0003' ||
+    r.id === 'VM-REQ-0004'
+  );
+}
+
+/**
+ * Checks if a request is in an actionable state awaiting receiver action.
+ * A request is actionable if:
+ * 1. It is NOT a benchmark/demo record.
+ * 2. Its status is NOT AGREED, AGREEMENT_ACTIVE, COUNTERED, DECLINED, FUNDED, or SETTLED.
+ * 3. If onchain state is known: onchain state must be PROPOSED (state 1).
+ * 4. If onchain state is not known: status must be AWAITING_RECEIVER_ACCEPTANCE or PROPOSED.
+ */
+export function isAwaitingReceiverAction(
+  r: {
+    id?: string;
+    transactionId?: string;
+    status?: string;
+    [key: string]: any;
+  },
+  onchainTxMap?: Record<string, { stateName: string }>
+): boolean {
+  if (isBenchmarkRequest(r)) return false;
+
+  const normalizedStatus = (r.status || '').toUpperCase();
+  if (
+    normalizedStatus === 'COUNTERED' ||
+    normalizedStatus === 'DECLINED' ||
+    normalizedStatus === 'AGREED' ||
+    normalizedStatus === 'AGREEMENT_ACTIVE' ||
+    normalizedStatus === 'FUNDED' ||
+    normalizedStatus === 'SETTLED'
+  ) {
+    return false;
+  }
+
+  const onchain = r.transactionId && onchainTxMap ? onchainTxMap[r.transactionId] : null;
+  if (onchain) {
+    return onchain.stateName === 'PROPOSED';
+  }
+
+  return (
+    normalizedStatus === 'AWAITING_RECEIVER_ACCEPTANCE' ||
+    normalizedStatus === 'PROPOSED'
+  );
+}
+
+/**
+ * Calculates the number of actionable requests for the connected wallet.
+ * Strict invariants:
+ * - When disconnected (isConnected === false or !connectedWallet): ALWAYS returns 0.
+ * - Intended receiver/seller MUST match the connected wallet (case-insensitive).
+ * - Must be awaiting receiver action (not agreed, not countered, not declined, not settled).
+ * - Benchmarks/demo defaults NEVER increment the count.
+ */
+export function calculateActionableRequestsCount(params: {
+  requests: Array<{
+    id?: string;
+    transactionId?: string;
+    status?: string;
+    receiverWallet?: string;
+    [key: string]: any;
+  }>;
+  connectedWallet?: string | null;
+  isConnected?: boolean;
+  onchainTxMap?: Record<string, { stateName: string }>;
+}): number {
+  const { requests, connectedWallet, isConnected, onchainTxMap } = params;
+
+  if (!isConnected || !connectedWallet) {
+    return 0;
+  }
+
+  const normalizedWallet = connectedWallet.toLowerCase();
+
+  return requests.filter((r) => {
+    if (!isAwaitingReceiverAction(r, onchainTxMap)) {
+      return false;
+    }
+    const receiver = (r.receiverWallet || '').toLowerCase();
+    return receiver === normalizedWallet;
+  }).length;
+}
+
+/**
+ * Returns the badge number for the Requests navigation item.
+ * Returns undefined when count is 0 to hide the badge according to navigation conventions,
+ * or the positive count when actionable requests exist.
+ */
+export function getRequestsNavBadge(actionableCount: number): number | undefined {
+  return actionableCount > 0 ? actionableCount : undefined;
+}
+
