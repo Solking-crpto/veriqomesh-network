@@ -26,6 +26,7 @@ export interface MonadWalletState {
   disconnect: () => void;
   switchNetwork: () => Promise<boolean>;
   refreshBalance: () => Promise<void>;
+  signMessage: (message: string) => Promise<string>;
 }
 
 export function useMonadWallet(): MonadWalletState {
@@ -196,6 +197,13 @@ export function useMonadWallet(): MonadWalletState {
     }
   }, [signerProvider]);
 
+  const signMessage = useCallback(async (message: string): Promise<string> => {
+    if (!signerProvider) {
+      throw new Error('Wallet not connected or signer unavailable');
+    }
+    return signerProvider.signMessage(message);
+  }, [signerProvider]);
+
   return {
     isAvailable,
     isConnected,
@@ -210,5 +218,6 @@ export function useMonadWallet(): MonadWalletState {
     disconnect,
     switchNetwork,
     refreshBalance,
+    signMessage,
   };
 }

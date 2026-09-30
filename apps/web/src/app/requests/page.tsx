@@ -17,6 +17,7 @@ import {
 import {
   CANONICAL_FLOW_A_TX_ID,
   CANONICAL_FLOW_B_TX_ID,
+  buildMutationAuthMessage,
 } from '../../lib/invitation-utils';
 import { PersistentInvitation } from '../../lib/invitation-types';
 import { TransactionState } from '@trustmesh/types';
@@ -324,12 +325,29 @@ export default function RequestsPage() {
 
         // 4. Update offchain Redis status if invitationCode exists
         if (req.invitationCode) {
+          const nonce = `nonce_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+          const expiresAt = Date.now() + 5 * 60 * 1000;
+          const action = 'MUTATION:STATUS_AGREED';
+          const authMessage = buildMutationAuthMessage({
+            invitationCode: req.invitationCode,
+            action,
+            nonce,
+            expiresAt,
+          });
+          const signature = await wallet.signMessage(authMessage);
+
           await fetch(`/api/invitations/${req.invitationCode}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               status: 'AGREED',
-              callerWallet: wallet.address,
+              onchainTxHash: txHash,
+              auth: {
+                signature,
+                nonce,
+                expiresAt,
+                action,
+              },
             }),
           });
         }
@@ -401,12 +419,31 @@ export default function RequestsPage() {
     if (!window.confirm('Are you sure you want to decline this commercial proposal?')) return;
     try {
       if (req.invitationCode) {
+        if (!wallet.isConnected) {
+          await wallet.connect();
+        }
+        const nonce = `nonce_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+        const expiresAt = Date.now() + 5 * 60 * 1000;
+        const action = 'MUTATION:STATUS_DECLINED';
+        const authMessage = buildMutationAuthMessage({
+          invitationCode: req.invitationCode,
+          action,
+          nonce,
+          expiresAt,
+        });
+        const signature = await wallet.signMessage(authMessage);
+
         await fetch(`/api/invitations/${req.invitationCode}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             status: 'DECLINED',
-            callerWallet: wallet.address || req.receiverWallet,
+            auth: {
+              signature,
+              nonce,
+              expiresAt,
+              action,
+            },
           }),
         });
       }

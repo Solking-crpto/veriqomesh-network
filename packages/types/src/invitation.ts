@@ -56,10 +56,17 @@ export interface CreateInvitationRequest {
   parentInvitationCode?: string;
 }
 
+export interface MutationAuthorization {
+  signature: string; // 0x... hex signature from personal_sign
+  nonce: string; // unique random alphanumeric string
+  expiresAt: number; // epoch ms timestamp
+  action: string; // e.g. "MUTATION:STATUS_AGREED", "MUTATION:STATUS_DECLINED"
+}
+
 export interface UpdateInvitationRequest {
   status?: InvitationStatus;
   onchainTxHash?: string;
-  transactionId?: string;
   counterInvitationCode?: string;
-  callerWallet?: string;
+  callerWallet?: string; // Informational only; server strictly recovers signer from auth.signature
+  auth: MutationAuthorization;
 }

@@ -64,3 +64,107 @@ export function generateFreshTransactionId(buyerAddress: string, invitationCode:
 export function computeCanonicalTermsHash(termsText: string): string {
   return ethers.keccak256(ethers.toUtf8Bytes(termsText || ''));
 }
+
+/**
+ * Builds the canonical domain-separated authorization message for invitation mutations (PATCH).
+ * Binds domain, invitationCode, mutationAction, nonce, and expiration.
+ */
+export function buildMutationAuthMessage(params: {
+  invitationCode: string;
+  action: string;
+  nonce: string;
+  expiresAt: number;
+}): string {
+  return [
+    'VeriqoMesh Invitation Mutation Authorization',
+    'Domain: veriqomesh.xyz',
+    `Invitation Code: ${params.invitationCode.toUpperCase()}`,
+    `Action: ${params.action}`,
+    `Nonce: ${params.nonce}`,
+    `Expires At: ${params.expiresAt}`,
+  ].join('\n');
+}
+
+export interface VerifyMutationSignatureParams {
+  invitationCode: string;
+  action: string;
+  signature: string;
+  nonce: string;
+  expiresAt: number;
+  initiatorWallet: string;
+  intendedReceiverWallet: string;
+  currentTime?: number;
+}
+
+export interface VerifyMutationSignatureResult {
+  isValid: boolean;
+  recoveredAddress?: string;
+  isInitiator?: boolean;
+  isReceiver?: boolean;
+  error?: string;
+}
+
+/**
+ * Cryptographically verifies an invitation mutation signature (EIP-191).
+ * Recovers the signer's address from the signature and verifies participation.
+ */
+export function verifyMutationSignature(
+  params: VerifyMutationSignatureParams
+): VerifyMutationSignatureResult {
+  if (!params.signature || typeof params.signature !== 'string') {
+    return { isValid: false, error: 'Missing or invalid signature' };
+  }
+  if (!params.nonce || typeof params.nonce !== 'string' || params.nonce.trim().length === 0) {
+    return { isValid: false, error: 'Missing or empty nonce' };
+  }
+  if (!params.action || typeof params.action !== 'string') {
+    return { isValid: false, error: 'Missing mutation action' };
+  }
+  if (typeof params.expiresAt !== 'number' || isNaN(params.expiresAt)) {
+    return { isValid: false, error: 'Invalid expiresAt timestamp' };
+  }
+
+  const now = params.currentTime ?? Date.now();
+  if (now > params.expiresAt) {
+    return { isValid: false, error: 'Mutation authorization has expired' };
+  }
+  if (params.expiresAt > now + 15 * 60 * 1000) {
+    return { isValid: false, error: 'Mutation authorization expiry exceeds maximum 15-minute window' };
+  }
+
+  const message = buildMutationAuthMessage({
+    invitationCode: params.invitationCode,
+    action: params.action,
+    nonce: params.nonce,
+    expiresAt: params.expiresAt,
+  });
+
+  let recovered: string;
+  try {
+    recovered = ethers.verifyMessage(message, params.signature);
+  } catch {
+    return { isValid: false, error: 'Malformed or invalid cryptographic signature' };
+  }
+
+  const recoveredNormalized = recovered.toLowerCase();
+  const initiatorNormalized = params.initiatorWallet.toLowerCase();
+  const receiverNormalized = params.intendedReceiverWallet.toLowerCase();
+
+  const isInitiator = recoveredNormalized === initiatorNormalized;
+  const isReceiver = recoveredNormalized === receiverNormalized;
+
+  if (!isInitiator && !isReceiver) {
+    return {
+      isValid: false,
+      recoveredAddress: recovered,
+      error: 'Recovered signer is not a participating wallet in this invitation',
+    };
+  }
+
+  return {
+    isValid: true,
+    recoveredAddress: ethers.getAddress(recovered),
+    isInitiator,
+    isReceiver,
+  };
+}

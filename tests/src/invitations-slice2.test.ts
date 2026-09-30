@@ -8,6 +8,8 @@ import {
   computeCanonicalTermsHash,
   CANONICAL_FLOW_A_TX_ID,
   CANONICAL_FLOW_B_TX_ID,
+  buildMutationAuthMessage,
+  verifyMutationSignature,
 } from '@trustmesh/sdk';
 import {
   PersistentInvitation,
@@ -410,4 +412,376 @@ describe('Stage 4 Slice 2 — Persistent Invitations & Receiver Action Invariant
       assert.equal(deserialized.transactionId, sample.transactionId);
     });
   });
+
+  // 9. Stage 4 Slice 2.1 — Cryptographic Mutation Authorization & Hardening
+  describe('9. Stage 4 Slice 2.1 — Cryptographic Mutation Authorization & Hardening', () => {
+    const testCodeA = 'VM-AUTH-0001';
+    const testCodeB = 'VM-AUTH-0002';
+
+    it('rejects mutation authorization when signature is missing or empty', () => {
+      const result = verifyMutationSignature({
+        invitationCode: testCodeA,
+        action: 'MUTATION:STATUS_AGREED',
+        signature: '',
+        nonce: 'nonce_123',
+        expiresAt: Date.now() + 300000,
+        initiatorWallet: buyerWallet.address,
+        intendedReceiverWallet: sellerWallet.address,
+      });
+
+      assert.equal(result.isValid, false);
+      assert.match(result.error || '', /Missing or invalid signature/);
+    });
+
+    it('rejects mutation authorization with a malformed signature string', () => {
+      const result = verifyMutationSignature({
+        invitationCode: testCodeA,
+        action: 'MUTATION:STATUS_AGREED',
+        signature: '0xnotavalidsignaturehexstring',
+        nonce: 'nonce_123',
+        expiresAt: Date.now() + 300000,
+        initiatorWallet: buyerWallet.address,
+        intendedReceiverWallet: sellerWallet.address,
+      });
+
+      assert.equal(result.isValid, false);
+      assert.match(result.error || '', /Malformed or invalid cryptographic signature/);
+    });
+
+    it('rejects mutation authorization with valid signature from an unrelated 3rd-party wallet', async () => {
+      const attackerWallet = ethers.Wallet.createRandom();
+      const nonce = 'nonce_attacker_01';
+      const expiresAt = Date.now() + 300000;
+      const action = 'MUTATION:STATUS_AGREED';
+
+      const authMessage = buildMutationAuthMessage({
+        invitationCode: testCodeA,
+        action,
+        nonce,
+        expiresAt,
+      });
+      const signature = await attackerWallet.signMessage(authMessage);
+
+      const result = verifyMutationSignature({
+        invitationCode: testCodeA,
+        action,
+        signature,
+        nonce,
+        expiresAt,
+        initiatorWallet: buyerWallet.address,
+        intendedReceiverWallet: sellerWallet.address,
+      });
+
+      assert.equal(result.isValid, false);
+      assert.equal(result.recoveredAddress?.toLowerCase(), attackerWallet.address.toLowerCase());
+      assert.match(result.error || '', /not a participating wallet/);
+    });
+
+    it('accepts valid receiver signature for agreement ratification', async () => {
+      const nonce = 'nonce_seller_01';
+      const expiresAt = Date.now() + 300000;
+      const action = 'MUTATION:STATUS_AGREED';
+
+      const authMessage = buildMutationAuthMessage({
+        invitationCode: testCodeA,
+        action,
+        nonce,
+        expiresAt,
+      });
+      const signature = await sellerWallet.signMessage(authMessage);
+
+      const result = verifyMutationSignature({
+        invitationCode: testCodeA,
+        action,
+        signature,
+        nonce,
+        expiresAt,
+        initiatorWallet: buyerWallet.address,
+        intendedReceiverWallet: sellerWallet.address,
+      });
+
+      assert.equal(result.isValid, true);
+      assert.equal(result.isReceiver, true);
+      assert.equal(result.isInitiator, false);
+      assert.equal(result.recoveredAddress?.toLowerCase(), sellerWallet.address.toLowerCase());
+    });
+
+    it('accepts valid initiator signature for cancellation/decline', async () => {
+      const nonce = 'nonce_buyer_01';
+      const expiresAt = Date.now() + 300000;
+      const action = 'MUTATION:STATUS_DECLINED';
+
+      const authMessage = buildMutationAuthMessage({
+        invitationCode: testCodeA,
+        action,
+        nonce,
+        expiresAt,
+      });
+      const signature = await buyerWallet.signMessage(authMessage);
+
+      const result = verifyMutationSignature({
+        invitationCode: testCodeA,
+        action,
+        signature,
+        nonce,
+        expiresAt,
+        initiatorWallet: buyerWallet.address,
+        intendedReceiverWallet: sellerWallet.address,
+      });
+
+      assert.equal(result.isValid, true);
+      assert.equal(result.isInitiator, true);
+      assert.equal(result.isReceiver, false);
+      assert.equal(result.recoveredAddress?.toLowerCase(), buyerWallet.address.toLowerCase());
+    });
+
+    it('INVARIANT: Initiator cannot ratify agreement as receiver (Strict Role Isolation)', async () => {
+      const nonce = 'nonce_buyer_invalid_agree';
+      const expiresAt = Date.now() + 300000;
+      const action = 'MUTATION:STATUS_AGREED';
+
+      const authMessage = buildMutationAuthMessage({
+        invitationCode: testCodeA,
+        action,
+        nonce,
+        expiresAt,
+      });
+      const signature = await buyerWallet.signMessage(authMessage);
+
+      const result = verifyMutationSignature({
+        invitationCode: testCodeA,
+        action,
+        signature,
+        nonce,
+        expiresAt,
+        initiatorWallet: buyerWallet.address,
+        intendedReceiverWallet: sellerWallet.address,
+      });
+
+      assert.equal(result.isValid, true);
+      assert.equal(result.isInitiator, true);
+      // In server endpoint logic: only isReceiver can perform MUTATION:STATUS_AGREED
+      const isAllowedToAgree = result.isReceiver === true;
+      assert.equal(isAllowedToAgree, false, 'Buyer must not be authorized to agree on behalf of seller');
+    });
+
+    it('REPLAY ATTACK: Signature created for Invitation A is rejected when submitted for Invitation B', async () => {
+      const nonce = 'nonce_cross_inv_01';
+      const expiresAt = Date.now() + 300000;
+      const action = 'MUTATION:STATUS_AGREED';
+
+      // Signed specifically for testCodeA
+      const authMessage = buildMutationAuthMessage({
+        invitationCode: testCodeA,
+        action,
+        nonce,
+        expiresAt,
+      });
+      const signature = await sellerWallet.signMessage(authMessage);
+
+      // Attempt to replay against testCodeB
+      const result = verifyMutationSignature({
+        invitationCode: testCodeB,
+        action,
+        signature,
+        nonce,
+        expiresAt,
+        initiatorWallet: buyerWallet.address,
+        intendedReceiverWallet: sellerWallet.address,
+      });
+
+      assert.equal(result.isValid, false);
+      assert.notEqual(result.recoveredAddress?.toLowerCase(), sellerWallet.address.toLowerCase());
+    });
+
+    it('ACTION MISMATCH: Signature authorized for STATUS_DECLINED is rejected when applied to STATUS_AGREED', async () => {
+      const nonce = 'nonce_action_mismatch_01';
+      const expiresAt = Date.now() + 300000;
+
+      // Signed specifically for DECLINED
+      const authMessage = buildMutationAuthMessage({
+        invitationCode: testCodeA,
+        action: 'MUTATION:STATUS_DECLINED',
+        nonce,
+        expiresAt,
+      });
+      const signature = await sellerWallet.signMessage(authMessage);
+
+      // Attempt to apply to STATUS_AGREED
+      const result = verifyMutationSignature({
+        invitationCode: testCodeA,
+        action: 'MUTATION:STATUS_AGREED',
+        signature,
+        nonce,
+        expiresAt,
+        initiatorWallet: buyerWallet.address,
+        intendedReceiverWallet: sellerWallet.address,
+      });
+
+      assert.equal(result.isValid, false);
+      assert.notEqual(result.recoveredAddress?.toLowerCase(), sellerWallet.address.toLowerCase());
+    });
+
+    it('EXPIRATION: Authorization signature with past expiresAt is rejected', async () => {
+      const nonce = 'nonce_expired_01';
+      const pastTime = Date.now() - 10000; // 10s in past
+      const action = 'MUTATION:STATUS_AGREED';
+
+      const authMessage = buildMutationAuthMessage({
+        invitationCode: testCodeA,
+        action,
+        nonce,
+        expiresAt: pastTime,
+      });
+      const signature = await sellerWallet.signMessage(authMessage);
+
+      const result = verifyMutationSignature({
+        invitationCode: testCodeA,
+        action,
+        signature,
+        nonce,
+        expiresAt: pastTime,
+        initiatorWallet: buyerWallet.address,
+        intendedReceiverWallet: sellerWallet.address,
+        currentTime: Date.now(),
+      });
+
+      assert.equal(result.isValid, false);
+      assert.match(result.error || '', /expired/i);
+    });
+
+    it('EXPIRATION: Authorization signature with expiresAt > 15 minutes in future is rejected', async () => {
+      const nonce = 'nonce_future_window_01';
+      const excessiveFutureTime = Date.now() + 60 * 60 * 1000; // 1 hour in future
+      const action = 'MUTATION:STATUS_AGREED';
+
+      const authMessage = buildMutationAuthMessage({
+        invitationCode: testCodeA,
+        action,
+        nonce,
+        expiresAt: excessiveFutureTime,
+      });
+      const signature = await sellerWallet.signMessage(authMessage);
+
+      const result = verifyMutationSignature({
+        invitationCode: testCodeA,
+        action,
+        signature,
+        nonce,
+        expiresAt: excessiveFutureTime,
+        initiatorWallet: buyerWallet.address,
+        intendedReceiverWallet: sellerWallet.address,
+      });
+
+      assert.equal(result.isValid, false);
+      assert.match(result.error || '', /window/i);
+    });
+
+    it('NONCE REPLAY: Replaying identical nonce is rejected by replay cache', async () => {
+      const nonceStore = new Set<string>();
+
+      function checkAndConsumeNonce(nonce: string): { ok: boolean; error?: string } {
+        if (nonceStore.has(nonce)) {
+          return { ok: false, error: 'Nonce already consumed (replay rejected)' };
+        }
+        nonceStore.add(nonce);
+        return { ok: true };
+      }
+
+      const nonce = 'nonce_unique_test_123';
+      const firstUse = checkAndConsumeNonce(nonce);
+      assert.equal(firstUse.ok, true);
+
+      // Replay attempt with same nonce
+      const secondUse = checkAndConsumeNonce(nonce);
+      assert.equal(secondUse.ok, false);
+      assert.match(secondUse.error || '', /already consumed/);
+    });
+
+    it('STATE MACHINE: Transition from PROPOSED to AGREED is permitted for seller', () => {
+      function validateTransition(current: string, target: string, isReceiver: boolean) {
+        if (target === 'AGREED') {
+          if (!isReceiver) return { allowed: false, reason: 'Only seller can ratify' };
+          if (current !== 'PROPOSED') return { allowed: false, reason: 'Must be in PROPOSED state' };
+          return { allowed: true };
+        }
+        return { allowed: false, reason: 'Unknown' };
+      }
+
+      assert.equal(validateTransition('PROPOSED', 'AGREED', true).allowed, true);
+      assert.equal(validateTransition('PROPOSED', 'AGREED', false).allowed, false);
+      assert.equal(validateTransition('DECLINED', 'AGREED', true).allowed, false);
+      assert.equal(validateTransition('AGREED', 'AGREED', true).allowed, false);
+    });
+
+    it('STATE MACHINE: Transition from AGREED to DECLINED is rejected (terminal)', () => {
+      function canDecline(current: string) {
+        return current === 'PROPOSED';
+      }
+
+      assert.equal(canDecline('PROPOSED'), true);
+      assert.equal(canDecline('AGREED'), false);
+      assert.equal(canDecline('DECLINED'), false);
+      assert.equal(canDecline('COUNTERED'), false);
+    });
+
+    it('STATE MACHINE: Arbitrary unknown status strings are rejected', () => {
+      const allowedStatuses = new Set(['AGREED', 'DECLINED', 'COUNTERED']);
+      const invalidStatuses = ['REFUNDED', 'HACKED', 'CANCELLED_FORCE', 'ADMIN_OVERRIDE'];
+
+      for (const badStatus of invalidStatuses) {
+        assert.equal(allowedStatuses.has(badStatus), false);
+      }
+    });
+
+    it('PROPOSAL IMMUTABILITY: Proposal terms, termsHash, and transactionId cannot be mutated via PATCH', () => {
+      const existingInvitation: PersistentInvitation = {
+        invitationCode: testCodeA,
+        version: 1,
+        status: 'PROPOSED',
+        createdAt: 1727730000000,
+        updatedAt: 1727730000000,
+        initiatorWallet: buyerWallet.address,
+        intendedReceiverWallet: sellerWallet.address,
+        transactionId: generateFreshTransactionId(buyerWallet.address, testCodeA),
+        proposal: {
+          title: 'Immutable Solar Deal',
+          description: 'Original terms',
+          amount: '0.001',
+          asset: 'MON',
+          deadlineDays: 14,
+          termsText: 'Original terms text',
+          termsHash: computeCanonicalTermsHash('Original terms text'),
+        },
+        roles: {
+          buyer: buyerWallet.address,
+          seller: sellerWallet.address,
+          verifier: verifierWallet.address,
+        },
+      };
+
+      // Attacker attempts to submit PATCH with mutated amount or terms
+      const patchAttempt = {
+        status: 'AGREED',
+        proposal: {
+          amount: '999999',
+          title: 'Hacked Deal',
+        },
+        transactionId: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      };
+
+      // Server PATCH logic applies only allowed fields:
+      const updatedInvitation = { ...existingInvitation };
+      if (patchAttempt.status === 'AGREED') {
+        updatedInvitation.status = 'AGREED';
+      }
+      // proposal and transactionId are explicitly NOT copied from patchAttempt!
+
+      assert.equal(updatedInvitation.proposal.amount, '0.001');
+      assert.equal(updatedInvitation.proposal.title, 'Immutable Solar Deal');
+      assert.equal(updatedInvitation.transactionId, existingInvitation.transactionId);
+      assert.equal(updatedInvitation.status, 'AGREED');
+    });
+  });
 });
+

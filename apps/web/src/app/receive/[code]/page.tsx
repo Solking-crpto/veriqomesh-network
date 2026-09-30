@@ -6,8 +6,12 @@ import { useRouter } from 'next/navigation';
 import { ethers } from 'ethers';
 import { useDemoNetwork } from '../../../context/DemoNetworkContext';
 import { PersistentInvitation } from '../../../lib/invitation-types';
-import { CANONICAL_FLOW_A_TX_ID, CANONICAL_FLOW_B_TX_ID } from '../../../lib/invitation-utils';
 import { TransactionState } from '@trustmesh/types';
+import {
+  CANONICAL_FLOW_A_TX_ID,
+  CANONICAL_FLOW_B_TX_ID,
+  buildMutationAuthMessage,
+} from '../../../lib/invitation-utils';
 
 export default function ReceiveInvitationPage({
   params,
@@ -183,15 +187,37 @@ export default function ReceiveInvitationPage({
       setAcceptTxHash(txHash);
       setAcceptPendingHash(null);
 
-      // 4. Update offchain Redis status
-      await fetch(`/api/invitations/${code}`, {
+      // 4. Generate cryptographic mutation authorization (EIP-191)
+      const nonce = `nonce_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      const expiresAt = Date.now() + 5 * 60 * 1000;
+      const action = 'MUTATION:STATUS_AGREED';
+      const authMessage = buildMutationAuthMessage({
+        invitationCode: code,
+        action,
+        nonce,
+        expiresAt,
+      });
+      const signature = await wallet.signMessage(authMessage);
+
+      // 5. Update offchain Redis status with verified authorization
+      const patchRes = await fetch(`/api/invitations/${code}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status: 'AGREED',
-          callerWallet: wallet.address,
+          onchainTxHash: txHash,
+          auth: {
+            signature,
+            nonce,
+            expiresAt,
+            action,
+          },
         }),
       });
+      const patchData = await patchRes.json();
+      if (!patchRes.ok || !patchData.success) {
+        console.warn('Failed to update offchain Redis agreement state:', patchData.error);
+      }
 
       // Refresh local view
       await fetchInvitation();
@@ -277,12 +303,33 @@ export default function ReceiveInvitationPage({
     setDeclineError(null);
     setIsDeclining(true);
     try {
+      if (!wallet.isConnected) {
+        await wallet.connect();
+      }
+
+      // Generate cryptographic mutation authorization (EIP-191)
+      const nonce = `nonce_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      const expiresAt = Date.now() + 5 * 60 * 1000;
+      const action = 'MUTATION:STATUS_DECLINED';
+      const authMessage = buildMutationAuthMessage({
+        invitationCode: code,
+        action,
+        nonce,
+        expiresAt,
+      });
+      const signature = await wallet.signMessage(authMessage);
+
       const res = await fetch(`/api/invitations/${code}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status: 'DECLINED',
-          callerWallet: wallet.address || invitation.intendedReceiverWallet,
+          auth: {
+            signature,
+            nonce,
+            expiresAt,
+            action,
+          },
         }),
       });
       const data = await res.json();

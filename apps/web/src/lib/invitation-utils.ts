@@ -65,3 +65,10 @@ export function generateFreshTransactionId(buyerAddress: string, invitationCode:
 export function computeCanonicalTermsHash(termsText: string): string {
   return ethers.keccak256(ethers.toUtf8Bytes(termsText || ''));
 }
+
+export {
+  buildMutationAuthMessage,
+  verifyMutationSignature,
+  type VerifyMutationSignatureParams,
+  type VerifyMutationSignatureResult,
+} from '@trustmesh/sdk';
