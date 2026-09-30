@@ -4,3 +4,4 @@ export * from './abstractions/wallet.js';
 export * from './hashing.js';
 export * from './abi.js';
 export * from './client.js';
+export * from './invitations.js';

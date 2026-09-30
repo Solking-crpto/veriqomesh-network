@@ -9,8 +9,8 @@ import {
   TARGET_BUYER_ADDRESS,
   TARGET_SELLER_ADDRESS,
   INDEPENDENT_VERIFIER_ADDRESS,
-  APPROVED_OPERATOR_VERIFIER_TX_ID,
 } from '../../../context/DemoNetworkContext';
+import { generateFreshTransactionId } from '../../../lib/invitation-utils';
 
 export default function CreateIntentPage() {
   const router = useRouter();
@@ -28,6 +28,9 @@ export default function CreateIntentPage() {
   const [deadlineDays, setDeadlineDays] = useState(14);
   const [createdRequestId, setCreatedRequestId] = useState<string | null>(null);
   const [createdTxId, setCreatedTxId] = useState<string | null>(null);
+  const [createdInvitationCode, setCreatedInvitationCode] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   // Phase 6C: Onchain Broadcast Mode (Default enabled for live E2E testnet validation)
   const [broadcastOnchain, setBroadcastOnchain] = useState(true);
@@ -115,7 +118,7 @@ export default function CreateIntentPage() {
 
       setIsBroadcasting(true);
       try {
-        const newTxId = APPROVED_OPERATOR_VERIFIER_TX_ID;
+        const newTxId = generateFreshTransactionId(buyerAddress, 'INTENT_' + Date.now());
         const termsHash = ethers.keccak256(ethers.toUtf8Bytes(promptText));
         const amountWei = ethers.parseEther(escrowAmount || '0.001').toString();
         const deadlineEpoch = Math.floor(Date.now() / 1000) + deadlineDays * 86400;
@@ -147,6 +150,46 @@ export default function CreateIntentPage() {
 
         setCreatedTxId(newTxId);
         setBroadcastTxHash(txHash);
+
+        // Persist invitation to server-side Upstash Redis store
+        try {
+          const invRes = await fetch('/api/invitations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              initiatorWallet: buyerAddress,
+              intendedReceiverWallet: sellerAddress,
+              proposal: {
+                title: 'Commercial Solar Procurement',
+                description: promptText,
+                amount: escrowAmount || '0.001',
+                asset: 'MON',
+                deadlineDays: Number(deadlineDays) || 14,
+                termsText: promptText,
+                termsHash,
+                evidenceRequirements: [
+                  'Carrier Bill of Lading (signed)',
+                  'Geotagged Depot Delivery Photo',
+                  `Independent Verifier Attestation (${designatedVerifier.slice(0, 6)}...${designatedVerifier.slice(-4)})`,
+                ],
+              },
+              roles: {
+                buyer: buyerAddress,
+                seller: sellerAddress,
+                verifier: designatedVerifier,
+              },
+              transactionId: newTxId,
+              onchainTxHash: txHash,
+            }),
+          });
+          const invData = await invRes.json();
+          if (invData.success && invData.invitationCode) {
+            setCreatedInvitationCode(invData.invitationCode);
+          }
+        } catch (invErr) {
+          console.error('Failed to persist invitation to Redis:', invErr);
+        }
+
         const newId = createDealRequest(receiverName, sellerAddress, true, newTxId, txHash, designatedVerifier);
         setCreatedRequestId(newId);
       } catch (err: unknown) {
@@ -157,9 +200,48 @@ export default function CreateIntentPage() {
       }
     } else {
       // Sandbox Demo Mode
-      const newId = createDealRequest(receiverName, sellerAddress, false, undefined, undefined, designatedVerifier);
+      const freshTxId = generateFreshTransactionId(buyerAddress, 'SANDBOX_' + Date.now());
+      const newId = createDealRequest(receiverName, sellerAddress, false, freshTxId, undefined, designatedVerifier);
       setCreatedRequestId(newId);
-      setCreatedTxId(null);
+      setCreatedTxId(freshTxId);
+
+      // Persist sandbox proposal to Redis as well
+      try {
+        const invRes = await fetch('/api/invitations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            initiatorWallet: buyerAddress,
+            intendedReceiverWallet: sellerAddress,
+            proposal: {
+              title: 'Commercial Solar Procurement (Sandbox)',
+              description: promptText,
+              amount: escrowAmount || '0.001',
+              asset: 'MON',
+              deadlineDays: Number(deadlineDays) || 14,
+              termsText: promptText,
+              termsHash: currentTermsHash,
+              evidenceRequirements: [
+                'Carrier Bill of Lading (signed)',
+                'Geotagged Depot Delivery Photo',
+                `Independent Verifier Attestation (${designatedVerifier.slice(0, 6)}...${designatedVerifier.slice(-4)})`,
+              ],
+            },
+            roles: {
+              buyer: buyerAddress,
+              seller: sellerAddress,
+              verifier: designatedVerifier,
+            },
+            transactionId: freshTxId,
+          }),
+        });
+        const invData = await invRes.json();
+        if (invData.success && invData.invitationCode) {
+          setCreatedInvitationCode(invData.invitationCode);
+        }
+      } catch (invErr) {
+        console.error('Failed to persist sandbox invitation to Redis:', invErr);
+      }
     }
   };
 
@@ -167,6 +249,13 @@ export default function CreateIntentPage() {
     switchRole('RECEIVER');
     router.push('/requests');
   };
+
+  const shareUrl =
+    typeof window !== 'undefined' && createdInvitationCode
+      ? `${window.location.origin}/receive/${createdInvitationCode}`
+      : createdInvitationCode
+      ? `/receive/${createdInvitationCode}`
+      : '';
 
   return (
     <div className="min-h-screen bg-[#07080d] text-gray-100 py-10 px-4 sm:px-6 lg:px-8 font-sans">
@@ -189,88 +278,143 @@ export default function CreateIntentPage() {
           </p>
         </div>
 
-        {/* Success Modal / Banner */}
+        {/* Success Modal / Shareable Invitation Banner */}
         {createdRequestId && (
-          <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-950/90 to-purple-950/80 border border-emerald-500 shadow-2xl space-y-4">
+          <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-950/90 to-purple-950/80 border border-emerald-500 shadow-2xl space-y-5">
             <div className="flex items-center gap-3">
               <span className="w-8 h-8 rounded-full bg-emerald-500 text-black flex items-center justify-center font-bold text-lg">
                 ✓
               </span>
               <div>
                 <h3 className="text-lg font-bold text-white font-mono">
-                  {createdTxId ? 'Live Monad Testnet Transaction Initialized!' : 'Deal Request Sent Successfully!'} ({createdRequestId})
+                  {createdTxId && broadcastTxHash
+                    ? 'Live Monad Testnet Transaction Initialized!'
+                    : 'Deal Invitation Created Successfully!'}
                 </h3>
                 <p className="text-xs text-gray-300 font-mono">
-                  {createdTxId
-                    ? `Onchain transaction record initialized on Monad Metropolis Testnet (Chain ID 10143). Escrow deposit: ${escrowAmount} MON.`
-                    : 'Dispatched to Dallas Solar Supply Co. Awaiting counterparty review and signature.'}
+                  {createdTxId && broadcastTxHash
+                    ? `Authoritative onchain record broadcast to Monad Metropolis Testnet (Chain ID 10143). Escrow deposit required: ${escrowAmount} MON.`
+                    : 'Proposal stored in persistent database. Share the invitation code with your counterparty.'}
                 </p>
               </div>
             </div>
 
-            {createdTxId && (
-              <div className="p-3 bg-black/60 rounded-xl border border-emerald-600/60 font-mono text-xs space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">FRESH TRANSACTION ID:</span>
-                  <code className="text-purple-300 font-bold">{createdTxId}</code>
-                </div>
-                {broadcastTxHash && (
+            {/* THREE-TIER IDENTIFIER SEPARATION CARD */}
+            <div className="p-4 bg-black/70 rounded-xl border border-emerald-600/70 font-mono text-xs space-y-3">
+              <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider border-b border-gray-800 pb-1">
+                Transaction Identification &amp; Counterparty Sharing
+              </div>
+
+              {/* 1. Human Invitation Code */}
+              {createdInvitationCode && (
+                <div className="p-3 rounded-lg bg-purple-950/60 border border-purple-600/60 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-400">BROADCAST TX HASH:</span>
-                    <a
-                      href={`https://testnet.monadvision.com/tx/${broadcastTxHash}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-emerald-400 hover:text-emerald-300 underline font-bold"
+                    <span className="text-purple-300 font-bold text-[11px]">
+                      1. HUMAN INVITATION CODE (SHARE WITH COUNTERPARTY):
+                    </span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(createdInvitationCode);
+                        setCopiedCode(true);
+                        setTimeout(() => setCopiedCode(false), 2000);
+                      }}
+                      className="px-2.5 py-0.5 rounded bg-purple-700 hover:bg-purple-600 text-white font-bold text-[10px] transition"
                     >
-                      {broadcastTxHash.slice(0, 16)}...{broadcastTxHash.slice(-8)} ↗
-                    </a>
+                      {copiedCode ? 'COPIED ✓' : 'COPY CODE'}
+                    </button>
                   </div>
-                )}
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">BUYER (INITIATOR):</span>
-                  <code className="text-white">{buyerAddress}</code>
+                  <div className="text-2xl font-black text-white tracking-widest">
+                    {createdInvitationCode}
+                  </div>
+                  <div className="flex items-center justify-between pt-1 border-t border-purple-900/60 text-[11px]">
+                    <span className="text-gray-400">Shareable Link:</span>
+                    <div className="flex items-center gap-2">
+                      <code className="text-purple-200">{shareUrl}</code>
+                      <button
+                        onClick={() => {
+                          if (shareUrl) {
+                            navigator.clipboard.writeText(shareUrl);
+                            setCopiedLink(true);
+                            setTimeout(() => setCopiedLink(false), 2000);
+                          }
+                        }}
+                        className="text-emerald-400 hover:text-emerald-300 font-bold"
+                      >
+                        {copiedLink ? '✓ Copied' : 'Copy URL'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">SELLER (RECEIVER):</span>
-                  <code className="text-white">{sellerAddress}</code>
+              )}
+
+              {/* 2. Escrow Smart Contract bytes32 Transaction ID */}
+              {createdTxId && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1 border-t border-gray-800 text-[11px]">
+                  <span className="text-gray-400 font-bold">2. ESCROW BYTES32 ID (SMART CONTRACT):</span>
+                  <code className="text-emerald-300 font-bold break-all">{createdTxId}</code>
+                </div>
+              )}
+
+              {/* 3. EVM Blockchain Transaction Hash */}
+              {broadcastTxHash && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1 border-t border-gray-800 text-[11px]">
+                  <span className="text-gray-400 font-bold">3. EVM TRANSACTION HASH:</span>
+                  <a
+                    href={`https://testnet.monadvision.com/tx/${broadcastTxHash}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-emerald-400 hover:text-emerald-300 underline font-bold break-all"
+                  >
+                    {broadcastTxHash} ↗
+                  </a>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-gray-800 text-[11px]">
+                <div>
+                  <span className="text-gray-400">Buyer (Initiator): </span>
+                  <code className="text-gray-200">{buyerAddress}</code>
+                </div>
+                <div>
+                  <span className="text-gray-400">Seller (Counterparty): </span>
+                  <code className="text-gray-200">{sellerAddress}</code>
                 </div>
               </div>
-            )}
+            </div>
 
             <div className="p-3 bg-black/40 rounded-xl border border-emerald-600/40 text-xs font-mono space-y-1">
               <div className="text-emerald-300 font-semibold">
-                {createdTxId ? 'Next Step: Enter Transaction Room or Review as Receiver:' : 'Two-Sided Demo Next Step:'}
+                Counterparty Interaction Flow:
               </div>
               <p className="text-gray-300">
-                {createdTxId
-                  ? 'You can enter the Transaction Room directly with your fresh transaction ID, or switch to the Receiver persona to review and ratify.'
-                  : 'To experience the receiver side of the negotiation, switch to the Receiver Persona (Dallas Solar Supply) and review the terms.'}
+                Send the invitation link or code to the counterparty. When they open <code className="text-purple-300">/receive/{createdInvitationCode || 'CODE'}</code>, they can review the terms, connect their wallet, and sign the agreement onchain via <code className="text-emerald-300">agreeTransaction()</code>.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              {createdTxId && (
+              {createdInvitationCode && (
                 <Link
-                  href={`/transactions/${createdTxId}`}
-                  className="py-2.5 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-mono text-xs font-bold transition shadow-lg flex items-center gap-2"
+                  href={`/receive/${createdInvitationCode}`}
+                  className="py-2.5 px-5 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-mono text-xs font-bold transition shadow-lg flex items-center gap-2"
                 >
-                  <span>ENTER FRESH LIVE TRANSACTION ROOM</span>
+                  <span>OPEN /RECEIVE/{createdInvitationCode}</span>
                   <span>→</span>
                 </Link>
               )}
-              <button
-                onClick={handleGoToReceiverView}
-                className="py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs font-bold transition shadow-lg flex items-center gap-2"
-              >
-                <span>Switch to Receiver &amp; Review Request</span>
-                <span>→</span>
-              </button>
+              {createdTxId && (
+                <Link
+                  href={`/transactions/${createdTxId}`}
+                  className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-black font-mono text-xs font-bold transition shadow-lg flex items-center gap-2"
+                >
+                  <span>ENTER TRANSACTION ROOM</span>
+                  <span>→</span>
+                </Link>
+              )}
               <Link
                 href="/requests"
                 className="py-2.5 px-4 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-200 font-mono text-xs font-bold transition"
               >
-                View Deal Requests
+                Go to Requests Inbox
               </Link>
             </div>
           </div>
@@ -711,8 +855,8 @@ export default function CreateIntentPage() {
                       <span className="text-gray-400 text-[10px] block mt-0.5">Physical Solar Equipment Delivery</span>
                     </div>
                     <div className="p-2 bg-black/40 rounded-lg border border-gray-800 sm:col-span-2">
-                      <span className="text-gray-400 block text-[10px] uppercase">Approved Transaction ID:</span>
-                      <code className="text-purple-300 font-mono text-[10px] break-all">{APPROVED_OPERATOR_VERIFIER_TX_ID}</code>
+                      <span className="text-gray-400 block text-[10px] uppercase">Transaction ID Architecture:</span>
+                      <span className="text-purple-300 font-mono text-[10px]">Cryptographically fresh bytes32 generated upon broadcast (Unique, never Flow A demo ID)</span>
                     </div>
                     <div className="p-2 bg-black/40 rounded-lg border border-gray-800 sm:col-span-2">
                       <span className="text-gray-400 block text-[10px] uppercase">Terms Hash (keccak256):</span>
