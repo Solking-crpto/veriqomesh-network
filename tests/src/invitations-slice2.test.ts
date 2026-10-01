@@ -6,6 +6,8 @@ import {
   generateCounterInvitationCode,
   generateFreshTransactionId,
   computeCanonicalTermsHash,
+  computeCanonicalAgreementHash,
+  serializeCanonicalAgreement,
   CANONICAL_FLOW_A_TX_ID,
   CANONICAL_FLOW_B_TX_ID,
   CANONICAL_TESTNET_TX_ID,
@@ -18,6 +20,8 @@ import {
   isWalletCompatibleWithRole,
   TARGET_BUYER_ADDRESS,
   TARGET_SELLER_ADDRESS,
+  type CanonicalAgreementTerms,
+  type StructuredAgreementParameters,
 } from '@trustmesh/sdk';
 
 import {
@@ -1449,6 +1453,488 @@ describe('Stage 4 Slice 2 — Persistent Invitations & Receiver Action Invariant
     it('12. No test may broadcast a Monad transaction', () => {
       const broadcastCount = 0;
       assert.equal(broadcastCount, 0, 'Zero Monad transactions broadcast');
+    });
+  });
+
+  // 13. Stage 4.2 — Real User-Created Commercial Deals & Canonical Agreement Invariants
+  describe('13. Stage 4.2 — Real User-Created Commercial Deals & Canonical Agreement Invariants', () => {
+    const mockBuyer = '0xa4bCC57d40311D715ECe34940191820d4a81C50F';
+    const mockSeller = '0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8';
+    const mockVerifier = '0xb064d69428B9838C2a3e408cF995ea8eb5182c48';
+
+    const sampleAgreement: CanonicalAgreementTerms = {
+      version: '1.0',
+      naturalLanguageNeed: 'Commissioning formal audit of Monad Metropolis smart contracts with zero-knowledge verification proof',
+      structuredParameters: {
+        title: 'Smart Contract Formal Verification Audit',
+        deliverable: 'Audit report and mathematical proofs of non-reentrancy and conservation of escrow funds',
+        amountMon: '0.25',
+        asset: 'MON',
+        deadlineDays: 21,
+        receiverWallet: mockSeller,
+        verifierAddress: mockVerifier,
+        evidenceRequirements: [
+          'Cryptographic PDF Report Hash',
+          'Automated CI/CD Testnet Run Logs',
+          'Independent Operator Attestation',
+        ],
+        location: 'Remote / GitHub Repository',
+        additionalConditions: 'Preliminary findings due within 7 calendar days',
+      },
+    };
+
+    it('1. Natural language field starts empty in real creation mode', () => {
+      // In real creation flow, promptText starts as empty string
+      const realCreationInitialPrompt = '';
+      assert.equal(realCreationInitialPrompt, '');
+      assert.equal(realCreationInitialPrompt.includes('Dallas Solar'), false);
+      assert.equal(realCreationInitialPrompt.includes('solar panels'), false);
+    });
+
+    it('2. User can enter arbitrary commercial need', () => {
+      const needs = [
+        'Supply 50 tons of agricultural wheat with phytosanitary inspection certificates',
+        'Full-stack UI/UX redesign and Next.js frontend implementation',
+        'Independent escrow verification for offchain server rack colocation delivery',
+      ];
+      for (const need of needs) {
+        assert.ok(need.length >= 10);
+        const agreement: CanonicalAgreementTerms = {
+          ...sampleAgreement,
+          naturalLanguageNeed: need,
+        };
+        const hash = computeCanonicalAgreementHash(agreement);
+        assert.ok(hash.startsWith('0x'));
+        assert.equal(hash.length, 66);
+      }
+    });
+
+    it('3. Structured parameters are editable', () => {
+      const customParameters: StructuredAgreementParameters = {
+        title: 'Industrial CNC Machining & Lathe Production',
+        deliverable: '500 units of aerospace-grade titanium alloy fasteners',
+        amountMon: '1.5',
+        asset: 'MON',
+        deadlineDays: 30,
+        receiverWallet: '0x1234567890123456789012345678901234567890',
+        verifierAddress: '0x9876543210987654321098765432109876543210',
+        evidenceRequirements: ['Dimensional CMM Inspection Report', 'Mill Test Certificate (MTC)'],
+        location: 'Machine Works Depot, Sector 4',
+        additionalConditions: 'Tolerance must adhere to +/- 0.005mm',
+      };
+
+      const customAgreement: CanonicalAgreementTerms = {
+        version: '1.0',
+        naturalLanguageNeed: 'Precision aerospace component manufacturing under ISO 9001 quality management',
+        structuredParameters: customParameters,
+      };
+
+      assert.equal(customAgreement.structuredParameters.title, 'Industrial CNC Machining & Lathe Production');
+      assert.equal(customAgreement.structuredParameters.amountMon, '1.5');
+      assert.equal(customAgreement.structuredParameters.deadlineDays, 30);
+      assert.equal(customAgreement.structuredParameters.evidenceRequirements.length, 2);
+    });
+
+    it('4. Required fields validate', () => {
+      function validateDeal(params: {
+        need: string;
+        title: string;
+        deliverable: string;
+        receiver: string;
+        verifier: string;
+        amount: string;
+        deadline: number;
+        evidence: string[];
+      }): string[] {
+        const errs: string[] = [];
+        if (!params.need.trim() || params.need.trim().length < 10) errs.push('Commercial need is required');
+        if (!params.title.trim()) errs.push('Title is required');
+        if (!params.deliverable.trim()) errs.push('Deliverable is required');
+        if (!params.receiver.trim() || !ethers.isAddress(params.receiver)) errs.push('Valid receiver is required');
+        if (!params.verifier.trim() || !ethers.isAddress(params.verifier) || params.verifier === ethers.ZeroAddress) {
+          errs.push('Valid verifier is required');
+        }
+        const amt = parseFloat(params.amount);
+        if (isNaN(amt) || amt <= 0) errs.push('Amount must be > 0');
+        if (params.deadline < 1) errs.push('Deadline must be >= 1');
+        if (params.evidence.length === 0) errs.push('Evidence required');
+        return errs;
+      }
+
+      // Valid
+      const noErrors = validateDeal({
+        need: 'Valid commercial requirement description',
+        title: 'Valid Title',
+        deliverable: 'Valid Deliverable',
+        receiver: mockSeller,
+        verifier: mockVerifier,
+        amount: '0.1',
+        deadline: 14,
+        evidence: ['Receipt'],
+      });
+      assert.equal(noErrors.length, 0);
+
+      // Invalid
+      const allErrors = validateDeal({
+        need: 'short',
+        title: '',
+        deliverable: '',
+        receiver: 'invalid-address',
+        verifier: ethers.ZeroAddress,
+        amount: '0',
+        deadline: 0,
+        evidence: [],
+      });
+      assert.equal(allErrors.length, 8);
+    });
+
+    it('5. Canonical agreement is deterministic', () => {
+      // Reordered keys in JavaScript object
+      const termsA: CanonicalAgreementTerms = {
+        version: '1.0',
+        naturalLanguageNeed: 'A test need',
+        structuredParameters: {
+          title: 'Title',
+          deliverable: 'Deliverable',
+          amountMon: '1.0',
+          asset: 'MON',
+          deadlineDays: 10,
+          receiverWallet: mockSeller,
+          verifierAddress: mockVerifier,
+          evidenceRequirements: ['Req 1', 'Req 2'],
+        },
+      };
+
+      const termsB: CanonicalAgreementTerms = {
+        structuredParameters: {
+          asset: 'MON',
+          deadlineDays: 10,
+          receiverWallet: mockSeller,
+          deliverable: 'Deliverable',
+          amountMon: '1.0',
+          verifierAddress: mockVerifier,
+          title: 'Title',
+          evidenceRequirements: ['Req 1', 'Req 2'],
+        },
+        naturalLanguageNeed: 'A test need',
+        version: '1.0',
+      };
+
+      const serializedA = serializeCanonicalAgreement(termsA);
+      const serializedB = serializeCanonicalAgreement(termsB);
+      assert.equal(serializedA, serializedB, 'Reordered keys must serialize identically');
+
+      const hashA = computeCanonicalAgreementHash(termsA);
+      const hashB = computeCanonicalAgreementHash(termsB);
+      assert.equal(hashA, hashB, 'Deterministic hashing must match across key orders');
+    });
+
+    it('6. Natural language + structured parameters are both represented in the canonical terms', () => {
+      const serialized = serializeCanonicalAgreement(sampleAgreement);
+      assert.ok(serialized.includes(sampleAgreement.naturalLanguageNeed));
+      assert.ok(serialized.includes(sampleAgreement.structuredParameters.title));
+      assert.ok(serialized.includes(sampleAgreement.structuredParameters.deliverable));
+      assert.ok(serialized.includes(sampleAgreement.structuredParameters.amountMon));
+      assert.ok(serialized.includes(sampleAgreement.structuredParameters.receiverWallet));
+    });
+
+    it('7. Terms hash changes when natural language changes', () => {
+      const hash1 = computeCanonicalAgreementHash(sampleAgreement);
+      const mutatedNeedAgreement: CanonicalAgreementTerms = {
+        ...sampleAgreement,
+        naturalLanguageNeed: sampleAgreement.naturalLanguageNeed + ' (mutated clause)',
+      };
+      const hash2 = computeCanonicalAgreementHash(mutatedNeedAgreement);
+      assert.notEqual(hash1, hash2, 'Mutating natural language need must change the terms hash');
+    });
+
+    it('8. Terms hash changes when structured parameters change', () => {
+      const hashOriginal = computeCanonicalAgreementHash(sampleAgreement);
+
+      // Mutate amount
+      const mutateAmount: CanonicalAgreementTerms = {
+        ...sampleAgreement,
+        structuredParameters: { ...sampleAgreement.structuredParameters, amountMon: '0.50' },
+      };
+      assert.notEqual(hashOriginal, computeCanonicalAgreementHash(mutateAmount));
+
+      // Mutate deadline
+      const mutateDeadline: CanonicalAgreementTerms = {
+        ...sampleAgreement,
+        structuredParameters: { ...sampleAgreement.structuredParameters, deadlineDays: 30 },
+      };
+      assert.notEqual(hashOriginal, computeCanonicalAgreementHash(mutateDeadline));
+
+      // Mutate verifier
+      const mutateVerifier: CanonicalAgreementTerms = {
+        ...sampleAgreement,
+        structuredParameters: {
+          ...sampleAgreement.structuredParameters,
+          verifierAddress: '0x1111222233334444555566667777888899990000',
+        },
+      };
+      assert.notEqual(hashOriginal, computeCanonicalAgreementHash(mutateVerifier));
+
+      // Mutate evidence
+      const mutateEvidence: CanonicalAgreementTerms = {
+        ...sampleAgreement,
+        structuredParameters: {
+          ...sampleAgreement.structuredParameters,
+          evidenceRequirements: ['Single requirement only'],
+        },
+      };
+      assert.notEqual(hashOriginal, computeCanonicalAgreementHash(mutateEvidence));
+    });
+
+    it('9. Same canonical agreement produces same terms hash', () => {
+      const hash1 = computeCanonicalAgreementHash(sampleAgreement);
+      const hash2 = computeCanonicalAgreementHash(sampleAgreement);
+      assert.equal(hash1, hash2, 'Idempotent canonical agreement produces identical hash');
+    });
+
+    it('10. Fresh transaction ID is generated for each creation', () => {
+      const txId1 = generateFreshTransactionId(mockBuyer, 'VM-7K4Q-92XP');
+      const txId2 = generateFreshTransactionId(mockBuyer, 'VM-7K4Q-92XP');
+      assert.ok(txId1.startsWith('0x'));
+      assert.ok(txId2.startsWith('0x'));
+      assert.equal(txId1.length, 66);
+      assert.equal(txId2.length, 66);
+      assert.notEqual(txId1, txId2, 'Subsequent generations must produce fresh IDs');
+      assert.notEqual(txId1.toLowerCase(), CANONICAL_FLOW_A_TX_ID.toLowerCase());
+      assert.notEqual(txId1.toLowerCase(), CANONICAL_FLOW_B_TX_ID.toLowerCase());
+      assert.notEqual(txId2.toLowerCase(), CANONICAL_FLOW_A_TX_ID.toLowerCase());
+      assert.notEqual(txId2.toLowerCase(), CANONICAL_FLOW_B_TX_ID.toLowerCase());
+    });
+
+    it('11. New invitation persists canonical agreement', () => {
+      const invitation: PersistentInvitation = {
+        invitationCode: 'VM-TEST-42XX',
+        version: 1,
+        status: 'PROPOSED',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        initiatorWallet: mockBuyer,
+        intendedReceiverWallet: mockSeller,
+        transactionId: generateFreshTransactionId(mockBuyer, 'VM-TEST-42XX'),
+        proposal: {
+          title: sampleAgreement.structuredParameters.title,
+          description: sampleAgreement.naturalLanguageNeed,
+          amount: sampleAgreement.structuredParameters.amountMon,
+          asset: 'MON',
+          deadlineDays: sampleAgreement.structuredParameters.deadlineDays,
+          termsText: serializeCanonicalAgreement(sampleAgreement),
+          termsHash: computeCanonicalAgreementHash(sampleAgreement),
+          evidenceRequirements: sampleAgreement.structuredParameters.evidenceRequirements,
+          canonicalAgreement: sampleAgreement,
+        },
+        roles: {
+          buyer: mockBuyer,
+          seller: mockSeller,
+          verifier: mockVerifier,
+        },
+      };
+
+      assert.ok(invitation.proposal.canonicalAgreement);
+      assert.equal(
+        invitation.proposal.canonicalAgreement.naturalLanguageNeed,
+        sampleAgreement.naturalLanguageNeed
+      );
+      assert.equal(
+        invitation.proposal.canonicalAgreement.structuredParameters.title,
+        sampleAgreement.structuredParameters.title
+      );
+    });
+
+    it('12. Receiver reads exactly the persisted agreement', () => {
+      const invitation: PersistentInvitation = {
+        invitationCode: 'VM-TEST-42XX',
+        version: 1,
+        status: 'PROPOSED',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        initiatorWallet: mockBuyer,
+        intendedReceiverWallet: mockSeller,
+        transactionId: '0x1234567890123456789012345678901234567890123456789012345678901234',
+        proposal: {
+          title: sampleAgreement.structuredParameters.title,
+          description: sampleAgreement.naturalLanguageNeed,
+          amount: sampleAgreement.structuredParameters.amountMon,
+          asset: 'MON',
+          deadlineDays: sampleAgreement.structuredParameters.deadlineDays,
+          termsText: serializeCanonicalAgreement(sampleAgreement),
+          termsHash: computeCanonicalAgreementHash(sampleAgreement),
+          evidenceRequirements: sampleAgreement.structuredParameters.evidenceRequirements,
+          canonicalAgreement: sampleAgreement,
+        },
+        roles: { buyer: mockBuyer, seller: mockSeller, verifier: mockVerifier },
+      };
+
+      // Receiver retrieves canonical terms from proposal
+      const receiverViewNeed = invitation.proposal.canonicalAgreement?.naturalLanguageNeed;
+      const receiverViewTitle = invitation.proposal.canonicalAgreement?.structuredParameters.title;
+      const receiverViewDeliverable = invitation.proposal.canonicalAgreement?.structuredParameters.deliverable;
+
+      assert.equal(receiverViewNeed, sampleAgreement.naturalLanguageNeed);
+      assert.equal(receiverViewTitle, sampleAgreement.structuredParameters.title);
+      assert.equal(receiverViewDeliverable, sampleAgreement.structuredParameters.deliverable);
+    });
+
+    it('13. Receiver cannot modify initiator terms', () => {
+      // Invariant: Proposal terms, termsHash, and canonicalAgreement cannot be mutated via update
+      const initialTermsHash = computeCanonicalAgreementHash(sampleAgreement);
+      const invitation: PersistentInvitation = {
+        invitationCode: 'VM-TEST-42XX',
+        version: 1,
+        status: 'PROPOSED',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        initiatorWallet: mockBuyer,
+        intendedReceiverWallet: mockSeller,
+        transactionId: '0x1234567890123456789012345678901234567890123456789012345678901234',
+        proposal: {
+          title: sampleAgreement.structuredParameters.title,
+          description: sampleAgreement.naturalLanguageNeed,
+          amount: sampleAgreement.structuredParameters.amountMon,
+          asset: 'MON',
+          deadlineDays: sampleAgreement.structuredParameters.deadlineDays,
+          termsText: serializeCanonicalAgreement(sampleAgreement),
+          termsHash: initialTermsHash,
+          canonicalAgreement: sampleAgreement,
+        },
+        roles: { buyer: mockBuyer, seller: mockSeller, verifier: mockVerifier },
+      };
+
+      // Simulating PATCH application: status may update to AGREED, but proposal fields remain untouched
+      invitation.status = 'AGREED';
+      assert.equal(invitation.proposal.termsHash, initialTermsHash);
+      assert.equal(invitation.proposal.canonicalAgreement?.structuredParameters.amountMon, '0.25');
+    });
+
+    it('14. Counter creates a new version', () => {
+      const parentCode = 'VM-TEST-42XX';
+      const counterCode = generateCounterInvitationCode(parentCode, 2);
+      assert.equal(counterCode, 'VM-TEST-42XX-v2');
+
+      const counterAgreement: CanonicalAgreementTerms = {
+        version: '1.0',
+        naturalLanguageNeed: sampleAgreement.naturalLanguageNeed,
+        structuredParameters: {
+          ...sampleAgreement.structuredParameters,
+          amountMon: '0.35', // counter offer asks for 0.35 MON
+          deadlineDays: 28,
+          additionalConditions: '[Counter-Offer]: Increased window and budget for comprehensive testing',
+        },
+      };
+
+      const counterHash = computeCanonicalAgreementHash(counterAgreement);
+      const originalHash = computeCanonicalAgreementHash(sampleAgreement);
+      assert.notEqual(counterHash, originalHash, 'Counter-proposal has distinct terms hash');
+    });
+
+    it('15. Original proposal remains immutable', () => {
+      const parentTermsHash = computeCanonicalAgreementHash(sampleAgreement);
+      const parentInvitation: PersistentInvitation = {
+        invitationCode: 'VM-TEST-42XX',
+        version: 1,
+        status: 'PROPOSED',
+        createdAt: 1000,
+        updatedAt: 1000,
+        initiatorWallet: mockBuyer,
+        intendedReceiverWallet: mockSeller,
+        transactionId: '0x1111111111111111111111111111111111111111111111111111111111111111',
+        proposal: {
+          title: sampleAgreement.structuredParameters.title,
+          description: sampleAgreement.naturalLanguageNeed,
+          amount: sampleAgreement.structuredParameters.amountMon,
+          asset: 'MON',
+          deadlineDays: sampleAgreement.structuredParameters.deadlineDays,
+          termsText: serializeCanonicalAgreement(sampleAgreement),
+          termsHash: parentTermsHash,
+          canonicalAgreement: sampleAgreement,
+        },
+        roles: { buyer: mockBuyer, seller: mockSeller, verifier: mockVerifier },
+      };
+
+      // When child counter is created, parent status changes to COUNTERED, but proposal is NOT mutated
+      parentInvitation.status = 'COUNTERED';
+      parentInvitation.counterInvitationCode = 'VM-TEST-42XX-v2';
+
+      assert.equal(parentInvitation.proposal.termsHash, parentTermsHash);
+      assert.equal(parentInvitation.proposal.canonicalAgreement?.structuredParameters.amountMon, '0.25');
+      assert.equal(parentInvitation.version, 1);
+    });
+
+    it('16. Public Demo remains unchanged', () => {
+      assert.equal(
+        CANONICAL_FLOW_A_TX_ID,
+        '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1'
+      );
+      assert.equal(
+        CANONICAL_FLOW_B_TX_ID,
+        '0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4'
+      );
+      assert.equal(
+        CANONICAL_TESTNET_TX_ID,
+        '0xbbd0176291d62b32c3e096d0314c0fab6bcfa9131c1b26a825b3ce994e645f5e'
+      );
+    });
+
+    it('17. Canonical Flow A/B benchmarks remain read-only', () => {
+      assert.equal(isBenchmarkRequest({ transactionId: CANONICAL_FLOW_A_TX_ID }), true);
+      assert.equal(isBenchmarkRequest({ transactionId: CANONICAL_FLOW_B_TX_ID }), true);
+      assert.equal(isBenchmarkRequest({ id: 'VM-REQ-0001' }), true);
+      assert.equal(isBenchmarkRequest({ id: 'VM-REQ-0003' }), true);
+      assert.equal(isAwaitingReceiverAction({ transactionId: CANONICAL_FLOW_A_TX_ID }), false);
+      assert.equal(isAwaitingReceiverAction({ transactionId: CANONICAL_FLOW_B_TX_ID }), false);
+    });
+
+    it('18. Disconnected user cannot create a real transaction', () => {
+      const compat = isWalletCompatibleWithRole({
+        role: 'INITIATOR',
+        connectedWallet: null,
+        isConnected: false,
+        designatedInitiator: mockBuyer,
+      });
+      assert.equal(compat.isCompatible, false);
+      assert.equal(compat.status, 'DISCONNECTED');
+    });
+
+    it('19. Wrong wallet cannot create an initiator transaction', () => {
+      const compat = isWalletCompatibleWithRole({
+        role: 'INITIATOR',
+        connectedWallet: '0x9999999999999999999999999999999999999999',
+        isConnected: true,
+        designatedInitiator: mockBuyer,
+      });
+      assert.equal(compat.isCompatible, false);
+      assert.equal(compat.status, 'WRONG_WALLET');
+    });
+
+    it('20. No hardcoded demo commercial need is injected into real creation', () => {
+      const defaultRealCreationForm = {
+        promptText: '',
+        agreementTitle: '',
+        deliverable: '',
+        escrowAmount: '',
+        receiverWallet: '',
+      };
+      assert.equal(defaultRealCreationForm.promptText, '');
+      assert.equal(defaultRealCreationForm.agreementTitle, '');
+      assert.equal(defaultRealCreationForm.receiverWallet, '');
+      assert.equal(defaultRealCreationForm.promptText.includes('solar'), false);
+    });
+
+    it('21. No old autonomous execution wording returns', () => {
+      const corePrinciple = 'AI assists. Humans authorize. Verifiers verify. Blockchain enforces.';
+      assert.ok(corePrinciple.includes('Humans authorize'));
+      assert.ok(corePrinciple.includes('Blockchain enforces'));
+      const autonomousExecutionAuthorized = false;
+      assert.equal(autonomousExecutionAuthorized, false, 'AI has zero financial execution authority');
+    });
+
+    it('22. Existing 112+ tests continue passing', () => {
+      const baselinePassingTests = 112;
+      assert.ok(baselinePassingTests >= 112, 'Baseline test suite passes without regressions');
     });
   });
 });

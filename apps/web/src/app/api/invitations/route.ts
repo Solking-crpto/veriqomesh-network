@@ -15,6 +15,8 @@ import {
   generateCounterInvitationCode,
   generateFreshTransactionId,
   computeCanonicalTermsHash,
+  computeCanonicalAgreementHash,
+  serializeCanonicalAgreement,
   CANONICAL_FLOW_A_TX_ID,
   CANONICAL_FLOW_B_TX_ID,
 } from '../../../lib/invitation-utils';
@@ -56,8 +58,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const termsText = body.proposal.termsText || body.proposal.description || body.proposal.title;
-    const termsHash = computeCanonicalTermsHash(termsText);
+    const canonicalAgreement = body.proposal.canonicalAgreement;
+    let termsHash: string;
+    let termsText: string;
+
+    if (canonicalAgreement) {
+      termsHash = computeCanonicalAgreementHash(canonicalAgreement);
+      termsText = body.proposal.termsText || serializeCanonicalAgreement(canonicalAgreement);
+    } else {
+      termsText = body.proposal.termsText || body.proposal.description || body.proposal.title;
+      termsHash = body.proposal.termsHash || computeCanonicalTermsHash(termsText);
+    }
 
     // 2. Handle counter vs fresh proposal
     let invitationCode = '';
@@ -127,17 +138,20 @@ export async function POST(req: NextRequest) {
       parentInvitationCode: parentInvitation ? parentInvitation.invitationCode : undefined,
       proposal: {
         title: body.proposal.title,
-        description: body.proposal.description || termsText,
+        description: body.proposal.description || (canonicalAgreement ? canonicalAgreement.naturalLanguageNeed : termsText),
         amount: body.proposal.amount,
         asset: body.proposal.asset || 'MON',
         deadlineDays: Number(body.proposal.deadlineDays) || 14,
         termsText,
         termsHash,
-        evidenceRequirements: body.proposal.evidenceRequirements || [
+        evidenceRequirements: body.proposal.evidenceRequirements || (canonicalAgreement ? canonicalAgreement.structuredParameters.evidenceRequirements : [
           'Carrier Bill of Lading (signed)',
           'Geotagged Delivery Photo',
           `Independent Verifier Attestation (${verifier.slice(0, 6)}...${verifier.slice(-4)})`,
-        ],
+        ]),
+        canonicalAgreement: canonicalAgreement || undefined,
+        location: body.proposal.location || (canonicalAgreement ? canonicalAgreement.structuredParameters.location : undefined),
+        additionalConditions: body.proposal.additionalConditions || (canonicalAgreement ? canonicalAgreement.structuredParameters.additionalConditions : undefined),
       },
       roles: {
         buyer: ethers.getAddress(buyer),

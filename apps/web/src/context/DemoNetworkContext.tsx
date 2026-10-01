@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useMonadWallet, MonadWalletState, MONAD_RPC_URL } from '../hooks/useMonadWallet';
 import { TrustMeshClient } from '@trustmesh/sdk';
-import { TransactionState, VerificationOutcome, PersistentInvitation } from '@trustmesh/types';
+import { TransactionState, VerificationOutcome, PersistentInvitation, CanonicalAgreementTerms } from '@trustmesh/types';
 import { calculateActionableRequestsCount, isBenchmarkRequest, isWalletCompatibleWithRole, type RoleCompatibility } from '../lib/invitation-utils';
 
 export type DemoRole = 'INITIATOR' | 'RECEIVER';
@@ -108,6 +108,8 @@ export interface DealRequest {
   invitationCode?: string;
   version?: number;
   parentInvitationCode?: string;
+  canonicalAgreement?: CanonicalAgreementTerms;
+  naturalLanguageNeed?: string;
 }
 
 
@@ -128,7 +130,18 @@ interface DemoNetworkContextType {
     isOnchain?: boolean,
     txId?: string,
     broadcastHash?: string,
-    customVerifier?: string
+    customVerifier?: string,
+    customParams?: {
+      title?: string;
+      deliverable?: string;
+      location?: string;
+      escrowAmountMon?: string;
+      deadlineDays?: number;
+      evidenceRequirements?: string[];
+      invitationCode?: string;
+      canonicalAgreement?: CanonicalAgreementTerms;
+      naturalLanguageNeed?: string;
+    }
   ) => string;
   acceptDealRequest: (requestId: string) => void;
   counterDealRequest: (requestId: string, note: string, deadline: number, amount: string) => void;
@@ -492,7 +505,18 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
       isOnchain = false,
       txId?: string,
       broadcastHash?: string,
-      customVerifier?: string
+      customVerifier?: string,
+      customParams?: {
+        title?: string;
+        deliverable?: string;
+        location?: string;
+        escrowAmountMon?: string;
+        deadlineDays?: number;
+        evidenceRequirements?: string[];
+        invitationCode?: string;
+        canonicalAgreement?: CanonicalAgreementTerms;
+        naturalLanguageNeed?: string;
+      }
     ) => {
       const newId = `VM-REQ-${String(requests.length + 1).padStart(4, '0')}`;
       const effectiveTxId = txId || CANONICAL_TESTNET_TX_ID;
@@ -505,7 +529,7 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
       const effectiveVerifier =
         customVerifier || INDEPENDENT_VERIFIER_ADDRESS || APPROVED_OPERATOR_VERIFIER_ADDRESS;
       const verifierShort = `${effectiveVerifier.slice(0, 6)}...${effectiveVerifier.slice(-4)}`;
-      const dynamicEvidenceRequirements = intent.evidenceRequirements.map((item) =>
+      const dynamicEvidenceRequirements = customParams?.evidenceRequirements || intent.evidenceRequirements.map((item) =>
         item.includes('Independent Verifier Attestation')
           ? `Independent Verifier Attestation (${verifierShort})`
           : item
@@ -513,19 +537,19 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
 
       const newReq: DealRequest = {
         id: newId,
-        title: 'Commercial Solar Procurement',
+        title: customParams?.title || 'Commercial Solar Procurement',
         initiator: initiator.name,
         initiatorWallet: effectiveInitiatorWallet,
         receiver: receiverName,
         receiverWallet: receiverWallet,
-        deliverable: intent.need,
-        location: 'Dallas, Texas',
-        deadlineDays: intent.deadlineDays,
-        escrowAmountMon: intent.escrowAmountMon,
+        deliverable: customParams?.deliverable || customParams?.naturalLanguageNeed || intent.need,
+        location: customParams?.location || 'Dallas, Texas',
+        deadlineDays: customParams?.deadlineDays ?? intent.deadlineDays,
+        escrowAmountMon: customParams?.escrowAmountMon || intent.escrowAmountMon,
         evidenceRequirements: dynamicEvidenceRequirements,
         verifierAddress: effectiveVerifier,
         aiPolicy: {
-          maxSpend: `${intent.maxTransactionValueMon} MON`,
+          maxSpend: `${customParams?.escrowAmountMon || intent.maxTransactionValueMon} MON`,
           autoExecute: intent.autoExecuteNormalPass,
           humanEscalation: intent.humanEscalationOnContest,
         },
@@ -534,6 +558,9 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
         createdAt: 'Just now',
         isOnchain,
         onchainTxHash: broadcastHash,
+        invitationCode: customParams?.invitationCode,
+        canonicalAgreement: customParams?.canonicalAgreement,
+        naturalLanguageNeed: customParams?.naturalLanguageNeed,
       };
 
       setRequests((prev) => [newReq, ...prev]);
@@ -658,21 +685,24 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
       );
 
       if (!exists) {
+        const canonical = inv.proposal.canonicalAgreement;
         combined.unshift({
           id: inv.invitationCode,
-          title: inv.proposal.title,
+          title: canonical?.structuredParameters?.title || inv.proposal.title,
           initiator: `${inv.initiatorWallet.slice(0, 6)}...${inv.initiatorWallet.slice(-4)}`,
           initiatorWallet: inv.initiatorWallet,
           receiver: `${inv.intendedReceiverWallet.slice(0, 6)}...${inv.intendedReceiverWallet.slice(-4)}`,
           receiverWallet: inv.intendedReceiverWallet,
-          deliverable: inv.proposal.title,
-          location: 'Designated Delivery Depot',
-          deadlineDays: inv.proposal.deadlineDays,
-          escrowAmountMon: inv.proposal.amount,
-          evidenceRequirements: inv.proposal.evidenceRequirements || [],
-          verifierAddress: inv.roles.verifier,
+          deliverable: canonical?.structuredParameters?.deliverable || inv.proposal.description || inv.proposal.title,
+          location: canonical?.structuredParameters?.location || inv.proposal.location || 'Designated Delivery Depot',
+          deadlineDays: canonical?.structuredParameters?.deadlineDays ?? inv.proposal.deadlineDays,
+          escrowAmountMon: canonical?.structuredParameters?.amountMon || inv.proposal.amount,
+          evidenceRequirements: canonical?.structuredParameters?.evidenceRequirements || inv.proposal.evidenceRequirements || [],
+          verifierAddress: canonical?.structuredParameters?.verifierAddress || inv.roles.verifier,
+          canonicalAgreement: canonical,
+          naturalLanguageNeed: canonical?.naturalLanguageNeed || inv.proposal.description,
           aiPolicy: {
-            maxSpend: inv.proposal.amount,
+            maxSpend: canonical?.structuredParameters?.amountMon || inv.proposal.amount,
             autoExecute: false,
             humanEscalation: true,
           },

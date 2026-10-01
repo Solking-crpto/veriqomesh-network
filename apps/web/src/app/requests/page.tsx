@@ -497,6 +497,12 @@ export default function RequestsPage() {
 
             <h3 className="text-xl font-bold text-white">{req.title}</h3>
 
+            {req.naturalLanguageNeed && (
+              <p className="text-xs text-gray-300 font-mono mt-1.5 bg-black/40 p-2 rounded-lg border border-gray-800 line-clamp-2">
+                Need: &ldquo;{req.naturalLanguageNeed}&rdquo;
+              </p>
+            )}
+
             {/* Canonical Invitation Code link */}
             {req.invitationCode && (
               <div className="text-[11px] font-mono text-purple-300 mt-1 flex items-center gap-2">

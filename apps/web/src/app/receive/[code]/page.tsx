@@ -252,6 +252,22 @@ export default function ReceiveInvitationPage({
         await wallet.connect();
       }
 
+      const parentCanonical = invitation.proposal.canonicalAgreement;
+      const counterCanonical = parentCanonical
+        ? {
+            version: '1.0' as const,
+            naturalLanguageNeed: parentCanonical.naturalLanguageNeed,
+            structuredParameters: {
+              ...parentCanonical.structuredParameters,
+              amountMon: counterAmount || invitation.proposal.amount,
+              deadlineDays: Number(counterDeadline) || invitation.proposal.deadlineDays,
+              additionalConditions: counterNote
+                ? `[Counter-Proposal Note]: ${counterNote}${parentCanonical.structuredParameters.additionalConditions ? ' | ' + parentCanonical.structuredParameters.additionalConditions : ''}`
+                : parentCanonical.structuredParameters.additionalConditions,
+            },
+          }
+        : undefined;
+
       const counterPayload = {
         parentInvitationCode: code,
         initiatorWallet: invitation.intendedReceiverWallet, // counterparty becomes the initiator of the counter
@@ -264,6 +280,7 @@ export default function ReceiveInvitationPage({
           deadlineDays: Number(counterDeadline) || invitation.proposal.deadlineDays,
           termsText: `${invitation.proposal.termsText}\n\n[Counter-Proposal by Seller]: ${counterNote} (Window: ${counterDeadline} days, Escrow: ${counterAmount} MON)`,
           evidenceRequirements: invitation.proposal.evidenceRequirements,
+          canonicalAgreement: counterCanonical,
         },
         roles: {
           buyer: invitation.roles.buyer,
@@ -508,15 +525,50 @@ export default function ReceiveInvitationPage({
 
         {/* Main Proposal Card */}
         <div className="p-6 rounded-2xl bg-gray-900/70 border border-gray-800 space-y-6">
-          <div>
-            <div className="text-xs font-mono text-purple-400 font-bold uppercase mb-1">
-              COMMERCIAL PROPOSAL DETAILS
+          {invitation.proposal.canonicalAgreement ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-purple-950/30 rounded-xl border border-purple-800/50 space-y-2">
+                <div className="text-[10px] font-mono text-purple-400 font-bold uppercase tracking-wider">
+                  NATURAL LANGUAGE COMMERCIAL NEED (INITIATOR INPUT)
+                </div>
+                <p className="text-sm text-gray-100 font-mono leading-relaxed whitespace-pre-wrap">
+                  {invitation.proposal.canonicalAgreement.naturalLanguageNeed}
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <div className="text-[10px] font-mono text-gray-400 font-bold uppercase tracking-wide">
+                  STRUCTURED AGREEMENT SPECIFICATION
+                </div>
+                <h1 className="text-2xl font-bold text-white">
+                  {invitation.proposal.canonicalAgreement.structuredParameters.title}
+                </h1>
+                <div className="text-sm text-gray-300 font-mono">
+                  Scope / Deliverable: <span className="text-white font-semibold">{invitation.proposal.canonicalAgreement.structuredParameters.deliverable}</span>
+                </div>
+                {invitation.proposal.canonicalAgreement.structuredParameters.location && (
+                  <div className="text-xs text-gray-400 font-mono mt-1">
+                    Delivery / Venue: <span className="text-gray-200">{invitation.proposal.canonicalAgreement.structuredParameters.location}</span>
+                  </div>
+                )}
+                {invitation.proposal.canonicalAgreement.structuredParameters.additionalConditions && (
+                  <div className="text-xs text-amber-300/90 font-mono mt-2 bg-amber-950/30 p-2.5 rounded-lg border border-amber-900/40">
+                    Additional Conditions: {invitation.proposal.canonicalAgreement.structuredParameters.additionalConditions}
+                  </div>
+                )}
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-white">{invitation.proposal.title}</h1>
-            <p className="text-sm text-gray-300 font-mono mt-2 leading-relaxed whitespace-pre-wrap">
-              {invitation.proposal.description}
-            </p>
-          </div>
+          ) : (
+            <div>
+              <div className="text-xs font-mono text-purple-400 font-bold uppercase mb-1">
+                COMMERCIAL PROPOSAL DETAILS
+              </div>
+              <h1 className="text-2xl font-bold text-white">{invitation.proposal.title}</h1>
+              <p className="text-sm text-gray-300 font-mono mt-2 leading-relaxed whitespace-pre-wrap">
+                {invitation.proposal.description}
+              </p>
+            </div>
+          )}
 
           {/* Three-Sided Participant Architecture */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-black/40 p-4 rounded-xl border border-gray-800 font-mono text-xs">
@@ -577,7 +629,8 @@ export default function ReceiveInvitationPage({
             <div className="p-3 bg-black/40 rounded-xl border border-gray-800">
               <span className="text-gray-400 text-[10px] block">ESCROW CAPITAL:</span>
               <span className="text-emerald-400 font-bold text-base">
-                {invitation.proposal.amount} {invitation.proposal.asset || 'MON'}
+                {invitation.proposal.canonicalAgreement?.structuredParameters?.amountMon || invitation.proposal.amount}{' '}
+                {invitation.proposal.asset || 'MON'}
               </span>
               <span className="text-[10px] text-gray-500 block">Locked upon mutual agreement</span>
             </div>
@@ -585,7 +638,7 @@ export default function ReceiveInvitationPage({
             <div className="p-3 bg-black/40 rounded-xl border border-gray-800">
               <span className="text-gray-400 text-[10px] block">INSPECTION WINDOW:</span>
               <span className="text-white font-bold text-base">
-                {invitation.proposal.deadlineDays} Days
+                {invitation.proposal.canonicalAgreement?.structuredParameters?.deadlineDays || invitation.proposal.deadlineDays} Days
               </span>
               <span className="text-[10px] text-gray-500 block">Depot Staging &amp; Verification</span>
             </div>
@@ -600,13 +653,18 @@ export default function ReceiveInvitationPage({
           </div>
 
           {/* Mandatory Evidence Requirements */}
-          {invitation.proposal.evidenceRequirements && invitation.proposal.evidenceRequirements.length > 0 && (
+          {((invitation.proposal.canonicalAgreement?.structuredParameters?.evidenceRequirements) ||
+            invitation.proposal.evidenceRequirements) && (
             <div className="p-4 rounded-xl bg-black/40 border border-gray-800 font-mono text-xs space-y-2">
               <span className="text-gray-400 text-[10px] uppercase font-bold block">
                 MANDATORY EVIDENCE REQUIREMENTS FOR ESCROW RELEASE:
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-                {invitation.proposal.evidenceRequirements.map((reqItem, idx) => (
+                {(
+                  invitation.proposal.canonicalAgreement?.structuredParameters?.evidenceRequirements ||
+                  invitation.proposal.evidenceRequirements ||
+                  []
+                ).map((reqItem, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-gray-300">
                     <span className="text-emerald-400">✓</span>
                     <span>{reqItem}</span>

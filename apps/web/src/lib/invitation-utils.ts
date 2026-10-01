@@ -58,15 +58,12 @@ export function generateFreshTransactionId(buyerAddress: string, invitationCode:
   return txId;
 }
 
-/**
- * Computes canonical terms hash: keccak256(utf8(termsText))
- * Preserves the exact onchain format required by TrustMeshEscrow.sol
- */
-export function computeCanonicalTermsHash(termsText: string): string {
-  return ethers.keccak256(ethers.toUtf8Bytes(termsText || ''));
-}
-
 export {
+  serializeCanonicalAgreement,
+  computeCanonicalAgreementHash,
+  computeCanonicalTermsHash,
+  type CanonicalAgreementTerms,
+  type StructuredAgreementParameters,
   buildMutationAuthMessage,
   verifyMutationSignature,
   type VerifyMutationSignatureParams,

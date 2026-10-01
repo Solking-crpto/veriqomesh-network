@@ -4,6 +4,25 @@
  * Strictly decoupled from onchain transaction state authority.
  */
 
+export interface StructuredAgreementParameters {
+  title: string;
+  deliverable: string;
+  amountMon: string;
+  asset: string;
+  deadlineDays: number;
+  receiverWallet: string;
+  verifierAddress: string;
+  evidenceRequirements: string[];
+  location?: string;
+  additionalConditions?: string;
+}
+
+export interface CanonicalAgreementTerms {
+  version: '1.0';
+  naturalLanguageNeed: string;
+  structuredParameters: StructuredAgreementParameters;
+}
+
 export interface ProposalData {
   title: string;
   description: string;
@@ -13,6 +32,9 @@ export interface ProposalData {
   termsText: string;
   termsHash: string;
   evidenceRequirements: string[];
+  canonicalAgreement?: CanonicalAgreementTerms;
+  location?: string;
+  additionalConditions?: string;
 }
 
 export interface ProposalRoles {
@@ -59,6 +81,9 @@ export interface CreateInvitationRequest {
     termsText: string;
     termsHash?: string;
     evidenceRequirements?: string[];
+    canonicalAgreement?: CanonicalAgreementTerms;
+    location?: string;
+    additionalConditions?: string;
   };
   roles?: {
     buyer?: string;

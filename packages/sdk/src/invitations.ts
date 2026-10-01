@@ -59,12 +59,84 @@ export function generateFreshTransactionId(buyerAddress: string, invitationCode:
   return txId;
 }
 
+export interface StructuredAgreementParameters {
+  title: string;
+  deliverable: string;
+  amountMon: string;
+  asset: string;
+  deadlineDays: number;
+  receiverWallet: string;
+  verifierAddress: string;
+  evidenceRequirements: string[];
+  location?: string;
+  additionalConditions?: string;
+}
+
+export interface CanonicalAgreementTerms {
+  version: '1.0';
+  naturalLanguageNeed: string;
+  structuredParameters: StructuredAgreementParameters;
+}
+
 /**
- * Computes canonical terms hash: keccak256(utf8(termsText))
+ * Deterministically serializes a canonical agreement object into a stable JSON string.
+ * - Recursively sorts object keys alphabetically (lexicographical sort)
+ * - Normalizes Ethereum addresses (checksummed format)
+ * - Trims string whitespace
+ * - Strips undefined values
+ * Guarantees that equivalent agreements always produce the exact same byte string and hash.
+ */
+export function serializeCanonicalAgreement(terms: CanonicalAgreementTerms): string {
+  function normalizeValue(val: unknown): unknown {
+    if (val === null || val === undefined) {
+      return undefined;
+    }
+    if (Array.isArray(val)) {
+      return val.map(normalizeValue).filter((v) => v !== undefined);
+    }
+    if (typeof val === 'object') {
+      const sorted: Record<string, unknown> = {};
+      const keys = Object.keys(val as Record<string, unknown>).sort();
+      for (const k of keys) {
+        const v = normalizeValue((val as Record<string, unknown>)[k]);
+        if (v !== undefined) {
+          sorted[k] = v;
+        }
+      }
+      return sorted;
+    }
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      if (ethers.isAddress(trimmed)) {
+        return ethers.getAddress(trimmed);
+      }
+      return trimmed;
+    }
+    return val;
+  }
+
+  const normalized = normalizeValue(terms);
+  return JSON.stringify(normalized);
+}
+
+/**
+ * Computes the keccak256 hash of a deterministically serialized CanonicalAgreementTerms object.
+ */
+export function computeCanonicalAgreementHash(terms: CanonicalAgreementTerms): string {
+  const serialized = serializeCanonicalAgreement(terms);
+  return ethers.keccak256(ethers.toUtf8Bytes(serialized));
+}
+
+/**
+ * Computes canonical terms hash for onchain commit: keccak256(utf8(termsInput))
+ * Supports both legacy string termsText and structured CanonicalAgreementTerms.
  * Preserves the exact onchain format required by TrustMeshEscrow.sol
  */
-export function computeCanonicalTermsHash(termsText: string): string {
-  return ethers.keccak256(ethers.toUtf8Bytes(termsText || ''));
+export function computeCanonicalTermsHash(termsInput: string | CanonicalAgreementTerms): string {
+  if (typeof termsInput === 'string') {
+    return ethers.keccak256(ethers.toUtf8Bytes(termsInput || ''));
+  }
+  return computeCanonicalAgreementHash(termsInput);
 }
 
 /**
