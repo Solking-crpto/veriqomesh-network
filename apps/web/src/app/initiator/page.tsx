@@ -28,7 +28,7 @@ export default function InitiatorDashboardPage() {
           <div className="p-4 rounded-xl bg-purple-950/60 border border-purple-600/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <span>You are currently viewing the network as <strong>RECEIVER</strong>. Switch to <strong>INITIATOR</strong> to act as Solar Procurement Ltd.</span>
+              <span>You are currently viewing the network as <strong>RECEIVER</strong>. Switch to <strong>INITIATOR</strong> to create commercial intents as Buyer Principal.</span>
             </div>
             <button
               onClick={() => switchRole('INITIATOR')}
@@ -107,12 +107,12 @@ export default function InitiatorDashboardPage() {
                   )}
                 </>
               ) : (
-                <span className="text-amber-300 font-semibold">Disconnected (Viewing Demo Defaults)</span>
+                <span className="text-amber-300 font-semibold">Disconnected (Wallet Required)</span>
               )}
             </span>
           </div>
           <div className="flex items-center gap-3 text-gray-400 text-[11px]">
-            <span>Persona: <strong className="text-purple-300">{initiator.name}</strong></span>
+            <span>Principal Role: <strong className="text-purple-300">Buyer Node</strong></span>
             <span>•</span>
             <span>
               Node Role:{' '}
@@ -147,7 +147,7 @@ export default function InitiatorDashboardPage() {
               <span className="text-gray-500 font-mono text-xs">Buyer / Principal Console</span>
             </div>
             <h1 className="text-3xl font-extrabold text-white flex flex-wrap items-center gap-3">
-              <span>{initiator.name}</span>
+              <span>{wallet.isConnected ? 'Buyer Principal Node' : 'Commercial Agreement Initiator'}</span>
               {!wallet.isConnected && (
                 <span className="px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/80 text-amber-300 font-mono text-xs font-bold uppercase tracking-wider">
                   PUBLIC TESTNET • Connect Wallet to Initiate Commercial Agreements
@@ -155,11 +155,11 @@ export default function InitiatorDashboardPage() {
               )}
             </h1>
             <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-gray-400 mt-2">
-              <span>Designated Principal: <code className="text-gray-300">{initiator.wallet}</code></span>
+              <span>Principal Address: <code className="text-gray-300">{wallet.isConnected ? wallet.address : 'Wallet Required'}</code></span>
               <span>•</span>
-              <span>Agent: <strong className="text-purple-300">{initiator.agentName}</strong></span>
+              <span>Authorization: <strong className="text-purple-300">Manual Wallet Signature</strong></span>
               <span>•</span>
-              <span className="text-emerald-400">Policy: {initiator.policyStatus}</span>
+              <span className="text-emerald-400">Spending Policy: Not Configured</span>
             </div>
           </div>
 
@@ -201,9 +201,9 @@ export default function InitiatorDashboardPage() {
           </div>
 
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
-            <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Agent Spending Limit</div>
-            <div className="text-2xl font-bold text-white">{initiator.spendingLimitMon} MON</div>
-            <div className="text-[11px] text-gray-400 mt-1">Per transaction policy cap</div>
+            <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Spending Policy</div>
+            <div className="text-xl font-bold text-white">Not Configured</div>
+            <div className="text-[11px] text-gray-400 mt-1">Manual authorization required</div>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
@@ -247,10 +247,10 @@ export default function InitiatorDashboardPage() {
               </p>
             </div>
             <div className="p-3 rounded-lg bg-gray-950/60 border border-gray-800">
-              <span className="text-gray-400 block text-[10px]">ACCREDITED VERIFIER:</span>
-              <span className="text-purple-300 font-semibold">Bureau Veritas Node</span>
+              <span className="text-gray-400 block text-[10px]">CONFIGURED VERIFIER:</span>
+              <span className="text-purple-300 font-semibold">Operator-Controlled Verifier (0xb064...2c48)</span>
               <p className="text-gray-400 text-[10px] font-sans mt-1">
-                Independent physical depot inspection mandated before escrow release authorization.
+                Designated independent verifier attestation mandated before escrow release authorization.
               </p>
             </div>
           </div>
@@ -355,32 +355,32 @@ export default function InitiatorDashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-            {/* Canonical Testnet Dispute */}
+            {/* Commercial Escrow Operations */}
             <div className="p-5 rounded-xl bg-gradient-to-b from-[#141026] to-[#0c0d16] border border-purple-800/60 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700 text-[10px] font-bold">
-                    CANONICAL MONAD TESTNET
+                  <span className="px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-700 text-[10px] font-bold">
+                    ESCROW PROTOCOL VAULT
                   </span>
-                  <span className="text-gray-400 text-[10px]">Contested Dispute</span>
+                  <span className="text-gray-400 text-[10px]">Authoritative Onchain State</span>
                 </div>
                 <h3 className="text-sm font-bold text-white mb-1">
-                  100 Commercial Solar Panels (Disputed Delivery)
+                  Commercial Escrow Operations
                 </h3>
                 <p className="text-[11px] text-gray-300 font-sans mb-3">
-                  Independent inspection flagged 15% cracked photovoltaic modules. 3-judge panel submitted signed ballots; median consensus resolved 1,500 bps refund to buyer on Monad.
+                  Commercial escrows deposited by the buyer principal lock MON funds directly in TrustMeshEscrow. Delivery conditions, cryptographic hashes, and verifier attestations govern release.
                 </p>
                 <div className="bg-gray-950 p-2.5 rounded-lg border border-gray-800 space-y-1 text-[11px] mb-4">
-                  <div className="text-gray-400">Tx ID: <code className="text-purple-300">0x2b57d6b0...afcc4</code></div>
-                  <div className="text-gray-400">Escrow: <span className="text-emerald-400 font-bold">0.001 MON</span></div>
-                  <div className="text-gray-400">Outcome: <span className="text-indigo-300 font-bold">SETTLED VIA MEDIAN QUORUM</span></div>
+                  <div className="text-gray-400">Vault: <code className="text-purple-300">0x925ea8...015A</code></div>
+                  <div className="text-gray-400">Authorization: <span className="text-emerald-400 font-bold">Initiator Wallet Signature</span></div>
+                  <div className="text-gray-400">Network: <span className="text-indigo-300 font-bold">Monad Metropolis Testnet (10143)</span></div>
                 </div>
               </div>
               <Link
-                href="/transactions/0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4"
+                href="/transactions"
                 className="w-full text-center py-2 px-3 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-bold transition text-xs shadow-md"
               >
-                Inspect Live Testnet Room →
+                View Protocol Transactions →
               </Link>
             </div>
 

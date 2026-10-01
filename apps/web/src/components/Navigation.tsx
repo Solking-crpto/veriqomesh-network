@@ -228,18 +228,18 @@ export function Navigation() {
               <div className="text-white font-semibold truncate max-w-[120px]">
                 {wallet.isConnected
                   ? `${wallet.address?.slice(0, 6)}...${wallet.address?.slice(-4)}`
-                  : 'Demo Persona'}
+                  : 'Wallet Required'}
               </div>
               <div className="text-[9px] text-gray-400">
                 {wallet.isConnected
                   ? wallet.address?.toLowerCase() === TARGET_BUYER_ADDRESS.toLowerCase()
-                    ? 'Initiator Wallet'
+                    ? 'Initiator Node'
                     : wallet.address?.toLowerCase() === TARGET_SELLER_ADDRESS.toLowerCase()
-                    ? 'Receiver Wallet'
-                    : 'External Wallet'
+                    ? 'Receiver Node'
+                    : 'Connected Node'
                   : role === 'INITIATOR'
-                  ? initiator.name
-                  : receiver.name}
+                  ? 'Buyer Perspective'
+                  : 'Seller Perspective'}
               </div>
             </div>
           </Link>
@@ -322,7 +322,7 @@ export function Navigation() {
           {/* Mobile Role Switcher */}
           <div className="pt-2 border-t border-gray-900 flex items-center justify-between">
             <span className="text-[10px] text-gray-400 uppercase font-bold">
-              Demo Persona:
+              Perspective Role:
             </span>
             <div className="flex items-center gap-1">
               <button

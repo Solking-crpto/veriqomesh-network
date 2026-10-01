@@ -16,6 +16,7 @@ import {
   TARGET_SELLER_ADDRESS,
   APPROVED_OPERATOR_VERIFIER_ADDRESS,
 } from '../../context/DemoNetworkContext';
+import { isBenchmarkRequest } from '../../lib/invitation-utils';
 import { TransactionState } from '@trustmesh/types';
 
 interface TransactionSummary {
@@ -177,94 +178,33 @@ function TransactionsContent() {
   const personalTransactions: TransactionSummary[] = [];
 
   if (connectedAddress) {
-    // Check if connected address is a participant in Flow A
-    if (TARGET_BUYER_ADDRESS.toLowerCase() === connectedAddress) {
-      personalTransactions.push({
-        id: FRESH_LIVE_TESTNET_TX_ID,
-        sourceLabel: 'LIVE MONAD TESTNET ESCROW',
-        title: 'Commercial Solar Procurement (Verified Deliverable Release)',
-        deliverable: 'Supply and deliver 2 solar panels to buyer.',
-        buyer: 'Solar Procurement Ltd.',
-        buyerWallet: TARGET_BUYER_ADDRESS,
-        seller: 'Dallas Solar Supply Co.',
-        sellerWallet: TARGET_SELLER_ADDRESS,
-        verifier: APPROVED_OPERATOR_VERIFIER_ADDRESS,
-        amountMon: '0.001 MON',
-        state: flowAState,
-        settlementType: 'VERIFIED MILESTONE RELEASE (SOULBOUND RECEIPT #3)',
-        receiptId: 3,
-        onchainTxHash: '0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52',
-        isUserParticipant: true,
-        userRole: 'BUYER',
-      });
-    } else if (TARGET_SELLER_ADDRESS.toLowerCase() === connectedAddress) {
-      personalTransactions.push({
-        id: FRESH_LIVE_TESTNET_TX_ID,
-        sourceLabel: 'LIVE MONAD TESTNET ESCROW',
-        title: 'Commercial Solar Procurement (Verified Deliverable Release)',
-        deliverable: 'Supply and deliver 2 solar panels to buyer.',
-        buyer: 'Solar Procurement Ltd.',
-        buyerWallet: TARGET_BUYER_ADDRESS,
-        seller: 'Dallas Solar Supply Co.',
-        sellerWallet: TARGET_SELLER_ADDRESS,
-        verifier: APPROVED_OPERATOR_VERIFIER_ADDRESS,
-        amountMon: '0.001 MON',
-        state: flowAState,
-        settlementType: 'VERIFIED MILESTONE RELEASE (SOULBOUND RECEIPT #3)',
-        receiptId: 3,
-        onchainTxHash: '0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52',
-        isUserParticipant: true,
-        userRole: 'SELLER',
-      });
-    } else if (APPROVED_OPERATOR_VERIFIER_ADDRESS.toLowerCase() === connectedAddress) {
-      personalTransactions.push({
-        id: FRESH_LIVE_TESTNET_TX_ID,
-        sourceLabel: 'LIVE MONAD TESTNET ESCROW',
-        title: 'Commercial Solar Procurement (Verified Deliverable Release)',
-        deliverable: 'Supply and deliver 2 solar panels to buyer.',
-        buyer: 'Solar Procurement Ltd.',
-        buyerWallet: TARGET_BUYER_ADDRESS,
-        seller: 'Dallas Solar Supply Co.',
-        sellerWallet: TARGET_SELLER_ADDRESS,
-        verifier: APPROVED_OPERATOR_VERIFIER_ADDRESS,
-        amountMon: '0.001 MON',
-        state: flowAState,
-        settlementType: 'VERIFIED MILESTONE RELEASE (SOULBOUND RECEIPT #3)',
-        receiptId: 3,
-        onchainTxHash: '0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52',
-        isUserParticipant: true,
-        userRole: 'VERIFIER',
-      });
-    }
+    // Include user requests where the connected wallet is buyer or seller (excluding benchmarks)
+    requests
+      .filter((req) => !isBenchmarkRequest(req))
+      .forEach((req) => {
+        const isBuyer = req.initiatorWallet.toLowerCase() === connectedAddress;
+        const isSeller = req.receiverWallet.toLowerCase() === connectedAddress;
 
-    // Include dynamically created requests where the connected wallet is buyer or seller
-    requests.forEach((req) => {
-      const isBuyer = req.initiatorWallet.toLowerCase() === connectedAddress;
-      const isSeller = req.receiverWallet.toLowerCase() === connectedAddress;
-
-      // Don't duplicate Flow A if it was already added above
-      if (req.transactionId === FRESH_LIVE_TESTNET_TX_ID) return;
-
-      if (isBuyer || isSeller) {
-        personalTransactions.push({
-          id: req.transactionId || req.id,
-          sourceLabel: req.isOnchain ? 'LIVE MONAD TESTNET ESCROW' : 'COMMERCIAL DEAL REQUEST',
-          title: req.title,
-          deliverable: req.deliverable,
-          buyer: req.initiator,
-          buyerWallet: req.initiatorWallet,
-          seller: req.receiver,
-          sellerWallet: req.receiverWallet,
-          verifier: req.verifierAddress,
-          amountMon: `${req.escrowAmountMon} MON`,
-          state: req.status,
-          settlementType: req.isOnchain ? 'ONCHAIN ESCROW WORKSPACE' : 'PRE-ESCROW AGREEMENT STAGE',
-          onchainTxHash: req.onchainTxHash,
-          isUserParticipant: true,
-          userRole: isBuyer ? 'BUYER' : 'SELLER',
-        });
-      }
-    });
+        if (isBuyer || isSeller) {
+          personalTransactions.push({
+            id: req.transactionId || req.id,
+            sourceLabel: req.isOnchain ? 'LIVE MONAD TESTNET ESCROW' : 'COMMERCIAL DEAL REQUEST',
+            title: req.title,
+            deliverable: req.deliverable,
+            buyer: req.initiator,
+            buyerWallet: req.initiatorWallet,
+            seller: req.receiver,
+            sellerWallet: req.receiverWallet,
+            verifier: req.verifierAddress,
+            amountMon: `${req.escrowAmountMon} MON`,
+            state: req.status,
+            settlementType: req.isOnchain ? 'ONCHAIN ESCROW WORKSPACE' : 'PRE-ESCROW AGREEMENT STAGE',
+            onchainTxHash: req.onchainTxHash,
+            isUserParticipant: true,
+            userRole: isBuyer ? 'BUYER' : 'SELLER',
+          });
+        }
+      });
   }
 
   // Filter public demo cards

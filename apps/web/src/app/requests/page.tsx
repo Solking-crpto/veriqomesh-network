@@ -77,11 +77,14 @@ export default function RequestsPage() {
 
   // 1. Fetch persistent invitations from Upstash Redis API
   const fetchPersistentInvitations = useCallback(async () => {
+    if (!wallet.isConnected || !wallet.address) {
+      setPersistentInvitations([]);
+      setIsLoadingPersistent(false);
+      return;
+    }
     setIsLoadingPersistent(true);
     try {
-      // Query for connected wallet if available; otherwise for default demo seller
-      const targetAddress = wallet.address || TARGET_SELLER_ADDRESS;
-      const res = await fetch(`/api/invitations?receiver=${targetAddress}`);
+      const res = await fetch(`/api/invitations?receiver=${wallet.address}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.invitations)) {
         setPersistentInvitations(data.invitations);
@@ -91,7 +94,7 @@ export default function RequestsPage() {
     } finally {
       setIsLoadingPersistent(false);
     }
-  }, [wallet.address]);
+  }, [wallet.isConnected, wallet.address]);
 
   useEffect(() => {
     fetchPersistentInvitations();
@@ -104,6 +107,18 @@ export default function RequestsPage() {
     ];
 
     for (const inv of persistentInvitations) {
+      if (
+        isBenchmarkRequest({
+          transactionId: inv.transactionId,
+          invitationCode: inv.invitationCode,
+          title: inv.proposal.title,
+          deliverable: inv.proposal.description,
+          initiator: inv.initiatorWallet,
+          receiver: inv.intendedReceiverWallet,
+        })
+      ) {
+        continue;
+      }
       // Deduplicate by transactionId or invitationCode
       const exists = combined.some(
         (r) =>
@@ -250,10 +265,19 @@ export default function RequestsPage() {
     });
   }, [allRequests, wallet.isConnected, wallet.address, onchainTxMap]);
 
-  // B. Processed Requests: Ratified, Settled, Countered, Declined (excluding benchmarks)
+  // B. Processed Requests: Ratified, Settled, Countered, Declined (strictly scoped to connected wallet, excluding benchmarks)
   const processedRequests = useMemo(() => {
-    return allRequests.filter((r) => !isBenchmarkRequest(r) && !isAwaitingAction(r));
-  }, [allRequests, onchainTxMap]);
+    if (!wallet.isConnected || !wallet.address) {
+      return [];
+    }
+    const connectedAddr = wallet.address.toLowerCase();
+    return allRequests.filter(
+      (r) =>
+        !isBenchmarkRequest(r) &&
+        !isAwaitingAction(r) &&
+        (r.receiverWallet?.toLowerCase() === connectedAddr || r.initiatorWallet?.toLowerCase() === connectedAddr)
+    );
+  }, [allRequests, onchainTxMap, wallet.isConnected, wallet.address]);
 
   // Handle agreeTransaction
   const handleAccept = async (req: DealRequest & { invitationCode?: string }) => {
@@ -901,7 +925,7 @@ export default function RequestsPage() {
               {wallet.isConnected ? (
                 <code className="text-emerald-300 font-bold">{wallet.address}</code>
               ) : (
-                <span className="text-amber-300">Disconnected (Viewing Demo Defaults)</span>
+                <span className="text-amber-300">Disconnected (Wallet Required)</span>
               )}
             </div>
             <div className="text-[11px] text-gray-500">

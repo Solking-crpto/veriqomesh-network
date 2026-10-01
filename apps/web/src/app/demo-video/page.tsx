@@ -319,7 +319,7 @@ export default function DemoVideoStudioPage() {
             </video>
             <div className="absolute top-6 left-6 flex items-center gap-2 pointer-events-none z-10">
               <span className="px-2.5 py-0.5 rounded bg-purple-950/90 border border-purple-700 text-purple-300 font-mono text-[10px] font-bold">
-                FINAL HACKATHON DEMO MASTER
+                PRODUCT DEMONSTRATION &amp; ARCHITECTURE WALKTHROUGH
               </span>
               <span className="px-2 py-0.5 rounded bg-gray-900/90 border border-gray-700 text-gray-300 font-mono text-[10px]">
                 1080p 16:9

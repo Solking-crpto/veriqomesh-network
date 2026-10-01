@@ -1,0 +1,25 @@
+{
+  "name": "VeriqoMesh Network",
+  "domain": "https://veriqomesh.xyz",
+  "category": "Trust / Identity / Commerce Infrastructure",
+  "network": "Monad Metropolis Testnet",
+  "chainId": 10143,
+  "contracts": {
+    "escrow": "0x925ea880cA53DE0352b84B24d0C0dee5B258015A",
+    "registry": "0xE1994e0dF7CD5A836be4b02AE2164A542418B819",
+    "resolver": "0x12f9e53c31F7629aCAE0BA70588794945EC6c35E",
+    "configuredVerifier": "0xb064d69428B9838C2a3e408cF995ea8eb5182c48"
+  },
+  "repository": "https://github.com/Solking-crpto/veriqomesh-network",
+  "contact": {
+    "email": "veriqomeshnetwork@gmail.com",
+    "x": "https://x.com/veriqomesh_ai"
+  },
+  "description": "VeriqoMesh is a programmable trust layer for human and AI-assisted commerce on Monad. Initiators define agreements, counterparties authorize them, independent verifiers attest outcomes, and Monad smart contracts enforce escrow and settlement.",
+  "status": "Public Testnet",
+  "securityPrinciples": {
+    "corePrinciple": "AI assists. Humans authorize. Verifiers verify. Blockchain enforces.",
+    "aiAuthority": "Zero financial execution authority. AI cannot release escrow, refund capital, or settle disputes without human wallet cryptographic authorization.",
+    "onchainCommitments": "Deterministic canonical terms hashing with immutable smart contract state transitions on Monad Metropolis Testnet."
+  }
+}

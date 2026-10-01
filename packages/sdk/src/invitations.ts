@@ -250,17 +250,54 @@ export const CANONICAL_TESTNET_TX_ID =
  * Checks if a request record is an immutable historical demo benchmark.
  * These records are immutable audit logs and must never be counted as actionable.
  */
-export function isBenchmarkRequest(r: { id?: string; transactionId?: string }): boolean {
+export function isBenchmarkRequest(r: {
+  id?: string;
+  transactionId?: string;
+  invitationCode?: string;
+  title?: string;
+  deliverable?: string;
+  initiator?: string;
+  receiver?: string;
+}): boolean {
   const tx = (r.transactionId || '').toLowerCase();
-  return (
+  const id = (r.id || '').toUpperCase();
+  const code = (r.invitationCode || '').toUpperCase();
+
+  if (
     tx === CANONICAL_FLOW_A_TX_ID.toLowerCase() ||
     tx === CANONICAL_FLOW_B_TX_ID.toLowerCase() ||
     tx === CANONICAL_TESTNET_TX_ID.toLowerCase() ||
-    r.id === 'VM-REQ-0001' ||
-    r.id === 'VM-REQ-0002' ||
-    r.id === 'VM-REQ-0003' ||
-    r.id === 'VM-REQ-0004'
-  );
+    id === 'VM-REQ-0001' ||
+    id === 'VM-REQ-0002' ||
+    id === 'VM-REQ-0003' ||
+    id === 'VM-REQ-0004' ||
+    id === 'VM-T564-24CG' ||
+    id === 'VM-WFND-ZN39' ||
+    code === 'VM-T564-24CG' ||
+    code === 'VM-WFND-ZN39'
+  ) {
+    return true;
+  }
+
+  const title = (r.title || '').toLowerCase();
+  const deliverable = (r.deliverable || '').toLowerCase();
+  const initiator = (r.initiator || '').toLowerCase();
+  const receiver = (r.receiver || '').toLowerCase();
+
+  if (
+    title.includes('100 commercial solar panels') ||
+    title.includes('texas depot dispute') ||
+    deliverable.includes('100 commercial solar panels') ||
+    deliverable.includes('100 solar panels') ||
+    deliverable.includes('texas depot') ||
+    deliverable.includes('dallas distribution depot') ||
+    initiator.includes('solar procurement ltd') ||
+    receiver.includes('dallas solar supply')
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 /**

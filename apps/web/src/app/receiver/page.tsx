@@ -47,7 +47,7 @@ export default function ReceiverDashboardPage() {
           <div className="p-4 rounded-xl bg-blue-950/60 border border-blue-600/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <span>You are currently viewing the network as <strong>INITIATOR</strong>. Switch to <strong>RECEIVER</strong> to manage Dallas Solar Supply Co.</span>
+              <span>You are currently viewing the network as <strong>INITIATOR</strong>. Switch to <strong>RECEIVER</strong> to view fulfillment node operations.</span>
             </div>
             <button
               onClick={() => switchRole('RECEIVER')}
@@ -110,7 +110,7 @@ export default function ReceiverDashboardPage() {
             <div>
               <div className="text-white font-bold mb-0.5">Receiver Wallet Required</div>
               <div className="text-gray-400 text-[11px]">
-                Designated Receiver: <code className="text-blue-300">{receiver.wallet}</code> ({receiver.name})
+                Connect a Monad Metropolis testnet wallet to view inbound agreements.
               </div>
             </div>
             <button
@@ -146,7 +146,7 @@ export default function ReceiverDashboardPage() {
                   )}
                 </>
               ) : (
-                <span className="text-amber-300 font-semibold">Disconnected (Viewing Demo Defaults)</span>
+                <span className="text-amber-300 font-semibold">Disconnected (Wallet Required)</span>
               )}
             </span>
           </div>
@@ -191,7 +191,7 @@ export default function ReceiverDashboardPage() {
               <span className="text-gray-500 font-mono text-xs">Fulfillment &amp; Supplier Node</span>
             </div>
             <h1 className="text-3xl font-extrabold text-white flex flex-wrap items-center gap-3">
-              <span>{receiver.name}</span>
+              <span>{wallet.isConnected ? receiver.name : 'Fulfillment Supplier Node'}</span>
               {!wallet.isConnected && (
                 <span className="px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/80 text-amber-300 font-mono text-xs font-bold uppercase tracking-wider">
                   PUBLIC TESTNET • Connect Wallet to View Inbound Agreements
@@ -199,11 +199,11 @@ export default function ReceiverDashboardPage() {
               )}
             </h1>
             <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-gray-400 mt-2">
-              <span>Designated Node: <code className="text-gray-300">{receiver.wallet}</code></span>
+              <span>Node Address: <code className="text-gray-300">{wallet.isConnected ? wallet.address : 'Wallet Required'}</code></span>
               <span>•</span>
-              <span>Depot: <strong className="text-blue-300">{receiver.location}</strong></span>
+              <span>Role: <strong className="text-blue-300">Fulfillment &amp; Delivery Node</strong></span>
               <span>•</span>
-              <span className="text-emerald-400">Node Status: {receiver.status}</span>
+              <span className="text-emerald-400">Node Status: {wallet.isConnected ? 'AUTHENTICATED' : 'DISCONNECTED'}</span>
             </div>
           </div>
 
@@ -371,7 +371,7 @@ export default function ReceiverDashboardPage() {
               <div className="text-gray-300 font-semibold">
                 {wallet.isConnected
                   ? 'No pending inbound requests awaiting your signature.'
-                  : 'Disconnected — Viewing Demo Defaults. Connect your wallet to receive live commercial invitations.'}
+                  : 'Disconnected — Wallet Required. Connect your wallet to receive live commercial invitations.'}
               </div>
               <p className="text-gray-500 text-[11px] max-w-lg mx-auto">
                 All verified commercial requests require onchain escrow ratification in the /requests inbox.
@@ -396,32 +396,32 @@ export default function ReceiverDashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-            {/* Live Testnet Dispute Resolution */}
+            {/* Fulfillment Agreement Tracking */}
             <div className="p-5 rounded-xl bg-gradient-to-b from-[#141026] to-[#0c0d16] border border-purple-800/60 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700 text-[10px] font-bold">
-                    CANONICAL MONAD RESOLUTION
+                  <span className="px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-700 text-[10px] font-bold">
+                    ESCROW WORKSPACE
                   </span>
-                  <span className="text-gray-400 text-[10px]">Settled via Resolver</span>
+                  <span className="text-gray-400 text-[10px]">Onchain Ratification</span>
                 </div>
                 <h3 className="text-sm font-bold text-white mb-1">
-                  100 Solar Panels (Texas Depot Dispute)
+                  Active Fulfillment Escrows
                 </h3>
                 <p className="text-[11px] text-gray-300 font-sans mb-3">
-                  15% micro-crack defects flagged during physical depot inspection. Deterministic 3-judge median allocated 85% release to Dallas Solar Supply and 15% refund to buyer on Monad.
+                  Inbound commercial agreements ratified onchain via agreeTransaction() lock escrowed MON capital in the protocol vault. Evidence hashes anchored onchain satisfy release criteria.
                 </p>
                 <div className="bg-gray-950 p-2.5 rounded-lg border border-gray-800 space-y-1 text-[11px] mb-4">
-                  <div className="text-gray-400">Buyer: <span className="text-gray-200">Solar Procurement Ltd.</span></div>
-                  <div className="text-gray-400">Released to Seller: <span className="text-emerald-400 font-bold">8,500 bps (0.00085 MON)</span></div>
-                  <div className="text-gray-400">Resolver: <code className="text-purple-300">0x12f9...c35E</code></div>
+                  <div className="text-gray-400">Vault: <code className="text-purple-300">0x925ea8...015A</code></div>
+                  <div className="text-gray-400">Authorization: <span className="text-emerald-400 font-bold">Designated Receiver Key</span></div>
+                  <div className="text-gray-400">Resolution: <span className="text-blue-300">Deterministic Onchain Enforcement</span></div>
                 </div>
               </div>
               <Link
-                href="/transactions/0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4"
+                href="/requests"
                 className="w-full text-center py-2 px-3 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-bold transition text-xs shadow-md"
               >
-                Inspect Settlement Dossier →
+                Manage Inbound Agreements →
               </Link>
             </div>
 

@@ -87,7 +87,7 @@ export default function LandingPage() {
                   Transaction Initiator
                 </h2>
                 <p className="text-xs text-gray-300 mb-4 leading-relaxed">
-                  Commission commercial procurement, set spending limits, define deliverable milestones, and mandate independent verification before capital release.
+                  Commission commercial agreements, deposit escrow capital, define deliverable milestones, and mandate independent verification before capital release.
                 </p>
                 <div className="bg-purple-950/40 rounded-lg p-3 border border-purple-900/60 mb-5 text-[11px] font-mono space-y-1">
                   <div className="text-gray-400">Node Role: <span className="text-white font-semibold">Buyer / Principal Node</span></div>

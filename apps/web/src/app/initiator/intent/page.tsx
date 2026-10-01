@@ -206,28 +206,6 @@ export default function CreateIntentPage() {
     setEvidenceRequirements(evidenceRequirements.filter((_, i) => i !== idx));
   };
 
-  // Helper to load canonical benchmark demo scenario
-  const handleLoadDemoBenchmark = () => {
-    setPromptText(
-      'Supply and deliver 2 solar panels to the buyer. Seller provides product serial numbers, delivery evidence and installation/site evidence.'
-    );
-    setAgreementTitle('Tier-1 Commercial Solar Panel Procurement (100x 550W)');
-    setDeliverable('100x Tier-1 Monocrystalline Solar Panels (550W Bifacial)');
-    setLocation('Dallas Distribution Depot, Dallas, Texas');
-    setEscrowAmount('0.001');
-    setDeadlineDays(14);
-    setReceiverWallet(TARGET_SELLER_ADDRESS);
-    setReceiverName('Dallas Solar Supply Co.');
-    setVerifierWallet(APPROVED_OPERATOR_VERIFIER_ADDRESS);
-    setEvidenceRequirements([
-      'Carrier Waybill (Signed delivery proof)',
-      'Geotagged Delivery Photo & Unboxing',
-      'Serial Number Manifest (2 Solar Panel PV Serials)',
-      'Installation / Site Placement Verification',
-    ]);
-    setAdditionalConditions('Inspection within 14 days before release of funds.');
-  };
-
   // Submission handler
   const handleAuthorizeTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -447,14 +425,6 @@ export default function CreateIntentPage() {
             <span>/</span>
             <span className="text-purple-400 font-bold">Create Commercial Deal</span>
           </div>
-          {/* Benchmark Demo Preset Shortcut */}
-          <button
-            type="button"
-            onClick={handleLoadDemoBenchmark}
-            className="text-[11px] text-gray-400 hover:text-purple-300 underline font-mono flex items-center gap-1"
-          >
-            <span>⚡ Load Benchmark Demo Preset</span>
-          </button>
         </div>
 
         {/* Header */}
@@ -762,11 +732,11 @@ export default function CreateIntentPage() {
                       type="button"
                       onClick={() => {
                         setReceiverWallet(TARGET_SELLER_ADDRESS);
-                        setReceiverName('Dallas Solar Supply Co.');
+                        setReceiverName('Fulfillment Counterparty Node');
                       }}
                       className="text-[10px] text-purple-400 hover:text-purple-300 underline"
                     >
-                      Fill Demo Seller (0x0e73...6Ee8)
+                      Fill Configured Seller (0x0e73...6Ee8)
                     </button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

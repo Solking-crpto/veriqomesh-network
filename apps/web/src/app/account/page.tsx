@@ -110,7 +110,7 @@ export default function AccountPage() {
             <div className="flex items-center gap-2">
               <span className={`w-2.5 h-2.5 rounded-full ${wallet.isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'}`} />
               <span className="font-bold text-white uppercase">
-                {wallet.isConnected ? 'Browser Wallet Connected' : 'Guided Demo Sandbox Mode'}
+                {wallet.isConnected ? 'Browser Wallet Connected' : 'Public Testnet (Wallet Required)'}
               </span>
               {wallet.isConnected && (
                 <span className="px-2 py-0.2 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-700">
@@ -251,29 +251,29 @@ export default function AccountPage() {
               )}
             </div>
 
-            <h3 className="text-xl font-bold text-white mb-1">{receiver.name}</h3>
-            <p className="text-xs text-gray-400 mb-4 font-mono">Fulfillment Node / Seller • Verified Tier-1 Supplier</p>
+            <h3 className="text-xl font-bold text-white mb-1">{wallet.isConnected ? receiver.name : 'Fulfillment Supplier Node'}</h3>
+            <p className="text-xs text-gray-400 mb-4 font-mono">Fulfillment Node / Seller • Monad Metropolis Testnet</p>
 
             <div className="space-y-2 text-xs font-mono bg-gray-950/60 p-3.5 rounded-xl border border-gray-800 mb-4">
               <div className="flex justify-between">
-                <span className="text-gray-400">Designated Profile Address:</span>
-                <span className="text-gray-200 font-semibold">{receiver.wallet.slice(0, 8)}...{receiver.wallet.slice(-6)}</span>
+                <span className="text-gray-400">Node Address:</span>
+                <span className="text-gray-200 font-semibold">{wallet.isConnected ? `${wallet.address?.slice(0, 8)}...${wallet.address?.slice(-6)}` : 'Wallet Required'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Depot Location:</span>
                 <span className="text-blue-300 font-semibold">{receiver.location}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Historical Agreements:</span>
-                <span className="text-emerald-300 font-semibold">{receiver.stats.completed} Completed (98% Attestation)</span>
+                <span className="text-gray-400">Completed Agreements:</span>
+                <span className="text-emerald-300 font-semibold">{receiver.stats.completed} Completed</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Trust Receipts:</span>
                 <span className="text-indigo-300 font-semibold">{receiver.stats.trustReceipts} Onchain Receipts</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Adjudication History:</span>
-                <span className="text-amber-300 font-semibold">2 Resolved (1 Canonical Live Record)</span>
+                <span className="text-gray-400">Adjudication Cases:</span>
+                <span className="text-amber-300 font-semibold">{receiver.stats.disputed} Disputed</span>
               </div>
             </div>
 
@@ -434,7 +434,7 @@ export default function AccountPage() {
               <div className="p-4 rounded-xl bg-blue-950/20 border border-blue-900/60 space-y-2 text-xs font-mono">
                 <div className="text-blue-300 font-bold">Node Trust Verification</div>
                 <div className="text-gray-300 font-sans">
-                  Dallas Solar Supply Co. holds an onchain Tier-1 reputation badge with 28 completed commercial escrow agreements and verified Monad testnet dispute resolution history.
+                  Verified supplier nodes mint non-transferable Soulbound Trust Receipts on Monad upon satisfactory milestone attestation and escrow completion.
                 </div>
               </div>
 

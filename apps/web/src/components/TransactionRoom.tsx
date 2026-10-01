@@ -249,9 +249,9 @@ export function TransactionRoom({
     : isFreshOnchainTx
     ? {
         prompt:
-          'Supply and deliver 2 solar panels to the buyer. Seller provides product serial numbers, delivery evidence and installation/site evidence.',
-        title: 'Commercial Solar Procurement (Live Monad Metropolis Testnet)',
-        description: 'Fresh live onchain transaction initialized on Monad Metropolis Testnet (Chain ID: 10143)',
+          'Commercial procurement agreement initialized on Monad Metropolis Testnet. Counterparties ratify deliverables and anchor cryptographic evidence before escrow settlement.',
+        title: 'Commercial Procurement Agreement (Live Monad Metropolis Testnet)',
+        description: 'Live onchain transaction initialized on Monad Metropolis Testnet (Chain ID: 10143)',
         id: txId!,
         sourceLabel: (txId === HISTORICAL_LIVE_TESTNET_TX_ID
           ? ('LIVE MONAD TESTNET RECORD' as const)
@@ -466,8 +466,8 @@ export function TransactionRoom({
           verifier: INDEPENDENT_VERIFIER_ADDRESS,
           amountMon: '0.001',
           deadlineDays: 14,
-          termsTitle: 'Commercial Solar Procurement (Live Monad Metropolis Testnet)',
-          termsDescription: 'Fresh live onchain transaction initialized on Monad Metropolis Testnet (Chain ID: 10143)',
+          termsTitle: 'Commercial Procurement Agreement (Live Monad Metropolis Testnet)',
+          termsDescription: 'Live onchain transaction initialized on Monad Metropolis Testnet (Chain ID: 10143)',
           termsHash: txId === FRESH_LIVE_TESTNET_TX_ID ? FRESH_LIVE_TESTNET_TERMS_HASH : '0xebb931936199ae988129d1eed8501a6ad3311035f0d72dd0e52e0c92454a125f',
           state: TransactionState.PROPOSED,
           verificationOutcome: VerificationOutcome.NONE,
@@ -649,12 +649,12 @@ export function TransactionRoom({
       verifier: req?.verifierAddress || INDEPENDENT_VERIFIER_ADDRESS,
       amountMon: req?.escrowAmountMon || '0.001',
       deadlineDays: req?.deadlineDays || 14,
-      termsTitle: req?.title || 'Commercial Solar Procurement (Live Monad Metropolis Testnet)',
+      termsTitle: req?.title || 'Commercial Procurement Agreement (Live Monad Metropolis Testnet)',
       termsDescription: req?.deliverable || 'Live onchain transaction on Monad Metropolis Testnet',
       termsHash:
         freshTxId === FRESH_LIVE_TESTNET_TX_ID
           ? FRESH_LIVE_TESTNET_TERMS_HASH
-          : ethers.keccak256(ethers.toUtf8Bytes(req?.deliverable || 'Commercial Solar Procurement')),
+          : ethers.keccak256(ethers.toUtf8Bytes(req?.deliverable || 'Commercial Procurement Agreement')),
       state: TransactionState.PROPOSED,
       verificationOutcome: VerificationOutcome.NONE,
       evidenceList: [],
@@ -1184,7 +1184,7 @@ export function TransactionRoom({
               Wallet: <code className="text-gray-300">{tx.buyer}</code>
             </div>
             <div className="text-[10px] text-emerald-400 mt-0.5 flex items-center gap-1">
-              <span>●</span> Mandate: {initiator.agentName} (Max 5.0 MON)
+              <span>●</span> Authorization: Manual Wallet Signature (Policy: Not Configured)
             </div>
           </div>
 

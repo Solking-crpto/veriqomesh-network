@@ -1,5 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import { ethers } from 'ethers';
 import {
   generateCanonicalInvitationCode,
@@ -2000,6 +2002,121 @@ describe('Stage 4 Slice 2 — Persistent Invitations & Receiver Action Invariant
 
       assert.equal(initialReceipts.length, 0, 'Initial receipts must be empty');
       assert.equal(initialEvidence.length, 0, 'Initial evidence must be empty');
+    });
+  });
+
+  // 15. Phase 18 Public Data Purge & Real User System Invariants
+  describe('15. Phase 18 Public Data Purge & Real User System Invariants', () => {
+    it('1. isBenchmarkRequest accurately identifies all historical codes and transaction IDs', () => {
+      // Historical request IDs
+      assert.equal(isBenchmarkRequest({ id: 'VM-REQ-0001' }), true);
+      assert.equal(isBenchmarkRequest({ id: 'VM-REQ-0002' }), true);
+      assert.equal(isBenchmarkRequest({ id: 'VM-REQ-0003' }), true);
+      assert.equal(isBenchmarkRequest({ id: 'VM-REQ-0004' }), true);
+      assert.equal(isBenchmarkRequest({ id: 'VM-T564-24CG' }), true);
+      assert.equal(isBenchmarkRequest({ id: 'VM-WFND-ZN39' }), true);
+
+      // Historical transaction IDs
+      assert.equal(isBenchmarkRequest({ transactionId: CANONICAL_FLOW_A_TX_ID }), true);
+      assert.equal(isBenchmarkRequest({ transactionId: CANONICAL_FLOW_B_TX_ID }), true);
+      assert.equal(isBenchmarkRequest({ transactionId: CANONICAL_TESTNET_TX_ID }), true);
+
+      // Historical deliverable & party names
+      assert.equal(isBenchmarkRequest({ deliverable: '100 Commercial Solar Panels' }), true);
+      assert.equal(isBenchmarkRequest({ deliverable: '100 solar panels delivered to Texas depot' }), true);
+      assert.equal(isBenchmarkRequest({ receiver: 'Dallas Solar Supply Co.' }), true);
+      assert.equal(isBenchmarkRequest({ initiator: 'Solar Procurement Ltd.' }), true);
+
+      // Fresh user requests must NOT be flagged
+      assert.equal(isBenchmarkRequest({ id: 'VM-KJ82-99XZ', title: 'Data Pipeline API Integration' }), false);
+      assert.equal(isBenchmarkRequest({ transactionId: '0x1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff' }), false);
+    });
+
+    it('2. Disconnected Initiator state has 0 metrics, unconfigured policy, and WALLET REQUIRED', () => {
+      const disconnectedInitiator = {
+        name: 'Buyer Principal Node',
+        wallet: '',
+        agentName: '',
+        spendingLimitMon: 'Not Configured',
+        policyStatus: 'SPENDING POLICY: NOT CONFIGURED',
+        status: 'WALLET REQUIRED',
+      };
+
+      assert.equal(disconnectedInitiator.wallet, '');
+      assert.equal(disconnectedInitiator.spendingLimitMon, 'Not Configured');
+      assert.equal(disconnectedInitiator.policyStatus, 'SPENDING POLICY: NOT CONFIGURED');
+      assert.equal(disconnectedInitiator.status, 'WALLET REQUIRED');
+      assert.ok(!disconnectedInitiator.spendingLimitMon.includes('5.0 MON'));
+    });
+
+    it('3. Disconnected Receiver state has 0 inbound requests, 0 metrics, and WALLET REQUIRED', () => {
+      const disconnectedReceiver = {
+        name: 'Fulfillment Supplier Node',
+        wallet: '',
+        status: 'WALLET REQUIRED',
+        stats: {
+          activeAgreements: 0,
+          completed: 0,
+          disputed: 0,
+          trustReceipts: 0,
+        },
+      };
+
+      assert.equal(disconnectedReceiver.wallet, '');
+      assert.equal(disconnectedReceiver.status, 'WALLET REQUIRED');
+      assert.equal(disconnectedReceiver.stats.activeAgreements, 0);
+      assert.equal(disconnectedReceiver.stats.completed, 0);
+      assert.equal(disconnectedReceiver.stats.disputed, 0);
+      assert.equal(disconnectedReceiver.stats.trustReceipts, 0);
+    });
+
+    it('4. Actionable incoming requests count is strictly 0 when disconnected', () => {
+      const count = calculateActionableRequestsCount({
+        requests: [
+          { id: 'VM-TEST-1234', receiverWallet: '0x0e73dbff9047423b520fa9fc23a95645fc986ee8', status: 'PROPOSED' },
+        ],
+        isConnected: false,
+        connectedWallet: null,
+      });
+      assert.equal(count, 0);
+      assert.equal(getRequestsNavBadge(count), undefined);
+    });
+
+    it('5. Navigation badge is undefined when count is 0', () => {
+      assert.equal(getRequestsNavBadge(0), undefined);
+      assert.equal(getRequestsNavBadge(-1), undefined);
+      assert.equal(getRequestsNavBadge(1), 1);
+      assert.equal(getRequestsNavBadge(5), 5);
+    });
+
+    it('6. Canonical app-directory.json exists and adheres to schema specifications', () => {
+      const rootCandidate1 = path.resolve(process.cwd(), 'app-directory.json');
+      const rootCandidate2 = path.resolve(process.cwd(), '../app-directory.json');
+      const appDirectoryPath = fs.existsSync(rootCandidate1) ? rootCandidate1 : rootCandidate2;
+      assert.ok(fs.existsSync(appDirectoryPath), 'app-directory.json must exist in root');
+
+      const content = JSON.parse(fs.readFileSync(appDirectoryPath, 'utf8'));
+      assert.equal(content.name, 'VeriqoMesh Network');
+      assert.equal(content.network, 'Monad Metropolis Testnet');
+      assert.equal(content.chainId, 10143);
+      assert.equal(content.contracts.escrow, '0x925ea880cA53DE0352b84B24d0C0dee5B258015A');
+      assert.equal(content.contracts.registry, '0xE1994e0dF7CD5A836be4b02AE2164A542418B819');
+      assert.equal(content.contracts.resolver, '0x12f9e53c31F7629aCAE0BA70588794945EC6c35E');
+      assert.equal(content.contracts.configuredVerifier, '0xb064d69428B9838C2a3e408cF995ea8eb5182c48');
+      assert.equal(content.contact.email, 'veriqomeshnetwork@gmail.com');
+      assert.equal(content.contact.x, 'https://x.com/veriqomesh_ai');
+    });
+
+    it('7. Public web app-directory.json matches root app-directory.json', () => {
+      const rootCandidate1 = path.resolve(process.cwd(), 'app-directory.json');
+      const rootCandidate2 = path.resolve(process.cwd(), '../app-directory.json');
+      const rootPath = fs.existsSync(rootCandidate1) ? rootCandidate1 : rootCandidate2;
+      const publicPath = path.resolve(path.dirname(rootPath), 'apps/web/public/app-directory.json');
+      assert.ok(fs.existsSync(publicPath), 'apps/web/public/app-directory.json must exist');
+
+      const rootContent = fs.readFileSync(rootPath, 'utf8');
+      const publicContent = fs.readFileSync(publicPath, 'utf8');
+      assert.equal(rootContent, publicContent, 'Both app-directory.json files must be identical');
     });
   });
 });

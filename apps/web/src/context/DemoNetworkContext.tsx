@@ -173,25 +173,25 @@ const DemoNetworkContext = createContext<DemoNetworkContextType | undefined>(und
 const SESSION_STORAGE_KEY = 'veriqomesh:session:v3';
 
 const DEFAULT_INITIATOR: InitiatorProfile = {
-  name: 'Solar Procurement Ltd.',
+  name: 'Buyer Principal Node',
   type: 'Business',
-  wallet: TARGET_BUYER_ADDRESS,
-  agentName: 'SolarProcure Agent',
-  spendingLimitMon: '5.0',
-  autoExecution: true,
+  wallet: '',
+  agentName: '',
+  spendingLimitMon: 'Not Configured',
+  autoExecution: false,
   humanFallback: true,
-  policyStatus: 'POLICY CONFIGURED',
-  status: 'INITIATOR ACCOUNT ACTIVE',
+  policyStatus: 'SPENDING POLICY: NOT CONFIGURED',
+  status: 'WALLET REQUIRED',
 };
 
 const DEFAULT_RECEIVER: ReceiverProfile = {
-  name: 'Dallas Solar Supply',
+  name: 'Fulfillment Supplier Node',
   type: 'Business',
-  provides: 'Commercial solar equipment, freight logistics, physical depot inspection',
-  location: 'Dallas, Texas',
-  capabilities: ['Delivery', 'Inspection', 'Freight', 'Installation'],
-  wallet: TARGET_SELLER_ADDRESS,
-  status: 'LIVE VERIFIED NODE',
+  provides: 'Commercial fulfillment & verifiable delivery services',
+  location: 'Designated Logistics Depot',
+  capabilities: ['Delivery', 'Inspection', 'Freight', 'Attestation'],
+  wallet: '',
+  status: 'WALLET REQUIRED',
   stats: {
     activeAgreements: 0,
     completed: 0,
@@ -201,134 +201,23 @@ const DEFAULT_RECEIVER: ReceiverProfile = {
 };
 
 const DEFAULT_INTENT: CommercialIntent = {
-  id: 'VM-REQ-0004',
-  need: 'Supply and deliver 2 solar panels to the buyer. Seller provides product serial numbers, delivery evidence and installation/site evidence.',
+  id: '',
+  need: '',
   deadlineDays: 14,
   evidenceRequirements: [
-    'Carrier Bill of Lading (BOL signed)',
-    'Geotagged Depot Delivery Photo',
-    '2 Serial Number Module Manifest',
+    'Signed Carrier Bill of Lading (BOL)',
+    'Geotagged Depot Delivery Proof Photo',
+    'Item Serial Number Verification Manifest',
     `Independent Verifier Attestation (${APPROVED_OPERATOR_VERIFIER_ADDRESS.slice(0, 6)}...${APPROVED_OPERATOR_VERIFIER_ADDRESS.slice(-4)})`,
   ],
-  escrowAmountMon: '0.001',
-  maxTransactionValueMon: '0.001',
-  autoExecuteNormalPass: true,
+  escrowAmountMon: '',
+  maxTransactionValueMon: '',
+  autoExecuteNormalPass: false,
   humanEscalationOnContest: true,
-  created: true,
+  created: false,
 };
 
-const DEFAULT_REQUESTS: DealRequest[] = [
-  {
-    id: 'VM-REQ-0004',
-    title: 'Commercial Solar Procurement (Live Monad Metropolis Testnet)',
-    initiator: 'Solar Procurement Ltd.',
-    initiatorWallet: TARGET_BUYER_ADDRESS,
-    receiver: 'Dallas Solar Supply Co.',
-    receiverWallet: TARGET_SELLER_ADDRESS,
-    deliverable: 'Supply and deliver 2 solar panels to the buyer. Seller provides product serial numbers, delivery evidence and installation/site evidence.',
-    location: 'Dallas, Texas',
-    deadlineDays: 14,
-    escrowAmountMon: '0.001',
-    evidenceRequirements: [
-      'Carrier Bill of Lading (BOL signed)',
-      'Geotagged Depot Delivery Photo',
-      '2 Serial Number Module Manifest',
-      `Independent Verifier Attestation (${APPROVED_OPERATOR_VERIFIER_ADDRESS.slice(0, 6)}...${APPROVED_OPERATOR_VERIFIER_ADDRESS.slice(-4)})`,
-    ],
-    verifierAddress: APPROVED_OPERATOR_VERIFIER_ADDRESS,
-    aiPolicy: {
-      maxSpend: '0.001 MON',
-      autoExecute: true,
-      humanEscalation: true,
-    },
-    status: 'AGREEMENT_ACTIVE',
-    transactionId: APPROVED_OPERATOR_VERIFIER_TX_ID,
-    createdAt: 'Live Metropolis Testnet (Block 65963660)',
-    isOnchain: true,
-    onchainTxHash: APPROVED_OPERATOR_VERIFIER_TX_HASH,
-  },
-  {
-    id: 'VM-REQ-0003',
-    title: 'Commercial Solar Procurement (Historical Testnet Run - Parked at Verification)',
-    initiator: 'Solar Procurement Ltd.',
-    initiatorWallet: TARGET_BUYER_ADDRESS,
-    receiver: 'Dallas Solar Supply Co.',
-    receiverWallet: TARGET_SELLER_ADDRESS,
-    deliverable: 'Supply and deliver 2 solar panels to the buyer. Seller provides product serial numbers, delivery evidence and installation/site evidence.',
-    location: 'Dallas, Texas',
-    deadlineDays: 14,
-    escrowAmountMon: '0.001',
-    evidenceRequirements: [
-      'Carrier Bill of Lading (BOL signed)',
-      'Geotagged Depot Delivery Photo',
-      '2 Serial Number Module Manifest',
-      'Independent Verifier Attestation (Historical: 0x16D7...4EA)',
-    ],
-    verifierAddress: '0x16D7bD08Ad79bBCdBa116A652f68589FE5d6F4EA',
-    aiPolicy: {
-      maxSpend: '0.001 MON',
-      autoExecute: true,
-      humanEscalation: true,
-    },
-    status: 'AWAITING_RECEIVER_ACCEPTANCE',
-    transactionId: HISTORICAL_PARKED_TESTNET_TX_ID,
-    createdAt: 'Historical Testnet Record (Block 65524140 - Read-Only)',
-    isOnchain: true,
-    onchainTxHash: HISTORICAL_PARKED_TESTNET_TX_HASH,
-  },
-  {
-    id: 'VM-REQ-0002',
-    title: 'Commercial Solar Procurement (Previous Live Run - Read-Only)',
-    initiator: 'Solar Procurement Ltd.',
-    initiatorWallet: '0xa4bCC57d40311D715ECe34940191820d4a81C50F',
-    receiver: 'Dallas Solar Supply Co.',
-    receiverWallet: '0x6f30D20b8c5bE781bADD86341415b556fB13c873',
-    deliverable: 'Supply and deliver 2 solar panels to the buyer. Seller provides product serial numbers, delivery evidence and installation/site evidence.',
-    location: 'Dallas, Texas',
-    deadlineDays: 14,
-    escrowAmountMon: '0.001',
-    evidenceRequirements: ['Delivery evidence', 'Physical inspection', 'Independent verification', 'Serial number manifest'],
-    verifierAddress: '0x16D7bD08Ad79bBCdBa116A652f68589FE5d6F4EA',
-    aiPolicy: {
-      maxSpend: '0.001 MON',
-      autoExecute: true,
-      humanEscalation: true,
-    },
-    status: 'AWAITING_RECEIVER_ACCEPTANCE',
-    transactionId: HISTORICAL_RUN1_LIVE_TX_ID,
-    createdAt: 'Previous Run',
-    isOnchain: true,
-    onchainTxHash: HISTORICAL_RUN1_LIVE_TX_HASH,
-  },
-  {
-    id: 'VM-REQ-0001',
-    title: '100 Commercial Solar Panels (Canonical Dispute Audit)',
-    initiator: 'Solar Procurement Ltd.',
-    initiatorWallet: '0x287196Cdbf41da13Cb7083392e47eaAf105b58A0',
-    receiver: 'Dallas Solar Supply Co.',
-    receiverWallet: '0x6f30D20b8c5bE781bADD86341415b556fB13c873',
-    deliverable: '100 commercial solar panels (550W Tier 1) delivered to Dallas depot',
-    location: 'Dallas, Texas',
-    deadlineDays: 14,
-    escrowAmountMon: '0.001',
-    evidenceRequirements: [
-      'Carrier Bill of Lading (BOL signed)',
-      'Geotagged Depot Delivery Photo',
-      '100 Serial Number Module Manifest',
-      'Independent Verifier Attestation (0x16D7...4EA)',
-    ],
-    verifierAddress: '0x16D7bD08Ad79bBCdBa116A652f68589FE5d6F4EA',
-    aiPolicy: {
-      maxSpend: '0.001 MON',
-      autoExecute: true,
-      humanEscalation: true,
-    },
-    status: 'AGREEMENT_ACTIVE',
-    transactionId: CANONICAL_TESTNET_TX_ID,
-    createdAt: 'Canonical Testnet Dispute',
-    isOnchain: true,
-  },
-];
+const DEFAULT_REQUESTS: DealRequest[] = [];
 
 export function DemoNetworkProvider({ children }: { children: React.ReactNode }) {
   const wallet = useMonadWallet();
@@ -447,21 +336,21 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
   // Wallet identity remains objective and provider-derived, verified via isWalletCompatibleWithRole().
 
 
-  // Reset wallet bindings to demo defaults when disconnected
+  // Reset wallet bindings to truthful empty state when disconnected
   useEffect(() => {
     if (!wallet.isConnected || !wallet.address) {
-      if (initiator.wallet !== TARGET_BUYER_ADDRESS && initiator.status !== 'INITIATOR ACCOUNT ACTIVE') {
+      if (initiator.wallet !== '' || initiator.status !== 'WALLET REQUIRED') {
         setInitiator((prev) => ({
           ...prev,
-          wallet: TARGET_BUYER_ADDRESS,
-          status: 'INITIATOR ACCOUNT ACTIVE',
+          wallet: '',
+          status: 'WALLET REQUIRED',
         }));
       }
-      if (receiver.wallet !== TARGET_SELLER_ADDRESS && receiver.status !== 'LIVE VERIFIED NODE') {
+      if (receiver.wallet !== '' || receiver.status !== 'WALLET REQUIRED') {
         setReceiver((prev) => ({
           ...prev,
-          wallet: TARGET_SELLER_ADDRESS,
-          status: 'LIVE VERIFIED NODE',
+          wallet: '',
+          status: 'WALLET REQUIRED',
         }));
       }
     }
@@ -469,8 +358,8 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
 
   const createDealRequest = useCallback(
     (
-      receiverName = 'Dallas Solar Supply',
-      receiverWallet = TARGET_SELLER_ADDRESS,
+      receiverName = 'Fulfillment Node',
+      receiverWallet = '',
       isOnchain = false,
       txId?: string,
       broadcastHash?: string,
@@ -506,19 +395,19 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
 
       const newReq: DealRequest = {
         id: newId,
-        title: customParams?.title || 'Commercial Solar Procurement',
+        title: customParams?.title || 'Commercial Agreement',
         initiator: initiator.name,
         initiatorWallet: effectiveInitiatorWallet,
         receiver: receiverName,
         receiverWallet: receiverWallet,
         deliverable: customParams?.deliverable || customParams?.naturalLanguageNeed || intent.need,
-        location: customParams?.location || 'Dallas, Texas',
+        location: customParams?.location || 'Designated Delivery Depot',
         deadlineDays: customParams?.deadlineDays ?? intent.deadlineDays,
         escrowAmountMon: customParams?.escrowAmountMon || intent.escrowAmountMon,
         evidenceRequirements: dynamicEvidenceRequirements,
         verifierAddress: effectiveVerifier,
         aiPolicy: {
-          maxSpend: `${customParams?.escrowAmountMon || intent.maxTransactionValueMon} MON`,
+          maxSpend: `${customParams?.escrowAmountMon || intent.maxTransactionValueMon || '0'} MON`,
           autoExecute: intent.autoExecuteNormalPass,
           humanEscalation: intent.humanEscalationOnContest,
         },
@@ -644,9 +533,21 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
 
   // Combined requests + persistentInvitations
   const allRequests = useMemo(() => {
-    const combined: DealRequest[] = [...requests];
+    const combined: DealRequest[] = [...requests.filter((r) => !isBenchmarkRequest(r))];
 
     for (const inv of persistentInvitations) {
+      if (
+        isBenchmarkRequest({
+          transactionId: inv.transactionId,
+          invitationCode: inv.invitationCode,
+          title: inv.proposal.title,
+          deliverable: inv.proposal.description,
+          initiator: inv.initiatorWallet,
+          receiver: inv.intendedReceiverWallet,
+        })
+      ) {
+        continue;
+      }
       const exists = combined.some(
         (r) =>
           (r.transactionId && inv.transactionId && r.transactionId.toLowerCase() === inv.transactionId.toLowerCase()) ||
