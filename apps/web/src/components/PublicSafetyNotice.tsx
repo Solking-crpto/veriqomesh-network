@@ -41,6 +41,30 @@ export function PublicSafetyNotice() {
             <span>Registry: <code className="text-gray-300">0xE1994e...B819</code></span>
           </div>
         </div>
+
+        <div className="pt-3 border-t border-gray-900/80 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono">
+          <div className="flex flex-wrap items-center gap-2 text-gray-400">
+            <span className="text-gray-300 font-semibold">Official Network Operations & Contact:</span>
+            <a
+              href="mailto:veriqomeshnetwork@gmail.com"
+              className="text-purple-400 hover:text-purple-300 underline transition"
+            >
+              veriqomeshnetwork@gmail.com
+            </a>
+            <span className="text-gray-600">•</span>
+            <a
+              href="https://x.com/veriqomesh_ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-purple-400 hover:text-purple-300 underline transition"
+            >
+              X: @veriqomesh_ai ↗
+            </a>
+          </div>
+          <div className="text-[10px] text-gray-500">
+            EVM Chain ID: 10143 • Metropolis Testnet
+          </div>
+        </div>
       </div>
     </footer>
   );

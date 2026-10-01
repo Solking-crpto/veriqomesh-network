@@ -39,11 +39,6 @@ export default function ReceiverDashboardPage() {
     );
   }, [allRequests, wallet.isConnected, wallet.address]);
 
-  // Historical benchmark records for reference and audit
-  const historicalRecords = useMemo(() => {
-    return allRequests.filter((r) => isBenchmarkRequest(r));
-  }, [allRequests]);
-
   return (
     <div className="min-h-screen bg-[#07080d] text-gray-100 py-10 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -199,7 +194,7 @@ export default function ReceiverDashboardPage() {
               <span>{receiver.name}</span>
               {!wallet.isConnected && (
                 <span className="px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/80 text-amber-300 font-mono text-xs font-bold uppercase tracking-wider">
-                  DEMO WORKSPACE • Viewing Historical Benchmark Data
+                  PUBLIC TESTNET • Connect Wallet to View Inbound Agreements
                 </span>
               )}
             </h1>
@@ -246,25 +241,33 @@ export default function ReceiverDashboardPage() {
 
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Active Agreements</div>
-            <div className="text-2xl font-bold text-white">{receiver.stats.activeAgreements}</div>
+            <div className="text-2xl font-bold text-white">
+              {wallet.isConnected && wallet.address
+                ? allRequests.filter(
+                    (r) =>
+                      r.status === 'AGREEMENT_ACTIVE' &&
+                      r.receiverWallet?.toLowerCase() === wallet.address?.toLowerCase()
+                  ).length
+                : 0}
+            </div>
             <div className="text-[11px] text-blue-400 mt-1">
-              {wallet.isConnected ? 'In fulfillment & inspection' : 'Demo benchmark defaults'}
+              {wallet.isConnected ? 'Agreed commercial escrows' : 'Connect wallet to view'}
             </div>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Completed Deals</div>
-            <div className="text-2xl font-bold text-emerald-400">{receiver.stats.completed}</div>
+            <div className="text-2xl font-bold text-emerald-400">0</div>
             <div className="text-[11px] text-emerald-400/80 mt-1">
-              {wallet.isConnected ? '98% Attestation Pass Rate' : 'Demo benchmark defaults'}
+              {wallet.isConnected ? 'Settled onchain transactions' : '0 completed deals'}
             </div>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Onchain Trust Receipts</div>
-            <div className="text-2xl font-bold text-indigo-400">{receiver.stats.trustReceipts}</div>
+            <div className="text-2xl font-bold text-indigo-400">0</div>
             <div className="text-[11px] text-indigo-300 mt-1">
-              {wallet.isConnected ? 'Cryptographic proof' : 'Demo benchmark defaults'}
+              {wallet.isConnected ? 'Minted Soulbound receipts' : '0 receipts held'}
             </div>
           </div>
         </div>
@@ -376,45 +379,6 @@ export default function ReceiverDashboardPage() {
             </div>
           )}
 
-          {/* Historical Benchmark Records for Audit */}
-          {historicalRecords.length > 0 && (
-            <div className="mt-4 space-y-3 pt-2">
-              <div className="flex items-center justify-between text-xs font-mono text-gray-500 px-1">
-                <span>Historical Testnet Benchmarks ({historicalRecords.length} records)</span>
-                <span className="text-[10px] text-gray-600">Immutable Audit Only</span>
-              </div>
-              <div className="space-y-2">
-                {historicalRecords.slice(0, 2).map((req) => (
-                  <div
-                    key={req.id}
-                    className="p-3.5 rounded-xl bg-gray-950/60 border border-gray-800 font-mono text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-gray-400"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-gray-300">{req.id}</span>
-                        <span className="text-gray-600">•</span>
-                        <span className="text-gray-300">{req.deliverable}</span>
-                      </div>
-                      <div className="text-[11px] text-gray-500 mt-0.5">
-                        Escrow: {req.escrowAmountMon} MON • {req.createdAt || 'Benchmark Record'}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded bg-gray-900 text-gray-400 border border-gray-700 text-[10px] font-bold">
-                        HISTORICAL BENCHMARK (READ-ONLY)
-                      </span>
-                      <Link
-                        href={req.transactionId ? `/transactions/${req.transactionId}` : '/requests'}
-                        className="py-1 px-2.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs transition"
-                      >
-                        Audit →
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Fulfillment Transactions Track */}
@@ -461,32 +425,32 @@ export default function ReceiverDashboardPage() {
               </Link>
             </div>
 
-            {/* Autonomous Delivery Flow */}
+            {/* Fulfillment & Settlement Operations */}
             <div className="p-5 rounded-xl bg-gradient-to-b from-[#0e1726] to-[#0a0d16] border border-blue-800/60 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-700 text-[10px] font-bold">
-                    UNCONTESTED FULFILLMENT
+                    FULFILLMENT OPERATIONS
                   </span>
-                  <span className="text-gray-400 text-[10px]">PASS Settlement</span>
+                  <span className="text-gray-400 text-[10px]">Onchain Settlement</span>
                 </div>
                 <h3 className="text-sm font-bold text-white mb-1">
-                  Tier-1 Solar PV (Full Escrow Release)
+                  Deliverable Verification &amp; Release
                 </h3>
                 <p className="text-[11px] text-gray-300 font-sans mb-3">
-                  Delivered to Dallas depot with 100% verified serial manifest. Bureau Veritas attested PASS. AI agent verified attestation policy; 100% escrow capital released and enforced onchain. AI assists. Humans authorize. Verifiers verify. Blockchain enforces.
+                  When agreements are ratified, fulfillment nodes upload carrier BOLs, depot delivery photos, and serial manifests to IPFS. Designated verifier attestations authorize release on Monad Metropolis Testnet.
                 </p>
                 <div className="bg-gray-950 p-2.5 rounded-lg border border-gray-800 space-y-1 text-[11px] mb-4">
-                  <div className="text-gray-400">Escrow Capital: <span className="text-emerald-400 font-bold">12.5 MON</span></div>
-                  <div className="text-gray-400">Verification: <span className="text-emerald-400 font-bold">PASS Attested</span></div>
-                  <div className="text-gray-400">Status: <span className="text-emerald-300 font-bold">SETTLED (100% TO SELLER)</span></div>
+                  <div className="text-gray-400">Escrow Address: <code className="text-purple-300">0x925ea8...015A</code></div>
+                  <div className="text-gray-400">Evidence Anchoring: <span className="text-blue-300">Keccak256 IPFS Hashes</span></div>
+                  <div className="text-gray-400">Release Security: <span className="text-emerald-300">Smart Contract Enforced</span></div>
                 </div>
               </div>
               <Link
-                href="/transactions/story-a"
+                href="/requests"
                 className="w-full text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition text-xs shadow-md"
               >
-                Inspect Settlement Room →
+                View Incoming Deals →
               </Link>
             </div>
           </div>

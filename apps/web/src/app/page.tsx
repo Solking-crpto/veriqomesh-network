@@ -90,9 +90,9 @@ export default function LandingPage() {
                   Commission commercial procurement, set spending limits, define deliverable milestones, and mandate independent verification before capital release.
                 </p>
                 <div className="bg-purple-950/40 rounded-lg p-3 border border-purple-900/60 mb-5 text-[11px] font-mono space-y-1">
-                  <div className="text-gray-400">Demo Persona: <span className="text-white font-semibold">{initiator.name}</span></div>
-                  <div className="text-gray-400">Agent: <span className="text-purple-300">{initiator.agentName}</span> (Policy Bounded Assistant)</div>
-                  <div className="text-gray-400">Wallet: <code className="text-gray-300">{initiator.wallet.slice(0, 10)}...{initiator.wallet.slice(-6)}</code></div>
+                  <div className="text-gray-400">Node Role: <span className="text-white font-semibold">Buyer / Principal Node</span></div>
+                  <div className="text-gray-400">Governance: <span className="text-purple-300">Policy-Bounded Intent &amp; Human Authorization</span></div>
+                  <div className="text-gray-400">Network: <span className="text-emerald-300">Monad Metropolis Testnet (10143)</span></div>
                 </div>
               </div>
               <button
@@ -120,9 +120,9 @@ export default function LandingPage() {
                   Receive inbound commercial requests, review &amp; sign agreements, fulfill deliverables, submit cryptographically hashed proof, and claim escrow.
                 </p>
                 <div className="bg-blue-950/40 rounded-lg p-3 border border-blue-900/60 mb-5 text-[11px] font-mono space-y-1">
-                  <div className="text-gray-400">Demo Persona: <span className="text-white font-semibold">{receiver.name}</span></div>
-                  <div className="text-gray-400">Capabilities: <span className="text-blue-300">Commercial Solar PV, Freight, Inspection</span></div>
-                  <div className="text-gray-400">Wallet: <code className="text-gray-300">{receiver.wallet.slice(0, 10)}...{receiver.wallet.slice(-6)}</code></div>
+                  <div className="text-gray-400">Node Role: <span className="text-white font-semibold">Fulfillment Supplier &amp; Logistics Node</span></div>
+                  <div className="text-gray-400">Capabilities: <span className="text-blue-300">Commercial Delivery, Inspection &amp; Settlement</span></div>
+                  <div className="text-gray-400">Network: <span className="text-emerald-300">Monad Metropolis Testnet (10143)</span></div>
                 </div>
               </div>
               <button
@@ -162,7 +162,7 @@ export default function LandingPage() {
                 Initiator (Buyer/Agent) and Receiver (Fulfillment Supplier) configure policy boundaries, identities, and verified wallets.
               </p>
               <div className="mt-3 text-[10px] text-purple-300 bg-purple-950/60 p-1.5 rounded border border-purple-900">
-                Solar Procurement Ltd. ↔ Dallas Solar Supply
+                Buyer Principal ↔ Fulfillment Supplier
               </div>
             </div>
 
@@ -174,7 +174,7 @@ export default function LandingPage() {
                 Initiator parses natural language intent into structured parameters and transmits direct commercial request to counterparty.
               </p>
               <div className="mt-3 text-[10px] text-gray-300 bg-gray-950 p-1.5 rounded border border-gray-800">
-                Req: <code className="text-purple-300">VM-REQ-0001</code>
+                Terms: <code className="text-purple-300">Canonical Agreement Hash</code>
               </div>
             </div>
 
@@ -343,6 +343,60 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Official Network Contact Section */}
+      <section className="py-14 px-4 sm:px-6 lg:px-8 border-b border-gray-900 bg-gradient-to-b from-[#090a12] to-[#07080d]">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-600/50 text-purple-300 font-mono text-xs">
+            <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+            <span>OFFICIAL CONTACT &amp; COMMUNICATIONS</span>
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
+            Connect with VeriqoMesh Network
+          </h2>
+
+          <p className="text-xs sm:text-sm text-gray-400 font-mono max-w-xl mx-auto leading-relaxed">
+            For institutional inquiries, commercial integrations, verifier accreditation, or developer partnership on Monad Metropolis Testnet:
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto font-mono text-xs text-left">
+            <a
+              href="mailto:veriqomeshnetwork@gmail.com"
+              className="p-5 rounded-2xl bg-gray-900/80 border border-gray-800 hover:border-purple-600 transition flex items-center gap-4 group shadow-lg"
+            >
+              <div className="w-11 h-11 rounded-xl bg-purple-950 flex items-center justify-center text-purple-300 text-xl border border-purple-800 shrink-0">
+                ✉
+              </div>
+              <div>
+                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">OFFICIAL EMAIL</div>
+                <div className="text-white font-bold group-hover:text-purple-300 transition text-sm">
+                  veriqomeshnetwork@gmail.com
+                </div>
+                <div className="text-[10px] text-gray-500 mt-0.5">Direct commercial &amp; technical inquiries</div>
+              </div>
+            </a>
+
+            <a
+              href="https://x.com/veriqomesh_ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-5 rounded-2xl bg-gray-900/80 border border-gray-800 hover:border-blue-600 transition flex items-center gap-4 group shadow-lg"
+            >
+              <div className="w-11 h-11 rounded-xl bg-blue-950 flex items-center justify-center text-blue-300 text-xl border border-blue-800 shrink-0">
+                𝕏
+              </div>
+              <div>
+                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">OFFICIAL X (TWITTER)</div>
+                <div className="text-white font-bold group-hover:text-blue-300 transition text-sm">
+                  @veriqomesh_ai ↗
+                </div>
+                <div className="text-[10px] text-gray-500 mt-0.5">Network updates, announcements &amp; releases</div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="mt-auto py-8 border-t border-gray-900 bg-[#06070a] text-center text-xs font-mono text-gray-500">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -351,7 +405,9 @@ export default function LandingPage() {
             <span>•</span>
             <span>Trusted Commerce for Humans &amp; AI</span>
           </div>
-          <div className="flex items-center gap-4 text-gray-400">
+          <div className="flex flex-wrap items-center gap-4 text-gray-400">
+            <a href="mailto:veriqomeshnetwork@gmail.com" className="hover:text-purple-300 transition">Email</a>
+            <a href="https://x.com/veriqomesh_ai" target="_blank" rel="noopener noreferrer" className="hover:text-purple-300 transition">X: @veriqomesh_ai</a>
             <Link href="/demo-video" className="hover:text-purple-300 transition">Video Demo</Link>
             <Link href="/evidence" className="hover:text-purple-300 transition">Evidence Explorer</Link>
             <Link href="/trust" className="hover:text-purple-300 transition">Trust Receipts</Link>

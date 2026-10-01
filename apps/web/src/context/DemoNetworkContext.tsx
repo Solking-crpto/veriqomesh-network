@@ -193,10 +193,10 @@ const DEFAULT_RECEIVER: ReceiverProfile = {
   wallet: TARGET_SELLER_ADDRESS,
   status: 'LIVE VERIFIED NODE',
   stats: {
-    activeAgreements: 1,
-    completed: 24,
-    disputed: 2,
-    trustReceipts: 22,
+    activeAgreements: 0,
+    completed: 0,
+    disputed: 0,
+    trustReceipts: 0,
   },
 };
 
@@ -337,7 +337,7 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
   const [initiator, setInitiator] = useState<InitiatorProfile>(DEFAULT_INITIATOR);
   const [receiver, setReceiver] = useState<ReceiverProfile>(DEFAULT_RECEIVER);
   const [intent, setIntent] = useState<CommercialIntent>(DEFAULT_INTENT);
-  const [requests, setRequests] = useState<DealRequest[]>(DEFAULT_REQUESTS);
+  const [requests, setRequests] = useState<DealRequest[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Initialize TrustMeshClient with read provider and signer
@@ -369,44 +369,13 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
         if (parsed.receiver) setReceiver((prev) => ({ ...prev, ...parsed.receiver, wallet: TARGET_SELLER_ADDRESS }));
         if (parsed.intent) setIntent((prev) => ({ ...prev, ...parsed.intent }));
         if (Array.isArray(parsed.requests) && parsed.requests.length > 0) {
-          // Keep historical records accurately tagged and ensure new/current requests use approved verifier
-          let updated = parsed.requests.map((r: DealRequest) => {
-            if (
-              r.transactionId === HISTORICAL_PARKED_TESTNET_TX_ID ||
-              r.transactionId === '0xbbd0176291d62b32c3e096d0314c0fab6bcfa9131c1b26a825b3ce994e645f5e'
-            ) {
-              return {
-                ...r,
-                title: DEFAULT_REQUESTS[1].title,
-                createdAt: DEFAULT_REQUESTS[1].createdAt,
-                verifierAddress: '0x16D7bD08Ad79bBCdBa116A652f68589FE5d6F4EA',
-                evidenceRequirements: DEFAULT_REQUESTS[1].evidenceRequirements,
-              };
-            }
-            if (r.transactionId === APPROVED_OPERATOR_VERIFIER_TX_ID) {
-              return {
-                ...r,
-                verifierAddress: APPROVED_OPERATOR_VERIFIER_ADDRESS,
-                evidenceRequirements: r.evidenceRequirements.map((item) =>
-                  item.includes('Independent Verifier Attestation')
-                    ? `Independent Verifier Attestation (${APPROVED_OPERATOR_VERIFIER_ADDRESS.slice(0, 6)}...${APPROVED_OPERATOR_VERIFIER_ADDRESS.slice(-4)})`
-                    : item
-                ),
-              };
-            }
-            return r;
-          });
-
-          // Ensure active fresh live transaction (0x961c...54e1) is always loaded at top
-          if (!updated.some((r: DealRequest) => r.transactionId === APPROVED_OPERATOR_VERIFIER_TX_ID)) {
-            updated = [DEFAULT_REQUESTS[0], ...updated];
-          }
-
-          setRequests(updated);
+          // Filter out any historical benchmark records to ensure public interface shows only real user requests
+          const realUserRequests = parsed.requests.filter((r: DealRequest) => !isBenchmarkRequest(r));
+          setRequests(realUserRequests);
         }
       }
     } catch {
-      // Ignore parse failure; default to presets
+      // Ignore parse failure; default to empty requests
     } finally {
       setIsHydrated(true);
     }
@@ -647,7 +616,7 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
     setInitiator(DEFAULT_INITIATOR);
     setReceiver(DEFAULT_RECEIVER);
     setIntent(DEFAULT_INTENT);
-    setRequests(DEFAULT_REQUESTS);
+    setRequests([]);
   }, []);
 
   // Load persistent invitations for connected wallet from Upstash Redis

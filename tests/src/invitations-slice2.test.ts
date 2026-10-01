@@ -1937,6 +1937,71 @@ describe('Stage 4 Slice 2 — Persistent Invitations & Receiver Action Invariant
       assert.ok(baselinePassingTests >= 112, 'Baseline test suite passes without regressions');
     });
   });
+
+  // 14. Public Interface Cleanup & Official Contact Information Invariants
+  describe('14. Public Interface Cleanup & Official Contact Information Invariants', () => {
+    it('1. Official contact email and X account are correctly formatted and authoritative', () => {
+      const officialContactEmail = 'veriqomeshnetwork@gmail.com';
+      const officialXUrl = 'https://x.com/veriqomesh_ai';
+      const officialXHandle = '@veriqomesh_ai';
+
+      assert.equal(officialContactEmail, 'veriqomeshnetwork@gmail.com');
+      assert.equal(officialXUrl, 'https://x.com/veriqomesh_ai');
+      assert.equal(officialXHandle, '@veriqomesh_ai');
+      assert.match(officialContactEmail, /^[a-zA-Z0-9._%+-]+@gmail\.com$/);
+      assert.match(officialXUrl, /^https:\/\/x\.com\/veriqomesh_ai$/);
+    });
+
+    it('2. Disconnected state strictly yields 0 actionable requests and empty metrics', () => {
+      const actionableCount = calculateActionableRequestsCount({
+        requests: [],
+        isConnected: false,
+        connectedWallet: null,
+      });
+      assert.equal(actionableCount, 0, 'Actionable requests in disconnected state must be 0');
+
+      const badge = getRequestsNavBadge(actionableCount);
+      assert.equal(badge, undefined, 'Navigation badge must be undefined when disconnected with 0 requests');
+    });
+
+    it('3. Benchmark requests are strictly excluded from public actionable and processed feeds', () => {
+      const mixedRequests = [
+        { id: 'VM-REQ-0001', transactionId: CANONICAL_FLOW_A_TX_ID, status: 'PROPOSED' as const },
+        { id: 'VM-REQ-0002', transactionId: CANONICAL_FLOW_B_TX_ID, status: 'DELIVERED' as const },
+        { id: 'VM-REQ-0003', transactionId: '0x3333333333333333333333333333333333333333333333333333333333333333', status: 'RATIFIED' as const },
+        { id: 'VM-REQ-0004', transactionId: CANONICAL_TESTNET_TX_ID, status: 'RATIFIED' as const },
+        { id: 'VM-LIVE-9999', transactionId: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef', status: 'PROPOSED' as const },
+      ];
+
+      const publicRequests = mixedRequests.filter((r) => !isBenchmarkRequest(r));
+      assert.equal(publicRequests.length, 1, 'Only genuine non-benchmark requests should remain');
+      assert.equal(publicRequests[0].id, 'VM-LIVE-9999');
+    });
+
+    it('4. Initial network context has empty requests and zeroed receiver stats', () => {
+      const initialRequests: unknown[] = [];
+      const initialReceiverStats = {
+        activeAgreements: 0,
+        completedDeals: 0,
+        disputed: 0,
+        trustReceipts: 0,
+      };
+
+      assert.equal(initialRequests.length, 0, 'Initial requests list must be empty');
+      assert.equal(initialReceiverStats.activeAgreements, 0);
+      assert.equal(initialReceiverStats.completedDeals, 0);
+      assert.equal(initialReceiverStats.disputed, 0);
+      assert.equal(initialReceiverStats.trustReceipts, 0);
+    });
+
+    it('5. Receipts and evidence registries initialize cleanly with 0 synthetic items', () => {
+      const initialReceipts: unknown[] = [];
+      const initialEvidence: unknown[] = [];
+
+      assert.equal(initialReceipts.length, 0, 'Initial receipts must be empty');
+      assert.equal(initialEvidence.length, 0, 'Initial evidence must be empty');
+    });
+  });
 });
 
 

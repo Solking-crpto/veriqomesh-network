@@ -97,10 +97,10 @@ export default function RequestsPage() {
     fetchPersistentInvitations();
   }, [fetchPersistentInvitations]);
 
-  // 2. Merge local demo requests with Redis persistent invitations
+  // 2. Merge local user requests with Redis persistent invitations (excluding historical benchmarks from public view)
   const allRequests = useMemo(() => {
     const combined: (DealRequest & { invitationCode?: string; version?: number; parentInvitationCode?: string })[] = [
-      ...requests,
+      ...requests.filter((r) => !isBenchmarkRequest(r)),
     ];
 
     for (const inv of persistentInvitations) {
@@ -250,9 +250,9 @@ export default function RequestsPage() {
     });
   }, [allRequests, wallet.isConnected, wallet.address, onchainTxMap]);
 
-  // B. Processed Requests: Ratified, Settled, Countered, Declined, Benchmarks
+  // B. Processed Requests: Ratified, Settled, Countered, Declined (excluding benchmarks)
   const processedRequests = useMemo(() => {
-    return allRequests.filter((r) => !isAwaitingAction(r));
+    return allRequests.filter((r) => !isBenchmarkRequest(r) && !isAwaitingAction(r));
   }, [allRequests, onchainTxMap]);
 
   // Handle agreeTransaction
@@ -1022,7 +1022,7 @@ export default function RequestsPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-white flex items-center gap-2 font-mono">
                 <span className="w-2 h-2 rounded-full bg-purple-400" />
-                <span>Processed Requests &amp; Historical Benchmarks</span>
+                <span>Processed Requests</span>
                 <span className="text-xs text-gray-400">({processedRequests.length})</span>
               </h2>
             </div>

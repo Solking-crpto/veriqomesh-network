@@ -150,7 +150,7 @@ export default function InitiatorDashboardPage() {
               <span>{initiator.name}</span>
               {!wallet.isConnected && (
                 <span className="px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/80 text-amber-300 font-mono text-xs font-bold uppercase tracking-wider">
-                  DEMO WORKSPACE • Viewing Historical Benchmark Data
+                  PUBLIC TESTNET • Connect Wallet to Initiate Commercial Agreements
                 </span>
               )}
             </h1>
@@ -186,15 +186,17 @@ export default function InitiatorDashboardPage() {
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Active Deal Requests</div>
             <div className="text-2xl font-bold text-white">{requests.length}</div>
             <div className="text-[11px] text-purple-400 mt-1">
-              {wallet.isConnected ? 'Registered commercial intents' : 'Demo benchmark defaults'}
+              {wallet.isConnected ? 'Registered commercial intents' : 'Connect wallet to view'}
             </div>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Active Escrows</div>
-            <div className="text-2xl font-bold text-emerald-400">2</div>
+            <div className="text-2xl font-bold text-emerald-400">
+              {requests.filter((r) => r.status === 'AGREEMENT_ACTIVE' && r.isOnchain).length}
+            </div>
             <div className="text-[11px] text-gray-400 mt-1">
-              {wallet.isConnected ? '1 Autonomous + 1 Testnet' : 'Demo benchmark defaults'}
+              {wallet.isConnected ? 'Active onchain escrows' : '0 onchain escrows'}
             </div>
           </div>
 
@@ -206,9 +208,9 @@ export default function InitiatorDashboardPage() {
 
           <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
             <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Trust Receipts Held</div>
-            <div className="text-2xl font-bold text-indigo-400">2</div>
+            <div className="text-2xl font-bold text-indigo-400">0</div>
             <div className="text-[11px] text-indigo-300 mt-1">
-              {wallet.isConnected ? 'Cryptographically verified' : 'Demo scenario proof'}
+              {wallet.isConnected ? 'Verified settlement receipts' : '0 receipts held'}
             </div>
           </div>
         </div>
@@ -271,56 +273,78 @@ export default function InitiatorDashboardPage() {
             </Link>
           </div>
 
-          <div className="space-y-3">
-            {requests.map((req) => (
-              <div
-                key={req.id}
-                className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 hover:border-gray-700 transition flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono text-xs"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-white">{req.id}</span>
-                    <span className="text-gray-400">•</span>
-                    <span className="text-purple-300 font-semibold">{req.deliverable}</span>
-                  </div>
-                  <div className="text-gray-400 text-[11px] flex flex-wrap items-center gap-3">
-                    <span>Counterparty: <strong className="text-gray-200">{req.receiver}</strong></span>
-                    <span>•</span>
-                    <span>Escrow: <strong className="text-emerald-400">{req.escrowAmountMon} MON</strong></span>
-                    <span>•</span>
-                    <span>Deadline: {req.deadlineDays} days</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                      req.status === 'AGREEMENT_ACTIVE'
-                        ? 'bg-emerald-950 text-emerald-300 border border-emerald-600'
-                        : req.status === 'COUNTERED'
-                        ? 'bg-amber-950 text-amber-300 border border-amber-600'
-                        : 'bg-purple-950 text-purple-300 border border-purple-600'
-                    }`}
-                  >
-                    {req.status.replace(/_/g, ' ')}
-                  </span>
-                  <Link
-                    href="/requests"
-                    className="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold transition"
-                  >
-                    View Terms
-                  </Link>
-                </div>
+          {requests.length === 0 ? (
+            <div className="p-8 rounded-2xl bg-gray-900/40 border border-gray-800 text-center font-mono space-y-3">
+              <div className="text-gray-300 font-semibold text-sm">
+                {wallet.isConnected
+                  ? 'No active commercial requests initiated yet.'
+                  : 'Wallet Disconnected — Connect wallet to view your initiated requests.'}
               </div>
-            ))}
-          </div>
+              <p className="text-gray-500 text-xs max-w-md mx-auto">
+                Create a new commercial intent to define deliverables, set verification requirements, and establish an escrow agreement on Monad Metropolis Testnet.
+              </p>
+              <div className="pt-2">
+                <Link
+                  href="/initiator/intent"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold transition shadow-md"
+                >
+                  <span>+ Create Commercial Intent</span>
+                  <span>→</span>
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {requests.map((req) => (
+                <div
+                  key={req.id}
+                  className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 hover:border-gray-700 transition flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono text-xs"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white">{req.id}</span>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-purple-300 font-semibold">{req.deliverable}</span>
+                    </div>
+                    <div className="text-gray-400 text-[11px] flex flex-wrap items-center gap-3">
+                      <span>Counterparty: <strong className="text-gray-200">{req.receiver}</strong></span>
+                      <span>•</span>
+                      <span>Escrow: <strong className="text-emerald-400">{req.escrowAmountMon} MON</strong></span>
+                      <span>•</span>
+                      <span>Deadline: {req.deadlineDays} days</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                        req.status === 'AGREEMENT_ACTIVE'
+                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-600'
+                          : req.status === 'COUNTERED'
+                          ? 'bg-amber-950 text-amber-300 border border-amber-600'
+                          : 'bg-purple-950 text-purple-300 border border-purple-600'
+                      }`}
+                    >
+                      {req.status.replace(/_/g, ' ')}
+                    </span>
+                    <Link
+                      href="/requests"
+                      className="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold transition"
+                    >
+                      View Terms
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Active Transactions & Escrows Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white font-mono">
-              Live &amp; Simulated Escrow Transactions
+              Live &amp; Verified Escrow Transactions
             </h2>
             <Link
               href="/transactions"
@@ -360,32 +384,32 @@ export default function InitiatorDashboardPage() {
               </Link>
             </div>
 
-            {/* Policy-Assisted Flow */}
+            {/* Commercial Agreement Workspace */}
             <div className="p-5 rounded-xl bg-gradient-to-b from-[#0e1726] to-[#0a0d16] border border-blue-800/60 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-700 text-[10px] font-bold">
-                    POLICY-ASSISTED FLOW
+                    COMMERCIAL AGREEMENT WORKSPACE
                   </span>
-                  <span className="text-gray-400 text-[10px]">Normal Settlement</span>
+                  <span className="text-gray-400 text-[10px]">Onchain Escrow</span>
                 </div>
                 <h3 className="text-sm font-bold text-white mb-1">
-                  Tier-1 Solar Panels (Uncontested Delivery)
+                  Create User-Defined Commercial Mandate
                 </h3>
                 <p className="text-[11px] text-gray-300 font-sans mb-3">
-                  Depot inspector attests delivery PASS. Policy-assisted workflow verifies independent attestation against pre-authorized rules; settlement is cryptographically authorized and enforced onchain. AI assists. Humans authorize. Verifiers verify. Blockchain enforces.
+                  Structure your commercial procurement in natural language. Define deliverables, attach verification requirements, and invite counterparties to ratify on Monad Metropolis Testnet.
                 </p>
                 <div className="bg-gray-950 p-2.5 rounded-lg border border-gray-800 space-y-1 text-[11px] mb-4">
-                  <div className="text-gray-400">Scenario: <span className="text-blue-300">Demo Scenario A</span></div>
-                  <div className="text-gray-400">Escrow: <span className="text-emerald-400 font-bold">12.5 MON</span></div>
-                  <div className="text-gray-400">Outcome: <span className="text-emerald-400 font-bold">AUTHORIZED SETTLEMENT PASS</span></div>
+                  <div className="text-gray-400">Escrow Contract: <code className="text-purple-300">0x925ea8...015A</code></div>
+                  <div className="text-gray-400">Registry Contract: <code className="text-blue-300">0xE1994e...B819</code></div>
+                  <div className="text-gray-400">Default Verifier: <code className="text-emerald-300">0xb064...2c48</code></div>
                 </div>
               </div>
               <Link
-                href="/transactions/story-a"
+                href="/initiator/intent"
                 className="w-full text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition text-xs shadow-md"
               >
-                Inspect Policy-Assisted Room →
+                Launch Intent Creator →
               </Link>
             </div>
           </div>

@@ -241,12 +241,12 @@ export default function TrustActivity() {
   const envioGraphqlUrl = process.env.NEXT_PUBLIC_ENVIO_GRAPHQL_URL;
   const isEnvioConfigured = Boolean(envioGraphqlUrl);
 
-  const [events, setEvents] = useState<ProvenanceEvent[]>(AUTHORITATIVE_PROVENANCE_EVENTS);
+  const [events, setEvents] = useState<ProvenanceEvent[]>([]);
   const [dataSource, setDataSource] = useState<'envio' | 'rpc_fallback'>('rpc_fallback');
 
   const fetchEnvioEvents = React.useCallback(async () => {
     if (!envioGraphqlUrl) {
-      setEvents(AUTHORITATIVE_PROVENANCE_EVENTS);
+      setEvents([]);
       setDataSource('rpc_fallback');
       return;
     }
@@ -295,12 +295,12 @@ export default function TrustActivity() {
         setEvents(mapped);
         setDataSource('envio');
       } else {
-        setEvents(AUTHORITATIVE_PROVENANCE_EVENTS);
+        setEvents([]);
         setDataSource('rpc_fallback');
       }
     } catch {
-      // Graceful fallback to authoritative onchain trace & RPC
-      setEvents(AUTHORITATIVE_PROVENANCE_EVENTS);
+      // Graceful fallback to empty state
+      setEvents([]);
       setDataSource('rpc_fallback');
     }
   }, [envioGraphqlUrl]);
@@ -521,61 +521,72 @@ export default function TrustActivity() {
       {/* Tab 1: Chronological Lifecycle Events */}
       {activeTab === 'events' && (
         <div className="space-y-3">
-          <div className="overflow-x-auto">
-            <div className="space-y-2 min-w-[640px]">
-              {filteredEvents.map((evt) => (
-                <div
-                  key={evt.id}
-                  className="p-4 rounded-xl bg-gray-950/60 border border-gray-800/80 hover:border-purple-800/60 transition space-y-2"
-                >
-                  <div className="flex items-center justify-between gap-3 text-xs font-mono">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getCategoryBadge(evt.category)}`}>
-                        {evt.eventType}
-                      </span>
-                      <span className="text-gray-400">
-                        by <strong className="text-gray-200">{evt.actorRole}</strong>
-                      </span>
-                      <span
-                        className="text-gray-500 hover:text-purple-300 cursor-pointer text-[11px]"
-                        onClick={() => copyToClipboard(evt.actor, `actor-${evt.id}`)}
-                        title="Click to copy actor address"
-                      >
-                        {evt.actor.slice(0, 6)}...{evt.actor.slice(-4)}
-                        {copiedId === `actor-${evt.id}` && <span className="text-emerald-400 ml-1">copied!</span>}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-gray-400 text-[11px]">
-                      <span>Block #{evt.blockNumber.toLocaleString()}</span>
-                      <a
-                        href={`https://testnet.monadexplorer.com/tx/${evt.txHash}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-purple-400 hover:text-purple-300 underline font-mono flex items-center gap-1"
-                      >
-                        <span>tx: {evt.txHash.slice(0, 8)}...</span>
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </a>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-gray-300 font-sans pl-1">
-                    {evt.details}
-                  </p>
-
-                  <div className="flex items-center justify-between text-[10px] font-mono text-gray-500 pt-1 border-t border-gray-900">
-                    <span className="truncate max-w-md">
-                      TxId: <span className="text-gray-400">{evt.transactionId}</span>
-                    </span>
-                    <span>{evt.timestamp}</span>
-                  </div>
-                </div>
-              ))}
+          {filteredEvents.length === 0 ? (
+            <div className="p-8 rounded-xl bg-gray-950/40 border border-gray-800 text-center font-mono space-y-2">
+              <div className="text-gray-300 text-xs font-semibold">
+                No live provenance events indexed yet.
+              </div>
+              <p className="text-gray-500 text-[11px] max-w-md mx-auto font-sans">
+                Events are indexed automatically as commercial agreements are proposed, funded, attested, and settled on Monad Metropolis Testnet.
+              </p>
             </div>
-          </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <div className="space-y-2 min-w-[640px]">
+                {filteredEvents.map((evt) => (
+                  <div
+                    key={evt.id}
+                    className="p-4 rounded-xl bg-gray-950/60 border border-gray-800/80 hover:border-purple-800/60 transition space-y-2"
+                  >
+                    <div className="flex items-center justify-between gap-3 text-xs font-mono">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getCategoryBadge(evt.category)}`}>
+                          {evt.eventType}
+                        </span>
+                        <span className="text-gray-400">
+                          by <strong className="text-gray-200">{evt.actorRole}</strong>
+                        </span>
+                        <span
+                          className="text-gray-500 hover:text-purple-300 cursor-pointer text-[11px]"
+                          onClick={() => copyToClipboard(evt.actor, `actor-${evt.id}`)}
+                          title="Click to copy actor address"
+                        >
+                          {evt.actor.slice(0, 6)}...{evt.actor.slice(-4)}
+                          {copiedId === `actor-${evt.id}` && <span className="text-emerald-400 ml-1">copied!</span>}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3 text-gray-400 text-[11px]">
+                        <span>Block #{evt.blockNumber.toLocaleString()}</span>
+                        <a
+                          href={`https://testnet.monadexplorer.com/tx/${evt.txHash}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-purple-400 hover:text-purple-300 underline font-mono flex items-center gap-1"
+                        >
+                          <span>tx: {evt.txHash.slice(0, 8)}...</span>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-gray-300 font-sans pl-1">
+                      {evt.details}
+                    </p>
+
+                    <div className="flex items-center justify-between text-[10px] font-mono text-gray-500 pt-1 border-t border-gray-900">
+                      <span className="truncate max-w-md">
+                        TxId: <span className="text-gray-400">{evt.transactionId}</span>
+                      </span>
+                      <span>{evt.timestamp}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

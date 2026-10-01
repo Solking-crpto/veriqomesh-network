@@ -3,117 +3,32 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useDemoNetwork, INDEPENDENT_VERIFIER_ADDRESS, APPROVED_OPERATOR_VERIFIER_ADDRESS } from '../../context/DemoNetworkContext';
-
-interface ReceiverNode {
-  id: string;
-  name: string;
-  category: string;
-  location: string;
-  wallet: string;
-  score: number;
-  completedTx: number;
-  disputedTx: number;
-  trustReceipts: number;
-  capabilities: string[];
-  badges: string[];
-  description: string;
-  isPrimaryDemo?: boolean;
-}
+import { useDemoNetwork, DEPLOYED_REGISTRY_ADDRESS, APPROVED_OPERATOR_VERIFIER_ADDRESS } from '../../context/DemoNetworkContext';
 
 export default function ReceiversDirectoryPage() {
   const router = useRouter();
   const { switchRole } = useDemoNetwork();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [customAddress, setCustomAddress] = useState('');
 
-  const nodes: ReceiverNode[] = [
-    {
-      id: 'dallas-solar',
-      name: 'Dallas Solar Supply Co.',
-      category: 'Commercial Solar PV & Logistics',
-      location: 'Dallas, Texas',
-      wallet: '0x6f30D20b8c5bE781bADD86341415b556fB13c873',
-      score: 98,
-      completedTx: 24,
-      disputedTx: 2,
-      trustReceipts: 22,
-      capabilities: ['Commercial Solar PV', 'Freight Logistics', 'Depot Staging', 'Physical Inspection Ready'],
-      badges: ['Tier-1 Verified Node', 'Monad Testnet Active', 'Adjudication Settled'],
-      description:
-        'Accredited commercial solar distributor and physical logistics node with direct rail & freight depot access in Dallas.',
-      isPrimaryDemo: true,
-    },
-    {
-      id: 'apex-logistics',
-      name: 'Apex Grid Logistics',
-      category: 'Heavy Freight & Intermodal Chain of Custody',
-      location: 'Houston, Texas',
-      wallet: '0x91A4F0C3B7825E6cD841C52A9D57C89F82143e11',
-      score: 95,
-      completedTx: 19,
-      disputedTx: 1,
-      trustReceipts: 18,
-      capabilities: ['Intermodal Freight', 'Geotagged Telemetry', 'Depot Transfer Attestation'],
-      badges: ['Verified Carrier', 'IoT Telemetry'],
-      description:
-        'Industrial freight carrier specialized in sensitive renewable equipment transit with immutable telematics logs.',
-    },
-    {
-      id: 'soltech-inspections',
-      name: 'SolTech Independent Verifier Node',
-      category: 'Accredited Physical Inspection Node',
-      location: 'Austin, Texas',
-      wallet: INDEPENDENT_VERIFIER_ADDRESS || APPROVED_OPERATOR_VERIFIER_ADDRESS,
-      score: 100,
-      completedTx: 42,
-      disputedTx: 3,
-      trustReceipts: 39,
-      capabilities: ['Depot Physical Inspection', 'EL Flaw Testing', 'Serial Number Verification', 'Cryptographic Attestation'],
-      badges: ['Accredited Verifier', 'Bureau Veritas Partner'],
-      description:
-        'Independent engineering inspection node issuing cryptographic attestations for hardware delivery compliance.',
-    },
-    {
-      id: 'lonestar-energy',
-      name: 'LoneStar Industrial Energy',
-      category: 'Commercial Inverters & Storage',
-      location: 'Fort Worth, Texas',
-      wallet: '0x34C89eB48f1025a5B612C59D11293a127B0e77a2',
-      score: 92,
-      completedTx: 15,
-      disputedTx: 0,
-      trustReceipts: 15,
-      capabilities: ['Utility Inverters', 'BESS Systems', 'Direct Delivery'],
-      badges: ['Verified Supplier'],
-      description:
-        'Wholesale distributor of high-voltage solar power electronics and utility battery energy storage modules.',
-    },
-  ];
-
-  const filteredNodes = nodes.filter(
-    (n) =>
-      n.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      n.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      n.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleStartDeal = (node: ReceiverNode) => {
+  const handleStartDealWithAddress = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customAddress.trim()) return;
     switchRole('INITIATOR');
-    router.push('/initiator/intent');
+    router.push(`/initiator/intent?receiver=${customAddress.trim()}`);
   };
 
   return (
     <div className="min-h-screen bg-[#07080d] text-gray-100 py-10 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 pb-6">
           <div>
             <div className="text-xs font-mono text-purple-400 font-bold uppercase tracking-wider mb-1">
-              COUNTERPARTY DISCOVERY
+              COUNTERPARTY DISCOVERY &amp; REGISTRY
             </div>
             <h1 className="text-3xl font-extrabold text-white">Verified Receiver Nodes</h1>
             <p className="text-xs sm:text-sm text-gray-400 font-mono mt-1">
-              Explore accredited suppliers, logistics handlers, and independent inspection nodes operating on VeriqoMesh.
+              Fulfillment suppliers, logistics providers, and independent verifiers on Monad Metropolis Testnet.
             </p>
           </div>
 
@@ -125,116 +40,97 @@ export default function ReceiversDirectoryPage() {
           </Link>
         </div>
 
-        {/* Benchmark Directory Notice */}
-        <div className="p-4 rounded-xl bg-blue-950/40 border border-blue-600/70 font-mono text-xs space-y-1">
-          <div className="flex items-center gap-2 text-blue-300 font-bold">
-            <span className="px-2 py-0.5 rounded bg-blue-900 border border-blue-500 text-[10px] uppercase">
-              BENCHMARK COUNTERPARTY DIRECTORY
-            </span>
-            <span>Demonstration Counterparty Profiles</span>
+        {/* Registry Contract Status Notice */}
+        <div className="p-4 rounded-xl bg-gradient-to-r from-blue-950/40 via-gray-900/60 to-purple-950/30 border border-blue-800/50 font-mono text-xs space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-blue-300 font-bold">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Monad Metropolis Registry Contract Active</span>
+            </div>
+            <code className="text-gray-400 text-[11px]">{DEPLOYED_REGISTRY_ADDRESS}</code>
           </div>
-          <p className="text-gray-300 font-sans text-xs">
-            These receiver profiles and metrics reflect verified demonstration counterparties from historical benchmark scenarios. They illustrate how commercial capabilities, depot locations, and credentials appear on the network.
+          <p className="text-gray-300 font-sans text-xs leading-relaxed">
+            The TrustReceiptRegistry records participant capabilities, accredited verifier credentials, and soulbound trust receipts. You can initiate agreements directly with any counterparty address without requiring pre-registration.
           </p>
         </div>
 
-        {/* Search & Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="text"
-            placeholder="Search by supplier name, capability, or location..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-xs font-mono focus:border-purple-500 focus:outline-none"
-          />
-          <div className="flex items-center gap-2 text-xs font-mono text-gray-400 px-2">
-            <span>Showing: <strong className="text-white">{filteredNodes.length}</strong> nodes</span>
+        {/* Propose Direct Intent Card */}
+        <div className="p-6 rounded-2xl bg-gradient-to-b from-[#0f1424] to-[#0a0d18] border border-blue-600/60 shadow-xl space-y-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs font-mono text-blue-400 font-bold">
+              <span>DIRECT COUNTERPARTY ENGAGEMENT</span>
+            </div>
+            <h2 className="text-xl font-bold text-white">Propose Deal to Any Counterparty Address</h2>
+            <p className="text-xs text-gray-400 font-sans">
+              Enter any Monad Metropolis EVM address to initiate a commercial intent, structure milestones, and establish an escrow agreement.
+            </p>
+          </div>
+
+          <form onSubmit={handleStartDealWithAddress} className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              placeholder="Enter counterparty seller address (0x...)"
+              value={customAddress}
+              onChange={(e) => setCustomAddress(e.target.value)}
+              className="flex-1 px-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white text-xs font-mono focus:border-blue-500 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-mono text-xs font-bold transition shadow-md whitespace-nowrap"
+            >
+              Start Deal Proposal →
+            </button>
+          </form>
+        </div>
+
+        {/* Directory State */}
+        <div className="p-10 rounded-2xl bg-gray-900/30 border border-gray-800 text-center font-mono space-y-4">
+          <div className="w-12 h-12 rounded-xl bg-gray-950 border border-gray-800 mx-auto flex items-center justify-center text-xl text-gray-500">
+            🔍
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-base font-bold text-white">No Public Directory Listings Yet</h3>
+            <p className="text-xs text-gray-400 font-sans max-w-md mx-auto">
+              Verified counterparties appear here as network participants register their capabilities on the TrustReceiptRegistry contract.
+            </p>
+          </div>
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/initiator/intent"
+              className="px-5 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold transition shadow-md"
+            >
+              + Create Commercial Intent
+            </Link>
+            <Link
+              href="/receive"
+              className="px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 text-xs font-bold transition"
+            >
+              Look Up Existing Invitation Code
+            </Link>
           </div>
         </div>
 
-        {/* Directory Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredNodes.map((node) => (
-            <div
-              key={node.id}
-              className={`p-6 rounded-2xl border transition-all flex flex-col justify-between ${
-                node.isPrimaryDemo
-                  ? 'bg-gradient-to-b from-[#0f172a] via-[#0b101e] to-[#070b14] border-blue-600/80 shadow-xl shadow-blue-950/20'
-                  : 'bg-gray-900/50 border-gray-800 hover:border-gray-700'
-              }`}
-            >
-              <div>
-                {/* Badges */}
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  {node.badges.map((b, i) => (
-                    <span
-                      key={i}
-                      className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-950 text-blue-300 border border-blue-800"
-                    >
-                      {b}
-                    </span>
-                  ))}
-                  {node.isPrimaryDemo && (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
-                      ★ Canonical Demo Receiver
-                    </span>
-                  )}
-                </div>
-
-                <h3 className="text-xl font-bold text-white mb-1">{node.name}</h3>
-                <div className="text-xs font-mono text-purple-400 mb-2">{node.category}</div>
-                <p className="text-xs text-gray-300 mb-4 font-sans leading-relaxed">{node.description}</p>
-
-                {/* Metrics */}
-                <div className="grid grid-cols-3 gap-2 bg-gray-950/80 p-3 rounded-xl border border-gray-800 text-xs font-mono mb-4 text-center">
-                  <div>
-                    <div className="text-[10px] text-gray-400">Benchmark Reputation</div>
-                    <div className="text-emerald-400 font-bold text-sm">{node.score}/100</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-gray-400">Historical Settled Deals</div>
-                    <div className="text-white font-bold text-sm">{node.completedTx}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-gray-400">Benchmark Receipts</div>
-                    <div className="text-indigo-400 font-bold text-sm">{node.trustReceipts}</div>
-                  </div>
-                </div>
-
-                {/* Capabilities pills */}
-                <div className="flex flex-wrap gap-1.5 mb-5">
-                  {node.capabilities.map((cap, i) => (
-                    <span
-                      key={i}
-                      className="px-2 py-0.5 rounded-full bg-gray-900 border border-gray-800 text-gray-300 text-[10px] font-mono"
-                    >
-                      {cap}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="text-[11px] font-mono text-gray-400 mb-4 truncate">
-                  Wallet: <code className="text-gray-300">{node.wallet}</code>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-800/80">
-                <Link
-                  href={`/receivers/${node.id}`}
-                  className="py-2.5 px-3 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-200 text-center font-mono text-xs font-semibold transition"
-                >
-                  View Profile
-                </Link>
-                <button
-                  onClick={() => handleStartDeal(node)}
-                  className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-mono text-xs font-bold transition shadow-md shadow-purple-950"
-                >
-                  Send Proposal →
-                </button>
+        {/* Operator Verifier Node Card */}
+        <div className="p-5 rounded-2xl bg-gray-950/60 border border-gray-800 font-mono text-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 font-bold uppercase tracking-wider text-[11px]">
+              DEFAULT NETWORK VERIFIER NODE
+            </span>
+            <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700 text-[10px] font-bold">
+              ACTIVE OPERATOR
+            </span>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-gray-300">
+            <div>
+              <div className="text-white font-bold text-sm">VeriqoMesh Accredited Operator Node</div>
+              <div className="text-[11px] text-gray-500 mt-0.5">
+                Designated independent verifier address for deliverable physical inspection and serial attestation.
               </div>
             </div>
-          ))}
+            <code className="text-purple-300 bg-purple-950/50 p-2 rounded-lg border border-purple-900 text-[11px]">
+              {APPROVED_OPERATOR_VERIFIER_ADDRESS}
+            </code>
+          </div>
         </div>
       </div>
     </div>
