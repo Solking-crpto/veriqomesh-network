@@ -246,6 +246,23 @@ export function verifyMutationSignature(
 export const CANONICAL_TESTNET_TX_ID =
   '0xbbd0176291d62b32c3e096d0314c0fab6bcfa9131c1b26a825b3ce994e645f5e';
 
+export const BENCHMARK_REQUEST_IDS = [
+  'VM-REQ-0001',
+  'VM-REQ-0002',
+  'VM-REQ-0003',
+  'VM-REQ-0004',
+  'VM-T564-24CG',
+  'VM-WFND-ZN39',
+  'story-a',
+] as const;
+
+export const BENCHMARK_TRANSACTION_IDS = [
+  CANONICAL_FLOW_A_TX_ID,
+  CANONICAL_FLOW_B_TX_ID,
+  CANONICAL_TESTNET_TX_ID,
+  'story-a',
+] as const;
+
 /**
  * Checks if a request record is an immutable historical demo benchmark.
  * These records are immutable audit logs and must never be counted as actionable.
@@ -259,22 +276,31 @@ export function isBenchmarkRequest(r: {
   initiator?: string;
   receiver?: string;
 }): boolean {
-  const tx = (r.transactionId || '').toLowerCase();
-  const id = (r.id || '').toUpperCase();
-  const code = (r.invitationCode || '').toUpperCase();
+  const tx = (r.transactionId || '').toLowerCase().trim();
+  const id = (r.id || '').toUpperCase().trim();
+  const code = (r.invitationCode || '').toUpperCase().trim();
 
   if (
     tx === CANONICAL_FLOW_A_TX_ID.toLowerCase() ||
     tx === CANONICAL_FLOW_B_TX_ID.toLowerCase() ||
     tx === CANONICAL_TESTNET_TX_ID.toLowerCase() ||
+    tx === 'story-a' ||
     id === 'VM-REQ-0001' ||
     id === 'VM-REQ-0002' ||
     id === 'VM-REQ-0003' ||
     id === 'VM-REQ-0004' ||
     id === 'VM-T564-24CG' ||
     id === 'VM-WFND-ZN39' ||
+    id === 'STORY-A' ||
+    id === CANONICAL_FLOW_A_TX_ID.toUpperCase() ||
+    id === CANONICAL_FLOW_B_TX_ID.toUpperCase() ||
+    id === CANONICAL_TESTNET_TX_ID.toUpperCase() ||
     code === 'VM-T564-24CG' ||
-    code === 'VM-WFND-ZN39'
+    code === 'VM-WFND-ZN39' ||
+    code === 'VM-REQ-0001' ||
+    code === 'VM-REQ-0002' ||
+    code === 'VM-REQ-0003' ||
+    code === 'VM-REQ-0004'
   ) {
     return true;
   }
@@ -298,6 +324,25 @@ export function isBenchmarkRequest(r: {
   }
 
   return false;
+}
+
+/**
+ * Definitive benchmark exclusion guard for operational/personal data.
+ * Guarantees that no historical benchmark fixture, canonical testnet transaction,
+ * or simulated demo record can ever enter a user's personal transaction workspace.
+ */
+export function isDefinitiveBenchmark(r: {
+  id?: string;
+  transactionId?: string;
+  invitationCode?: string;
+  title?: string;
+  deliverable?: string;
+  initiator?: string;
+  receiver?: string;
+  [key: string]: any;
+}): boolean {
+  if (!r) return false;
+  return isBenchmarkRequest(r);
 }
 
 /**

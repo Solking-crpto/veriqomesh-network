@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
   useDemoNetwork,
   CANONICAL_TESTNET_TX_ID,
@@ -16,7 +16,7 @@ import {
   TARGET_SELLER_ADDRESS,
   APPROVED_OPERATOR_VERIFIER_ADDRESS,
 } from '../../context/DemoNetworkContext';
-import { isBenchmarkRequest } from '../../lib/invitation-utils';
+import { isDefinitiveBenchmark } from '../../lib/invitation-utils';
 import { TransactionState } from '@trustmesh/types';
 
 interface TransactionSummary {
@@ -40,24 +40,26 @@ interface TransactionSummary {
 }
 
 function TransactionsContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
 
-  const { requests, client, wallet } = useDemoNetwork();
-  const [activeTab, setActiveTab] = useState<'personal' | 'demo'>(
-    tabParam === 'demo' ? 'demo' : 'personal'
-  );
+  const { allRequests, client, wallet } = useDemoNetwork();
+
+  // Hard URL authority: only ?tab=demo opens the demo tab.
+  // /transactions, /transactions?tab=personal, or anything else ALWAYS defaults to personal.
+  const activeTab: 'personal' | 'demo' = tabParam === 'demo' ? 'demo' : 'personal';
+
+  const handleSelectTab = (targetTab: 'personal' | 'demo') => {
+    if (targetTab === 'demo') {
+      router.push('/transactions?tab=demo');
+    } else {
+      router.push('/transactions');
+    }
+  };
+
   const [demoFilter, setDemoFilter] = useState<'ALL' | 'FLOW_A' | 'FLOW_B' | 'AUTONOMOUS'>('ALL');
   const [liveOnchainStates, setLiveOnchainStates] = useState<Record<string, string>>({});
-
-  // Sync tab with URL search parameter if it changes
-  useEffect(() => {
-    if (tabParam === 'demo') {
-      setActiveTab('demo');
-    } else if (tabParam === 'personal') {
-      setActiveTab('personal');
-    }
-  }, [tabParam]);
 
   // Query live onchain state for fresh testnet transactions
   useEffect(() => {
@@ -95,8 +97,8 @@ function TransactionsContent() {
   // Canonical Flow A state
   const flowAState = liveOnchainStates[FRESH_LIVE_TESTNET_TX_ID] || TransactionState.SETTLED;
 
-  // 1. PUBLIC DEMO & BENCHMARK TRANSACTIONS (Always segregated from personal workspace)
-  const publicDemoTransactions: TransactionSummary[] = [
+  // 1. PUBLIC DEMO & BENCHMARK TRANSACTIONS (Strictly segregated into demoTransactions)
+  const demoTransactions: TransactionSummary[] = [
     // Flow A: Verified Normal Flow & Authorized Release
     {
       id: FRESH_LIVE_TESTNET_TX_ID,
@@ -172,43 +174,58 @@ function TransactionsContent() {
     },
   ];
 
-  // 2. CONNECTED-USER PERSONAL TRANSACTIONS (Strictly scoped to wallet participant relationships)
-  const connectedAddress = wallet.isConnected && wallet.address ? wallet.address.toLowerCase() : null;
+  // 2. CONNECTED-USER PERSONAL TRANSACTIONS (Strictly scoped to genuine wallet participant relationships)
+  const connectedAddress =
+    wallet.isConnected && wallet.address ? wallet.address.toLowerCase().trim() : null;
 
-  const personalTransactions: TransactionSummary[] = [];
+  const personalTransactions: TransactionSummary[] = useMemo(() => {
+    // Hard invariant: Disconnected wallet => strictly []
+    if (!connectedAddress) {
+      return [];
+    }
 
-  if (connectedAddress) {
-    // Include user requests where the connected wallet is buyer or seller (excluding benchmarks)
-    requests
-      .filter((req) => !isBenchmarkRequest(req))
-      .forEach((req) => {
-        const isBuyer = req.initiatorWallet.toLowerCase() === connectedAddress;
-        const isSeller = req.receiverWallet.toLowerCase() === connectedAddress;
+    const list: TransactionSummary[] = [];
 
-        if (isBuyer || isSeller) {
-          personalTransactions.push({
-            id: req.transactionId || req.id,
-            sourceLabel: req.isOnchain ? 'LIVE MONAD TESTNET ESCROW' : 'COMMERCIAL DEAL REQUEST',
-            title: req.title,
-            deliverable: req.deliverable,
-            buyer: req.initiator,
-            buyerWallet: req.initiatorWallet,
-            seller: req.receiver,
-            sellerWallet: req.receiverWallet,
-            verifier: req.verifierAddress,
-            amountMon: `${req.escrowAmountMon} MON`,
-            state: req.status,
-            settlementType: req.isOnchain ? 'ONCHAIN ESCROW WORKSPACE' : 'PRE-ESCROW AGREEMENT STAGE',
-            onchainTxHash: req.onchainTxHash,
-            isUserParticipant: true,
-            userRole: isBuyer ? 'BUYER' : 'SELLER',
-          });
-        }
-      });
-  }
+    // Filter genuine requests from allRequests (combining local requests and persistent Redis invitations)
+    allRequests.forEach((req) => {
+      // Hard benchmark exclusion guard: NEVER allow any benchmark/demo fixture into personalTransactions
+      if (isDefinitiveBenchmark(req)) {
+        return;
+      }
+
+      const buyer = (req.initiatorWallet || '').toLowerCase().trim();
+      const seller = (req.receiverWallet || '').toLowerCase().trim();
+
+      const isBuyer = buyer === connectedAddress;
+      const isSeller = seller === connectedAddress;
+
+      // Only include if connected wallet is genuinely buyer or seller
+      if (isBuyer || isSeller) {
+        list.push({
+          id: req.transactionId || req.id,
+          sourceLabel: req.isOnchain ? 'LIVE MONAD TESTNET ESCROW' : 'COMMERCIAL DEAL REQUEST',
+          title: req.title,
+          deliverable: req.deliverable,
+          buyer: req.initiator,
+          buyerWallet: req.initiatorWallet,
+          seller: req.receiver,
+          sellerWallet: req.receiverWallet,
+          verifier: req.verifierAddress || APPROVED_OPERATOR_VERIFIER_ADDRESS,
+          amountMon: `${req.escrowAmountMon} MON`,
+          state: req.status,
+          settlementType: req.isOnchain ? 'ONCHAIN ESCROW WORKSPACE' : 'PRE-ESCROW AGREEMENT STAGE',
+          onchainTxHash: req.onchainTxHash,
+          isUserParticipant: true,
+          userRole: isBuyer ? 'BUYER' : 'SELLER',
+        });
+      }
+    });
+
+    return list;
+  }, [connectedAddress, allRequests]);
 
   // Filter public demo cards
-  const filteredDemos = publicDemoTransactions.filter((tx) => {
+  const filteredDemos = demoTransactions.filter((tx) => {
     if (demoFilter === 'FLOW_A') return tx.id === FRESH_LIVE_TESTNET_TX_ID;
     if (demoFilter === 'FLOW_B') return tx.id === CANONICAL_TESTNET_TX_ID;
     if (demoFilter === 'AUTONOMOUS') return tx.id === 'story-a';
@@ -233,7 +250,7 @@ function TransactionsContent() {
           {/* Top-Level Workspace vs Public Demo Switcher */}
           <div className="flex items-center gap-2 bg-gray-950 p-1.5 rounded-xl border border-gray-800 font-mono text-xs">
             <button
-              onClick={() => setActiveTab('personal')}
+              onClick={() => handleSelectTab('personal')}
               className={`px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 ${
                 activeTab === 'personal'
                   ? 'bg-purple-700 text-white shadow-md shadow-purple-950'
@@ -248,7 +265,7 @@ function TransactionsContent() {
               )}
             </button>
             <button
-              onClick={() => setActiveTab('demo')}
+              onClick={() => handleSelectTab('demo')}
               className={`px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 ${
                 activeTab === 'demo'
                   ? 'bg-purple-700 text-white shadow-md shadow-purple-950'
@@ -257,7 +274,7 @@ function TransactionsContent() {
             >
               <span>Public Demo &amp; Benchmarks</span>
               <span className="px-1.5 py-0.2 rounded-full bg-purple-900 text-purple-200 text-[10px]">
-                {publicDemoTransactions.length}
+                {demoTransactions.length}
               </span>
             </button>
           </div>
@@ -272,15 +289,18 @@ function TransactionsContent() {
                 <div className="w-16 h-16 rounded-2xl bg-purple-950/80 border border-purple-600/60 mx-auto flex items-center justify-center text-2xl shadow-lg shadow-purple-950">
                   🔒
                 </div>
-                <div className="max-w-md mx-auto space-y-2">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-900 border border-gray-700 text-gray-300 font-mono text-[11px]">
-                    <span className="w-2 h-2 rounded-full bg-gray-500" />
-                    <span>WALLET DISCONNECTED</span>
+                <div className="max-w-md mx-auto space-y-2 font-mono">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-950/70 border border-amber-600/60 text-amber-300 text-[11px] font-bold">
+                    <span className="w-2 h-2 rounded-full bg-amber-400" />
+                    <span>WALLET REQUIRED</span>
                   </div>
                   <h2 className="text-2xl font-bold text-white">Your Personal Transaction Workspace</h2>
-                  <p className="text-xs sm:text-sm text-gray-400 font-mono">
-                    Connect your Web3 browser wallet to inspect escrow contracts, verify deliverables, and manage settlements where your account is a designated participant.
+                  <p className="text-xs sm:text-sm text-gray-400">
+                    Connect your Monad wallet to view transactions associated with your account.
                   </p>
+                  <div className="text-xs text-gray-500 pt-1">
+                    0 transactions
+                  </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
@@ -293,7 +313,7 @@ function TransactionsContent() {
                     <span>→</span>
                   </button>
                   <button
-                    onClick={() => setActiveTab('demo')}
+                    onClick={() => handleSelectTab('demo')}
                     className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 font-mono text-xs font-bold transition"
                   >
                     Explore Public Demo Instead →
@@ -325,6 +345,9 @@ function TransactionsContent() {
                   <p className="text-xs text-gray-400">
                     Your connected wallet has not initiated, accepted, or verified any escrow transactions on Monad Metropolis Testnet.
                   </p>
+                  <div className="text-xs text-gray-500 pt-1">
+                    0 transactions
+                  </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
@@ -336,7 +359,7 @@ function TransactionsContent() {
                     <span>→</span>
                   </Link>
                   <button
-                    onClick={() => setActiveTab('demo')}
+                    onClick={() => handleSelectTab('demo')}
                     className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 font-mono text-xs font-bold transition"
                   >
                     See Public Demo (Flow A) →
@@ -458,7 +481,7 @@ function TransactionsContent() {
                   demoFilter === 'ALL' ? 'bg-purple-700 text-white font-bold' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                All Benchmarks ({publicDemoTransactions.length})
+                All Benchmarks ({demoTransactions.length})
               </button>
               <button
                 onClick={() => setDemoFilter('FLOW_A')}

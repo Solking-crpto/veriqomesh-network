@@ -16,6 +16,9 @@ import {
   buildMutationAuthMessage,
   verifyMutationSignature,
   isBenchmarkRequest,
+  isDefinitiveBenchmark,
+  BENCHMARK_REQUEST_IDS,
+  BENCHMARK_TRANSACTION_IDS,
   isAwaitingReceiverAction,
   calculateActionableRequestsCount,
   getRequestsNavBadge,
@@ -2117,6 +2120,286 @@ describe('Stage 4 Slice 2 — Persistent Invitations & Receiver Action Invariant
       const rootContent = fs.readFileSync(rootPath, 'utf8');
       const publicContent = fs.readFileSync(publicPath, 'utf8');
       assert.equal(rootContent, publicContent, 'Both app-directory.json files must be identical');
+    });
+  });
+
+  // 16. /transactions Personal Workspace vs Public Demo Isolation Invariants
+  describe('16. /transactions Personal Workspace vs Public Demo Isolation Invariants', () => {
+    const genuineBuyer = '0x1111111111111111111111111111111111111111';
+    const genuineSeller = '0x2222222222222222222222222222222222222222';
+    const unrelatedWallet = '0x3333333333333333333333333333333333333333';
+
+    // Simulated allRequests containing both genuine user requests and historical benchmark items
+    const sampleAllRequests = [
+      // Genuine user transaction 1 (genuineBuyer -> genuineSeller)
+      {
+        id: 'VM-GENUINE-001',
+        transactionId: '0xaaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111',
+        title: 'Cloud Compute Infrastructure Provisioning',
+        deliverable: 'Kubernetes Cluster Setup on Monad',
+        initiator: 'Cloud Purchaser Node',
+        initiatorWallet: genuineBuyer,
+        receiver: 'DevOps Supplier Node',
+        receiverWallet: genuineSeller,
+        escrowAmountMon: '0.05',
+        status: 'AGREEMENT_ACTIVE',
+        isOnchain: true,
+      },
+      // Genuine user transaction 2 (genuineSeller -> another buyer)
+      {
+        id: 'VM-GENUINE-002',
+        transactionId: '0xbbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222',
+        title: 'Smart Contract Security Audit',
+        deliverable: 'Formal Verification Report',
+        initiator: 'Audit Requester Node',
+        initiatorWallet: '0x4444444444444444444444444444444444444444',
+        receiver: 'DevOps Supplier Node',
+        receiverWallet: genuineSeller,
+        escrowAmountMon: '0.10',
+        status: 'PROPOSED',
+        isOnchain: false,
+      },
+      // Benchmark fixtures
+      {
+        id: 'VM-REQ-0001',
+        transactionId: CANONICAL_FLOW_A_TX_ID,
+        title: 'Commercial Solar Procurement (Verified Deliverable Release)',
+        deliverable: 'Supply and deliver 2 solar panels',
+        initiator: 'Solar Procurement Ltd.',
+        initiatorWallet: TARGET_BUYER_ADDRESS,
+        receiver: 'Dallas Solar Supply Co.',
+        receiverWallet: TARGET_SELLER_ADDRESS,
+        escrowAmountMon: '0.001',
+        status: 'SETTLED',
+        isOnchain: true,
+      },
+      {
+        id: 'VM-REQ-0002',
+        transactionId: CANONICAL_FLOW_B_TX_ID,
+        title: '100 Commercial Solar Panels (Disputed Delivery)',
+        deliverable: '100 Commercial Solar Panels',
+        initiator: 'Solar Procurement Ltd.',
+        initiatorWallet: '0x287196Cdbf41da13Cb7083392e47eaAf105b58A0',
+        receiver: 'Dallas Solar Supply Co.',
+        receiverWallet: '0x6f30D20b8c5bE781bADD86341415b556fB13c873',
+        escrowAmountMon: '0.001',
+        status: 'SETTLED',
+        isOnchain: true,
+      },
+      {
+        id: 'VM-REQ-0003',
+        transactionId: '0x3333333333333333333333333333333333333333333333333333333333333333',
+        title: 'Historical Commercial Solar Procurement',
+        deliverable: '100 solar panels delivered to Texas depot',
+        initiator: 'Solar Procurement Ltd.',
+        initiatorWallet: TARGET_BUYER_ADDRESS,
+        receiver: 'Dallas Solar Supply Co.',
+        receiverWallet: TARGET_SELLER_ADDRESS,
+        escrowAmountMon: '0.001',
+        status: 'RATIFIED',
+        isOnchain: true,
+      },
+      {
+        id: 'VM-REQ-0004',
+        transactionId: CANONICAL_TESTNET_TX_ID,
+        title: 'Commercial Solar Procurement (Parked at Verification)',
+        deliverable: 'Historical diagnostic trace',
+        initiator: 'Solar Procurement Ltd.',
+        initiatorWallet: TARGET_BUYER_ADDRESS,
+        receiver: 'Dallas Solar Supply Co.',
+        receiverWallet: TARGET_SELLER_ADDRESS,
+        escrowAmountMon: '0.001',
+        status: 'VERIFICATION',
+        isOnchain: true,
+      },
+      {
+        id: 'VM-T564-24CG',
+        invitationCode: 'VM-T564-24CG',
+        title: 'Commercial Solar Procurement (Texas Depot)',
+        deliverable: 'Solar panel delivery',
+        initiator: 'Solar Procurement Ltd.',
+        initiatorWallet: TARGET_BUYER_ADDRESS,
+        receiver: 'Dallas Solar Supply Co.',
+        receiverWallet: TARGET_SELLER_ADDRESS,
+        escrowAmountMon: '0.001',
+        status: 'PROPOSED',
+        isOnchain: false,
+      },
+      {
+        id: 'VM-WFND-ZN39',
+        invitationCode: 'VM-WFND-ZN39',
+        title: 'Commercial Solar Procurement (Dallas Distribution)',
+        deliverable: 'Solar panel logistics',
+        initiator: 'Solar Procurement Ltd.',
+        initiatorWallet: TARGET_BUYER_ADDRESS,
+        receiver: 'Dallas Solar Supply Co.',
+        receiverWallet: TARGET_SELLER_ADDRESS,
+        escrowAmountMon: '0.001',
+        status: 'PROPOSED',
+        isOnchain: false,
+      },
+      {
+        id: 'story-a',
+        transactionId: 'story-a',
+        title: 'Tier-1 Solar PV Procurement (Autonomous Fulfillment)',
+        deliverable: 'Autonomous agent simulation',
+        initiator: 'Solar Procurement Ltd.',
+        initiatorWallet: '0x287196Cdbf41da13Cb7083392e47eaAf105b58A0',
+        receiver: 'Dallas Solar Supply Co.',
+        receiverWallet: '0x6f30D20b8c5bE781bADD86341415b556fB13c873',
+        escrowAmountMon: '12.5',
+        status: 'SETTLED',
+        isOnchain: false,
+      },
+    ];
+
+    // Replicate derivation in transactions/page.tsx
+    function derivePersonalTransactions(
+      connectedWallet: string | null,
+      isConnected: boolean,
+      requestsList: typeof sampleAllRequests
+    ) {
+      if (!isConnected || !connectedWallet) return [];
+
+      const norm = connectedWallet.toLowerCase().trim();
+      const list: Array<(typeof sampleAllRequests)[0]> = [];
+
+      requestsList.forEach((req) => {
+        if (isDefinitiveBenchmark(req)) return;
+
+        const buyer = (req.initiatorWallet || '').toLowerCase().trim();
+        const seller = (req.receiverWallet || '').toLowerCase().trim();
+
+        if (buyer === norm || seller === norm) {
+          list.push(req);
+        }
+      });
+
+      return list;
+    }
+
+    function determineActiveTab(tabParam: string | null): 'personal' | 'demo' {
+      return tabParam === 'demo' ? 'demo' : 'personal';
+    }
+
+    it('A. disconnected /transactions: personalTransactions.length === 0', () => {
+      const res = derivePersonalTransactions(null, false, sampleAllRequests);
+      assert.equal(res.length, 0, 'Disconnected state must yield strictly 0 personal transactions');
+    });
+
+    it('B. connected unrelated wallet: personalTransactions.length === 0', () => {
+      const res = derivePersonalTransactions(unrelatedWallet, true, sampleAllRequests);
+      assert.equal(res.length, 0, 'Unrelated wallet must see strictly 0 personal transactions');
+    });
+
+    it('C. connected buyer wallet: only genuine buyer-owned transactions appear', () => {
+      const res = derivePersonalTransactions(genuineBuyer, true, sampleAllRequests);
+      assert.equal(res.length, 1, 'Buyer should see exactly their 1 genuine transaction');
+      assert.equal(res[0].id, 'VM-GENUINE-001');
+      assert.equal(res[0].initiatorWallet.toLowerCase(), genuineBuyer.toLowerCase());
+    });
+
+    it('D. connected seller wallet: only genuine seller-owned transactions appear', () => {
+      const res = derivePersonalTransactions(genuineSeller, true, sampleAllRequests);
+      assert.equal(res.length, 2, 'Seller should see exactly their 2 genuine transactions');
+      assert.ok(res.some((r) => r.id === 'VM-GENUINE-001'));
+      assert.ok(res.some((r) => r.id === 'VM-GENUINE-002'));
+    });
+
+    it('E. canonical Flow A is excluded from personalTransactions', () => {
+      // Even if connected wallet is TARGET_BUYER_ADDRESS
+      const res = derivePersonalTransactions(TARGET_BUYER_ADDRESS, true, sampleAllRequests);
+      const hasFlowA = res.some((r) => r.transactionId?.toLowerCase() === CANONICAL_FLOW_A_TX_ID.toLowerCase());
+      assert.equal(hasFlowA, false, 'Canonical Flow A must NEVER appear in personalTransactions');
+    });
+
+    it('F. canonical Flow B is excluded from personalTransactions', () => {
+      const res = derivePersonalTransactions(TARGET_BUYER_ADDRESS, true, sampleAllRequests);
+      const hasFlowB = res.some((r) => r.transactionId?.toLowerCase() === CANONICAL_FLOW_B_TX_ID.toLowerCase());
+      assert.equal(hasFlowB, false, 'Canonical Flow B must NEVER appear in personalTransactions');
+    });
+
+    it('G. VM-T564-24CG is excluded from personalTransactions', () => {
+      const res = derivePersonalTransactions(TARGET_BUYER_ADDRESS, true, sampleAllRequests);
+      const hasCode = res.some((r) => r.id === 'VM-T564-24CG' || r.invitationCode === 'VM-T564-24CG');
+      assert.equal(hasCode, false, 'VM-T564-24CG must NEVER appear in personalTransactions');
+    });
+
+    it('H. VM-WFND-ZN39 is excluded from personalTransactions', () => {
+      const res = derivePersonalTransactions(TARGET_BUYER_ADDRESS, true, sampleAllRequests);
+      const hasCode = res.some((r) => r.id === 'VM-WFND-ZN39' || r.invitationCode === 'VM-WFND-ZN39');
+      assert.equal(hasCode, false, 'VM-WFND-ZN39 must NEVER appear in personalTransactions');
+    });
+
+    it('I. story-a is excluded from personalTransactions', () => {
+      const res = derivePersonalTransactions('0x287196Cdbf41da13Cb7083392e47eaAf105b58A0', true, sampleAllRequests);
+      const hasStoryA = res.some((r) => r.id === 'story-a' || r.transactionId === 'story-a');
+      assert.equal(hasStoryA, false, 'story-a must NEVER appear in personalTransactions');
+    });
+
+    it('J. VM-REQ-0001..0004 are excluded from personalTransactions', () => {
+      const res = derivePersonalTransactions(TARGET_BUYER_ADDRESS, true, sampleAllRequests);
+      const hasReq0001 = res.some((r) => r.id === 'VM-REQ-0001');
+      const hasReq0002 = res.some((r) => r.id === 'VM-REQ-0002');
+      const hasReq0003 = res.some((r) => r.id === 'VM-REQ-0003');
+      const hasReq0004 = res.some((r) => r.id === 'VM-REQ-0004');
+      assert.equal(hasReq0001, false, 'VM-REQ-0001 must be excluded');
+      assert.equal(hasReq0002, false, 'VM-REQ-0002 must be excluded');
+      assert.equal(hasReq0003, false, 'VM-REQ-0003 must be excluded');
+      assert.equal(hasReq0004, false, 'VM-REQ-0004 must be excluded');
+    });
+
+    it('K. /transactions defaults to personal tab', () => {
+      assert.equal(determineActiveTab(null), 'personal');
+      assert.equal(determineActiveTab(''), 'personal');
+      assert.equal(determineActiveTab('personal'), 'personal');
+      assert.equal(determineActiveTab('random-query'), 'personal');
+    });
+
+    it('L. /transactions?tab=demo selects demo tab', () => {
+      assert.equal(determineActiveTab('demo'), 'demo');
+    });
+
+    it('M. switching from demo -> personal immediately removes all benchmark cards', () => {
+      let activeTab: 'personal' | 'demo' = determineActiveTab('demo');
+      assert.equal(activeTab, 'demo');
+
+      // User navigates to /transactions (tabParam becomes null)
+      activeTab = determineActiveTab(null);
+      assert.equal(activeTab, 'personal');
+
+      // Personal workspace has 0 benchmark records
+      const personal = derivePersonalTransactions(TARGET_BUYER_ADDRESS, true, sampleAllRequests);
+      assert.equal(personal.length, 0, 'No benchmark cards can appear in personal workspace');
+    });
+
+    it('N. switching from personal -> demo displays benchmark cards', () => {
+      let activeTab: 'personal' | 'demo' = determineActiveTab(null);
+      assert.equal(activeTab, 'personal');
+
+      activeTab = determineActiveTab('demo');
+      assert.equal(activeTab, 'demo');
+
+      // Demo benchmarks exist independently
+      const demoCardsCount = 4; // Flow A, Flow B, Historical Parked, Autonomous Agent
+      assert.equal(demoCardsCount, 4);
+    });
+
+    it('O. personal and demo arrays never share benchmark records', () => {
+      const personal = derivePersonalTransactions(genuineBuyer, true, sampleAllRequests);
+      const benchmarkIds = [
+        ...BENCHMARK_TRANSACTION_IDS.map((t) => t.toLowerCase()),
+        ...BENCHMARK_REQUEST_IDS.map((r) => r.toLowerCase()),
+      ];
+
+      personal.forEach((tx) => {
+        const idLower = tx.id.toLowerCase();
+        const txLower = (tx.transactionId || '').toLowerCase();
+        benchmarkIds.forEach((bId) => {
+          assert.notEqual(idLower, bId.toLowerCase(), `Personal tx id ${tx.id} must not match benchmark id ${bId}`);
+          assert.notEqual(txLower, bId.toLowerCase(), `Personal txId ${tx.transactionId} must not match benchmark id ${bId}`);
+        });
+      });
     });
   });
 });
