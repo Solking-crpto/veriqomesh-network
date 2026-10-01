@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useDemoNetwork } from '../context/DemoNetworkContext';
-import { getRequestsNavBadge } from '../lib/invitation-utils';
+import { getRequestsNavBadge, TARGET_BUYER_ADDRESS, TARGET_SELLER_ADDRESS } from '../lib/invitation-utils';
 
 interface NavLinkItem {
   label: string;
@@ -215,7 +215,13 @@ export function Navigation() {
             className="px-2.5 py-1 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-700/80 text-gray-300 text-xs font-mono transition flex items-center gap-2"
           >
             <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-purple-800 to-indigo-600 flex items-center justify-center text-[10px] text-white font-bold">
-              {wallet.isConnected ? (role === 'INITIATOR' ? 'I' : 'R') : '?'}
+              {wallet.isConnected
+                ? wallet.address?.toLowerCase() === TARGET_BUYER_ADDRESS.toLowerCase()
+                  ? 'I'
+                  : wallet.address?.toLowerCase() === TARGET_SELLER_ADDRESS.toLowerCase()
+                  ? 'R'
+                  : 'W'
+                : '?'}
             </div>
             <div className="hidden md:block text-left text-[11px] leading-tight">
               <div className="text-white font-semibold truncate max-w-[120px]">
@@ -225,8 +231,14 @@ export function Navigation() {
               </div>
               <div className="text-[9px] text-gray-400">
                 {wallet.isConnected
-                  ? (role === 'INITIATOR' ? 'Initiator' : 'Receiver')
-                  : `${role === 'INITIATOR' ? initiator.name : receiver.name}`}
+                  ? wallet.address?.toLowerCase() === TARGET_BUYER_ADDRESS.toLowerCase()
+                    ? 'Initiator Wallet'
+                    : wallet.address?.toLowerCase() === TARGET_SELLER_ADDRESS.toLowerCase()
+                    ? 'Receiver Wallet'
+                    : 'External Wallet'
+                  : role === 'INITIATOR'
+                  ? initiator.name
+                  : receiver.name}
               </div>
             </div>
           </Link>

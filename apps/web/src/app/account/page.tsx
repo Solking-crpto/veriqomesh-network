@@ -194,7 +194,7 @@ export default function AccountPage() {
 
             <div className="space-y-2 text-xs font-mono bg-gray-950/60 p-3.5 rounded-xl border border-gray-800 mb-4">
               <div className="flex justify-between">
-                <span className="text-gray-400">Connected Wallet:</span>
+                <span className="text-gray-400">Designated Profile Address:</span>
                 <span className="text-gray-200 font-semibold">{initiator.wallet.slice(0, 8)}...{initiator.wallet.slice(-6)}</span>
               </div>
               <div className="flex justify-between">
@@ -256,7 +256,7 @@ export default function AccountPage() {
 
             <div className="space-y-2 text-xs font-mono bg-gray-950/60 p-3.5 rounded-xl border border-gray-800 mb-4">
               <div className="flex justify-between">
-                <span className="text-gray-400">Connected Wallet:</span>
+                <span className="text-gray-400">Designated Profile Address:</span>
                 <span className="text-gray-200 font-semibold">{receiver.wallet.slice(0, 8)}...{receiver.wallet.slice(-6)}</span>
               </div>
               <div className="flex justify-between">

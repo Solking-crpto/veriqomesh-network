@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 import { useMonadWallet, MonadWalletState, MONAD_RPC_URL } from '../hooks/useMonadWallet';
 import { TrustMeshClient } from '@trustmesh/sdk';
 import { TransactionState, VerificationOutcome, PersistentInvitation } from '@trustmesh/types';
-import { calculateActionableRequestsCount, isBenchmarkRequest } from '../lib/invitation-utils';
+import { calculateActionableRequestsCount, isBenchmarkRequest, isWalletCompatibleWithRole, type RoleCompatibility } from '../lib/invitation-utils';
 
 export type DemoRole = 'INITIATOR' | 'RECEIVER';
 
@@ -149,6 +149,7 @@ interface DemoNetworkContextType {
   resetToGuidedDefaults: () => void;
   freshLiveTxId: string;
   actionableRequestsCount: number;
+  roleCompatibility: RoleCompatibility;
   persistentInvitations: PersistentInvitation[];
   refreshPersistentInvitations: () => Promise<void>;
 }
@@ -459,37 +460,10 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
     [wallet.address, role]
   );
 
-  // Automatically sync initiator wallet with connected wallet when on INITIATOR role
-  useEffect(() => {
-    if (wallet.address && role === 'INITIATOR') {
-      // Enforce role isolation: never sync initiator wallet to the designated seller address
-      if (wallet.address.toLowerCase() !== TARGET_SELLER_ADDRESS.toLowerCase()) {
-        if (initiator.wallet !== wallet.address) {
-          setInitiator((prev) => ({
-            ...prev,
-            wallet: wallet.address!,
-            status: 'CONNECTED BROWSER WALLET',
-          }));
-        }
-      }
-    }
-  }, [wallet.address, role, initiator.wallet]);
+  // Note: Automatic wallet-to-persona sync has been removed to preserve strict cryptographic identity isolation (Stage 4.1).
+  // Connecting a wallet or switching roles does NOT silently reassign the designated participant profile address.
+  // Wallet identity remains objective and provider-derived, verified via isWalletCompatibleWithRole().
 
-  // Automatically sync receiver wallet with connected wallet when on RECEIVER role
-  useEffect(() => {
-    if (wallet.address && role === 'RECEIVER') {
-      // Enforce role isolation: receiver cannot be bound to the buyer address
-      if (wallet.address.toLowerCase() !== TARGET_BUYER_ADDRESS.toLowerCase()) {
-        if (receiver.wallet !== wallet.address) {
-          setReceiver((prev) => ({
-            ...prev,
-            wallet: wallet.address!,
-            status: 'CONNECTED BROWSER WALLET',
-          }));
-        }
-      }
-    }
-  }, [wallet.address, role, receiver.wallet]);
 
   // Reset wallet bindings to demo defaults when disconnected
   useEffect(() => {
@@ -741,6 +715,16 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
     });
   }, [allRequests, wallet.address, wallet.isConnected]);
 
+  const roleCompatibility = useMemo(() => {
+    return isWalletCompatibleWithRole({
+      role,
+      connectedWallet: wallet.address,
+      isConnected: wallet.isConnected,
+      designatedInitiator: initiator.wallet || TARGET_BUYER_ADDRESS,
+      designatedReceiver: receiver.wallet || TARGET_SELLER_ADDRESS,
+    });
+  }, [role, wallet.address, wallet.isConnected, initiator.wallet, receiver.wallet]);
+
   return (
     <DemoNetworkContext.Provider
       value={{
@@ -765,6 +749,7 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
         resetToGuidedDefaults,
         freshLiveTxId: FRESH_LIVE_TESTNET_TX_ID,
         actionableRequestsCount,
+        roleCompatibility,
         persistentInvitations,
         refreshPersistentInvitations,
       }}

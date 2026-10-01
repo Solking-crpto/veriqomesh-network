@@ -8,6 +8,8 @@ export const CANONICAL_FLOW_A_TX_ID =
   '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1';
 export const CANONICAL_FLOW_B_TX_ID =
   '0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4';
+export const TARGET_BUYER_ADDRESS = '0xa4bCC57d40311D715ECe34940191820d4a81C50F';
+export const TARGET_SELLER_ADDRESS = '0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8';
 
 /**
  * Generates a human-friendly, high-entropy invitation code: VM-XXXX-XXXX
@@ -276,4 +278,91 @@ export function calculateActionableRequestsCount(params: {
 export function getRequestsNavBadge(actionableCount: number): number | undefined {
   return actionableCount > 0 ? actionableCount : undefined;
 }
+
+export interface RoleCompatibility {
+  isCompatible: boolean;
+  status: 'DISCONNECTED' | 'WRONG_WALLET' | 'COMPATIBLE';
+  connectedWallet: string | null;
+  designatedWallet: string;
+  role: 'INITIATOR' | 'RECEIVER';
+  message: string;
+}
+
+export interface RoleCompatibilityParams {
+  role: 'INITIATOR' | 'RECEIVER';
+  connectedWallet?: string | null;
+  isConnected?: boolean;
+  designatedInitiator?: string;
+  designatedReceiver?: string;
+  designatedWallet?: string;
+}
+
+/**
+ * Checks cryptographic role compatibility between connected browser wallet and designated participant.
+ * Invariants:
+ * - When disconnected: isCompatible=false, status='DISCONNECTED'
+ * - When connected with matching designated wallet: isCompatible=true, status='COMPATIBLE'
+ * - When connected with non-matching wallet (e.g. initiator on receiver view): isCompatible=false, status='WRONG_WALLET'
+ */
+export function isWalletCompatibleWithRole(
+  paramsOrRole: 'INITIATOR' | 'RECEIVER' | RoleCompatibilityParams,
+  connectedWalletArg?: string | null,
+  designatedWalletArg?: string
+): RoleCompatibility {
+  let role: 'INITIATOR' | 'RECEIVER';
+  let connectedWallet: string | null = null;
+  let isConnected: boolean;
+  let designatedWallet: string;
+
+  if (typeof paramsOrRole === 'string') {
+    role = paramsOrRole;
+    connectedWallet = connectedWalletArg || null;
+    isConnected = Boolean(connectedWalletArg);
+    designatedWallet = designatedWalletArg || (role === 'RECEIVER' ? TARGET_SELLER_ADDRESS : TARGET_BUYER_ADDRESS);
+  } else {
+    role = paramsOrRole.role;
+    connectedWallet = paramsOrRole.connectedWallet || null;
+    isConnected = paramsOrRole.isConnected !== undefined ? paramsOrRole.isConnected : Boolean(paramsOrRole.connectedWallet);
+    designatedWallet =
+      paramsOrRole.designatedWallet ||
+      (role === 'RECEIVER'
+        ? paramsOrRole.designatedReceiver || TARGET_SELLER_ADDRESS
+        : paramsOrRole.designatedInitiator || TARGET_BUYER_ADDRESS);
+  }
+
+  if (!isConnected || !connectedWallet) {
+    return {
+      isCompatible: false,
+      status: 'DISCONNECTED',
+      connectedWallet: null,
+      designatedWallet,
+      role,
+      message: `${role === 'RECEIVER' ? 'Receiver' : 'Initiator'} wallet required. Connect wallet to continue.`,
+    };
+  }
+
+  const normConnected = connectedWallet.toLowerCase();
+  const normDesignated = designatedWallet.toLowerCase();
+
+  if (normConnected === normDesignated) {
+    return {
+      isCompatible: true,
+      status: 'COMPATIBLE',
+      connectedWallet,
+      designatedWallet,
+      role,
+      message: `Authenticated as designated ${role.toLowerCase()} node.`,
+    };
+  }
+
+  return {
+    isCompatible: false,
+    status: 'WRONG_WALLET',
+    connectedWallet,
+    designatedWallet,
+    role,
+    message: `Connected wallet (${connectedWallet.slice(0, 6)}...${connectedWallet.slice(-4)}) is not the designated ${role.toLowerCase()} (${designatedWallet.slice(0, 6)}...${designatedWallet.slice(-4)}).`,
+  };
+}
+
 

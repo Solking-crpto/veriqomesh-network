@@ -1,13 +1,24 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { useDemoNetwork } from '../../context/DemoNetworkContext';
+import { isWalletCompatibleWithRole, TARGET_BUYER_ADDRESS, TARGET_SELLER_ADDRESS } from '../../lib/invitation-utils';
 
 export default function InitiatorDashboardPage() {
   const { role, switchRole, initiator, requests, wallet } = useDemoNetwork();
 
   const isRoleActive = role === 'INITIATOR';
+
+  // Role compatibility check for connected wallet vs designated initiator
+  const initiatorCompatibility = useMemo(() => {
+    return isWalletCompatibleWithRole({
+      role: 'INITIATOR',
+      connectedWallet: wallet.address,
+      isConnected: wallet.isConnected,
+      designatedInitiator: initiator.wallet || TARGET_BUYER_ADDRESS,
+    });
+  }, [wallet.address, wallet.isConnected, initiator.wallet]);
 
   return (
     <div className="min-h-screen bg-[#07080d] text-gray-100 py-10 px-4 sm:px-6 lg:px-8 font-sans">
@@ -28,14 +39,72 @@ export default function InitiatorDashboardPage() {
           </div>
         )}
 
+        {/* Wrong Wallet Connected Warning */}
+        {wallet.isConnected && !initiatorCompatibility.isCompatible && (
+          <div className="p-5 rounded-2xl bg-amber-950/40 border border-amber-600/70 space-y-3 font-mono text-xs">
+            <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+              <span>Initiator Wallet Required — Connected Wallet Is Not the Designated Buyer</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-950/70 p-3.5 rounded-xl border border-gray-800 text-[11px]">
+              <div>
+                <span className="text-gray-400 block text-[10px]">CURRENT CONNECTED WALLET:</span>
+                <code className="text-amber-300 font-bold">{wallet.address}</code>
+                <span className="block text-gray-500 text-[10px] mt-0.5">
+                  {wallet.address?.toLowerCase() === TARGET_SELLER_ADDRESS.toLowerCase()
+                    ? 'Authorized as Receiver/Seller persona'
+                    : 'External unauthenticated account'}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-400 block text-[10px]">DESIGNATED INITIATOR PROFILE:</span>
+                <code className="text-purple-300 font-bold">{initiator.wallet}</code>
+                <span className="block text-gray-500 text-[10px] mt-0.5">{initiator.name} (Buyer Principal)</span>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <p className="text-gray-400 text-[11px]">
+                Creating commercial intents and depositing escrow capital requires the authorized buyer identity. Switch accounts or disconnect to continue.
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => wallet.disconnect()}
+                  className="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold text-xs transition border border-gray-700"
+                >
+                  Disconnect Wallet
+                </button>
+                <button
+                  onClick={() => wallet.connect()}
+                  className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition"
+                >
+                  Switch Account
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Institutional Connection Status Banner */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-gray-900/60 border border-gray-800 text-xs font-mono">
           <div className="flex items-center gap-2.5">
-            <span className={`w-2.5 h-2.5 rounded-full ${wallet.isConnected ? 'bg-purple-400 animate-pulse' : 'bg-amber-400'}`} />
+            <span
+              className={`w-2.5 h-2.5 rounded-full ${
+                !wallet.isConnected
+                  ? 'bg-amber-400'
+                  : initiatorCompatibility.isCompatible
+                  ? 'bg-purple-400 animate-pulse'
+                  : 'bg-amber-500 animate-pulse'
+              }`}
+            />
             <span className="text-gray-300">
               {wallet.isConnected ? (
                 <>
                   Connected Wallet: <code className="text-white font-bold">{wallet.address}</code>
+                  {!initiatorCompatibility.isCompatible && (
+                    <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-700 text-[10px] font-bold">
+                      NOT DESIGNATED INITIATOR
+                    </span>
+                  )}
                 </>
               ) : (
                 <span className="text-amber-300 font-semibold">Disconnected (Viewing Demo Defaults)</span>
@@ -45,7 +114,24 @@ export default function InitiatorDashboardPage() {
           <div className="flex items-center gap-3 text-gray-400 text-[11px]">
             <span>Persona: <strong className="text-purple-300">{initiator.name}</strong></span>
             <span>•</span>
-            <span>Node Role: <strong className="text-purple-300">INITIATOR</strong></span>
+            <span>
+              Node Role:{' '}
+              <strong
+                className={
+                  !wallet.isConnected
+                    ? 'text-gray-400'
+                    : initiatorCompatibility.isCompatible
+                    ? 'text-purple-300'
+                    : 'text-amber-400'
+                }
+              >
+                {!wallet.isConnected
+                  ? 'INITIATOR (DISCONNECTED)'
+                  : initiatorCompatibility.isCompatible
+                  ? 'INITIATOR (AUTHENTICATED)'
+                  : 'UNMATCHED (INITIATOR REQUIRED)'}
+              </strong>
+            </span>
             <span>•</span>
             <span>Network: <span className="text-purple-300">Monad Metropolis Testnet (10143)</span></span>
           </div>
@@ -64,7 +150,7 @@ export default function InitiatorDashboardPage() {
               <span>{initiator.name}</span>
             </h1>
             <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-gray-400 mt-2">
-              <span>Wallet: <code className="text-gray-300">{initiator.wallet}</code></span>
+              <span>Designated Principal: <code className="text-gray-300">{initiator.wallet}</code></span>
               <span>•</span>
               <span>Agent: <strong className="text-purple-300">{initiator.agentName}</strong></span>
               <span>•</span>

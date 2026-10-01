@@ -72,9 +72,15 @@ export {
   type VerifyMutationSignatureParams,
   type VerifyMutationSignatureResult,
   CANONICAL_TESTNET_TX_ID,
+  TARGET_BUYER_ADDRESS,
+  TARGET_SELLER_ADDRESS,
   isBenchmarkRequest,
   isAwaitingReceiverAction,
   calculateActionableRequestsCount,
   getRequestsNavBadge,
+  isWalletCompatibleWithRole,
+  type RoleCompatibility,
+  type RoleCompatibilityParams,
 } from '@trustmesh/sdk';
+
 

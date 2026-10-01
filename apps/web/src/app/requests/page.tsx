@@ -234,26 +234,21 @@ export default function RequestsPage() {
   // 4. Strict Wallet & Status Partitioning
   // A. Incoming Requests: Awaiting Your Action
   const incomingRequests = useMemo(() => {
+    // When disconnected, there are strictly zero actionable incoming requests awaiting user action
+    if (!wallet.isConnected || !wallet.address) {
+      return [];
+    }
+
+    const connectedAddr = wallet.address.toLowerCase();
+
     return allRequests.filter((r) => {
       // Must be awaiting action and NOT benchmark
       if (!isAwaitingAction(r)) return false;
 
-      // Strict wallet filter:
-      // If wallet is connected, only show where wallet is the receiver
-      if (wallet.isConnected && wallet.address) {
-        return r.receiverWallet?.toLowerCase() === wallet.address.toLowerCase();
-      }
-
-      // If demo perspective is active and wallet not connected, show target seller
-      if (role === 'RECEIVER') {
-        return (
-          r.receiverWallet?.toLowerCase() === TARGET_SELLER_ADDRESS.toLowerCase()
-        );
-      }
-
-      return true;
+      // Strict wallet filter: only show where connected wallet is the designated receiver
+      return r.receiverWallet?.toLowerCase() === connectedAddr;
     });
-  }, [allRequests, wallet.isConnected, wallet.address, role, onchainTxMap]);
+  }, [allRequests, wallet.isConnected, wallet.address, onchainTxMap]);
 
   // B. Processed Requests: Ratified, Settled, Countered, Declined, Benchmarks
   const processedRequests = useMemo(() => {

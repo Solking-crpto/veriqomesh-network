@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { useDemoNetwork } from '../../context/DemoNetworkContext';
-import { isBenchmarkRequest, isAwaitingReceiverAction } from '../../lib/invitation-utils';
+import { isBenchmarkRequest, isAwaitingReceiverAction, isWalletCompatibleWithRole, TARGET_BUYER_ADDRESS, TARGET_SELLER_ADDRESS } from '../../lib/invitation-utils';
 
 export default function ReceiverDashboardPage() {
   const {
@@ -16,6 +16,17 @@ export default function ReceiverDashboardPage() {
   } = useDemoNetwork();
 
   const isRoleActive = role === 'RECEIVER';
+
+  // Role compatibility check for connected wallet vs designated receiver
+  const receiverCompatibility = useMemo(() => {
+    return isWalletCompatibleWithRole({
+      role: 'RECEIVER',
+      connectedWallet: wallet.address,
+      isConnected: wallet.isConnected,
+      designatedReceiver: receiver.wallet || TARGET_SELLER_ADDRESS,
+    });
+  }, [wallet.address, wallet.isConnected, receiver.wallet]);
+
 
   // Only genuine actionable requests addressed to this connected wallet
   const actionableRequests = useMemo(() => {
@@ -52,14 +63,92 @@ export default function ReceiverDashboardPage() {
           </div>
         )}
 
+        {/* Wrong Wallet Connected Warning */}
+        {wallet.isConnected && !receiverCompatibility.isCompatible && (
+          <div className="p-5 rounded-2xl bg-amber-950/40 border border-amber-600/70 space-y-3 font-mono text-xs">
+            <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+              <span>Receiver Wallet Required — Connected Wallet Is Not the Designated Receiver</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-950/70 p-3.5 rounded-xl border border-gray-800 text-[11px]">
+              <div>
+                <span className="text-gray-400 block text-[10px]">CURRENT CONNECTED WALLET:</span>
+                <code className="text-amber-300 font-bold">{wallet.address}</code>
+                <span className="block text-gray-500 text-[10px] mt-0.5">
+                  {wallet.address?.toLowerCase() === TARGET_BUYER_ADDRESS.toLowerCase()
+                    ? 'Authorized as Initiator/Buyer persona'
+                    : 'External unauthenticated account'}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-400 block text-[10px]">DESIGNATED RECEIVER NODE:</span>
+                <code className="text-blue-300 font-bold">{receiver.wallet}</code>
+                <span className="block text-gray-500 text-[10px] mt-0.5">{receiver.name} (Fulfillment Node)</span>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <p className="text-gray-400 text-[11px]">
+                In Monad smart contracts and VeriqoMesh invitation architecture, only the designated seller can call{' '}
+                <code className="text-emerald-300">agreeTransaction()</code>. Switch accounts in MetaMask or disconnect to continue.
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => wallet.disconnect()}
+                  className="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold text-xs transition border border-gray-700"
+                >
+                  Disconnect Wallet
+                </button>
+                <button
+                  onClick={() => wallet.connect()}
+                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition"
+                >
+                  Switch Account
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Disconnected State Callout */}
+        {!wallet.isConnected && (
+          <div className="p-4 rounded-xl bg-gray-900/60 border border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 font-mono text-xs">
+            <div>
+              <div className="text-white font-bold mb-0.5">Receiver Wallet Required</div>
+              <div className="text-gray-400 text-[11px]">
+                Designated Receiver: <code className="text-blue-300">{receiver.wallet}</code> ({receiver.name})
+              </div>
+            </div>
+            <button
+              onClick={() => wallet.connect()}
+              disabled={wallet.isConnecting}
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition text-xs whitespace-nowrap shadow-md shadow-blue-950"
+            >
+              Connect Receiver Wallet
+            </button>
+          </div>
+        )}
+
         {/* Institutional Connection Status Banner */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-gray-900/60 border border-gray-800 text-xs font-mono">
           <div className="flex items-center gap-2.5">
-            <span className={`w-2.5 h-2.5 rounded-full ${wallet.isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+            <span
+              className={`w-2.5 h-2.5 rounded-full ${
+                !wallet.isConnected
+                  ? 'bg-amber-400'
+                  : receiverCompatibility.isCompatible
+                  ? 'bg-emerald-400 animate-pulse'
+                  : 'bg-amber-500 animate-pulse'
+              }`}
+            />
             <span className="text-gray-300">
               {wallet.isConnected ? (
                 <>
                   Connected Wallet: <code className="text-white font-bold">{wallet.address}</code>
+                  {!receiverCompatibility.isCompatible && (
+                    <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-700 text-[10px] font-bold">
+                      NOT DESIGNATED RECEIVER
+                    </span>
+                  )}
                 </>
               ) : (
                 <span className="text-amber-300 font-semibold">Disconnected (Viewing Demo Defaults)</span>
@@ -67,9 +156,31 @@ export default function ReceiverDashboardPage() {
             </span>
           </div>
           <div className="flex items-center gap-3 text-gray-400 text-[11px]">
-            <span>Actionable Inbound: <strong className={actionableRequestsCount > 0 ? "text-amber-400 font-bold" : "text-gray-300"}>{actionableRequestsCount}</strong></span>
+            <span>
+              Actionable Inbound:{' '}
+              <strong className={actionableRequestsCount > 0 && receiverCompatibility.isCompatible ? 'text-amber-400 font-bold' : 'text-gray-300'}>
+                {receiverCompatibility.isCompatible ? actionableRequestsCount : 0}
+              </strong>
+            </span>
             <span>•</span>
-            <span>Node Role: <strong className="text-blue-300">RECEIVER</strong></span>
+            <span>
+              Node Role:{' '}
+              <strong
+                className={
+                  !wallet.isConnected
+                    ? 'text-gray-400'
+                    : receiverCompatibility.isCompatible
+                    ? 'text-blue-300'
+                    : 'text-amber-400'
+                }
+              >
+                {!wallet.isConnected
+                  ? 'RECEIVER (DISCONNECTED)'
+                  : receiverCompatibility.isCompatible
+                  ? 'RECEIVER (AUTHENTICATED)'
+                  : 'UNMATCHED (RECEIVER REQUIRED)'}
+              </strong>
+            </span>
             <span>•</span>
             <span>Network: <span className="text-purple-300">Monad Metropolis Testnet (10143)</span></span>
           </div>
@@ -88,13 +199,14 @@ export default function ReceiverDashboardPage() {
               <span>{receiver.name}</span>
             </h1>
             <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-gray-400 mt-2">
-              <span>Wallet: <code className="text-gray-300">{receiver.wallet}</code></span>
+              <span>Designated Node: <code className="text-gray-300">{receiver.wallet}</code></span>
               <span>•</span>
               <span>Depot: <strong className="text-blue-300">{receiver.location}</strong></span>
               <span>•</span>
               <span className="text-emerald-400">Node Status: {receiver.status}</span>
             </div>
           </div>
+
 
           <div className="flex flex-wrap items-center gap-3">
             <Link
@@ -171,7 +283,16 @@ export default function ReceiverDashboardPage() {
             </Link>
           </div>
 
-          {actionableRequests.length > 0 ? (
+          {receiverCompatibility.status === 'WRONG_WALLET' ? (
+            <div className="p-6 rounded-xl bg-amber-950/20 border border-amber-800/40 text-center font-mono text-xs text-amber-200 space-y-2">
+              <div className="font-semibold text-amber-300">
+                Connected wallet ({wallet.address?.slice(0, 6)}...{wallet.address?.slice(-4)}) is not the designated receiver.
+              </div>
+              <p className="text-gray-400 text-[11px] max-w-lg mx-auto">
+                No actionable requests can be viewed or ratified with this wallet. Connect the designated seller node (<code className="text-blue-300">{receiver.wallet?.slice(0, 6)}...{receiver.wallet?.slice(-4)}</code>) to access signing actions.
+              </p>
+            </div>
+          ) : actionableRequests.length > 0 && receiverCompatibility.isCompatible ? (
             <div className="space-y-3">
               {actionableRequests.map((req) => (
                 <div

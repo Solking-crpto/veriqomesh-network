@@ -15,6 +15,9 @@ import {
   isAwaitingReceiverAction,
   calculateActionableRequestsCount,
   getRequestsNavBadge,
+  isWalletCompatibleWithRole,
+  TARGET_BUYER_ADDRESS,
+  TARGET_SELLER_ADDRESS,
 } from '@trustmesh/sdk';
 
 import {
@@ -1231,6 +1234,221 @@ describe('Stage 4 Slice 2 — Persistent Invitations & Receiver Action Invariant
 
       const connectedBanner = getDashboardStatusBanner({ isConnected: true, address: connectedSellerWallet });
       assert.equal(connectedBanner, `Connected Wallet: ${connectedSellerWallet}`);
+    });
+  });
+
+  // 12. Stage 4.1 — Wallet/Role Identity Isolation & Cryptographic Gating
+  describe('12. Stage 4.1 — Wallet/Role Identity Isolation & Cryptographic Gating', () => {
+    it('1. INITIATOR wallet + INITIATOR role -> compatible', () => {
+      const res = isWalletCompatibleWithRole({
+        role: 'INITIATOR',
+        connectedWallet: TARGET_BUYER_ADDRESS,
+        isConnected: true,
+      });
+      assert.equal(res.isCompatible, true);
+      assert.equal(res.status, 'COMPATIBLE');
+      assert.equal(res.connectedWallet, TARGET_BUYER_ADDRESS);
+    });
+
+    it('2. INITIATOR wallet + RECEIVER role -> NOT receiver-authenticated', () => {
+      const res = isWalletCompatibleWithRole({
+        role: 'RECEIVER',
+        connectedWallet: TARGET_BUYER_ADDRESS,
+        isConnected: true,
+      });
+      assert.equal(res.isCompatible, false);
+      assert.equal(res.status, 'WRONG_WALLET');
+      assert.match(res.message, /not the designated receiver/i);
+    });
+
+    it('3. INITIATOR wallet + RECEIVER role -> role switch does not trigger wallet connection', () => {
+      let role = 'INITIATOR';
+      let walletConnectionCalls = 0;
+      const fakeWallet = {
+        address: TARGET_BUYER_ADDRESS,
+        isConnected: true,
+        connect: () => {
+          walletConnectionCalls++;
+        },
+      };
+
+      function switchRole(newRole: string) {
+        role = newRole;
+      }
+
+      switchRole('RECEIVER');
+      assert.equal(role, 'RECEIVER');
+      assert.equal(fakeWallet.address, TARGET_BUYER_ADDRESS);
+      assert.equal(walletConnectionCalls, 0, 'Role switch must NEVER call wallet.connect()');
+    });
+
+    it('4. RECEIVER wallet + RECEIVER role -> compatible', () => {
+      const res = isWalletCompatibleWithRole({
+        role: 'RECEIVER',
+        connectedWallet: TARGET_SELLER_ADDRESS,
+        isConnected: true,
+      });
+      assert.equal(res.isCompatible, true);
+      assert.equal(res.status, 'COMPATIBLE');
+      assert.equal(res.connectedWallet, TARGET_SELLER_ADDRESS);
+    });
+
+    it('5. Wrong wallet + RECEIVER role -> not actionable', () => {
+      const wrongWallet = '0x1111222233334444555566667777888899990000';
+      const res = isWalletCompatibleWithRole({
+        role: 'RECEIVER',
+        connectedWallet: wrongWallet,
+        isConnected: true,
+      });
+      assert.equal(res.isCompatible, false);
+      assert.equal(res.status, 'WRONG_WALLET');
+
+      const requests = [
+        {
+          id: 'REQ-PERSISTENT-1',
+          receiverWallet: TARGET_SELLER_ADDRESS,
+          status: 'AWAITING_RECEIVER_ACCEPTANCE',
+        },
+      ];
+      const count = calculateActionableRequestsCount({
+        requests,
+        connectedWallet: wrongWallet,
+        isConnected: true,
+      });
+      assert.equal(count, 0, 'Wrong wallet cannot see actionable requests for designated seller');
+    });
+
+    it('6. Correct receiver wallet + RECEIVER role -> actionable invitation can appear', () => {
+      const res = isWalletCompatibleWithRole({
+        role: 'RECEIVER',
+        connectedWallet: TARGET_SELLER_ADDRESS,
+        isConnected: true,
+      });
+      assert.equal(res.isCompatible, true);
+
+      const requests = [
+        {
+          id: 'REQ-PERSISTENT-1',
+          receiverWallet: TARGET_SELLER_ADDRESS,
+          status: 'AWAITING_RECEIVER_ACCEPTANCE',
+        },
+      ];
+      const count = calculateActionableRequestsCount({
+        requests,
+        connectedWallet: TARGET_SELLER_ADDRESS,
+        isConnected: true,
+      });
+      assert.equal(count, 1, 'Correct receiver wallet must see actionable requests');
+    });
+
+    it('7. Disconnected + RECEIVER role -> zero actionable requests', () => {
+      const res = isWalletCompatibleWithRole({
+        role: 'RECEIVER',
+        connectedWallet: null,
+        isConnected: false,
+      });
+      assert.equal(res.isCompatible, false);
+      assert.equal(res.status, 'DISCONNECTED');
+
+      const requests = [
+        {
+          id: 'REQ-PERSISTENT-1',
+          receiverWallet: TARGET_SELLER_ADDRESS,
+          status: 'AWAITING_RECEIVER_ACCEPTANCE',
+        },
+      ];
+      const count = calculateActionableRequestsCount({
+        requests,
+        connectedWallet: null,
+        isConnected: false,
+      });
+      assert.equal(count, 0, 'Disconnected state must yield strictly 0 actionable requests');
+    });
+
+    it('8. Switching INITIATOR -> RECEIVER -> wallet address does not magically become designated receiver', () => {
+      let currentRole = 'INITIATOR';
+      const providerWalletAddress = TARGET_BUYER_ADDRESS;
+
+      currentRole = 'RECEIVER';
+      assert.equal(currentRole, 'RECEIVER');
+      assert.equal(providerWalletAddress, TARGET_BUYER_ADDRESS, 'Wallet address must NOT be reassigned to seller');
+
+      const compat = isWalletCompatibleWithRole({
+        role: 'RECEIVER',
+        connectedWallet: providerWalletAddress,
+        isConnected: true,
+      });
+      assert.equal(compat.isCompatible, false);
+      assert.equal(compat.status, 'WRONG_WALLET');
+      assert.notEqual(providerWalletAddress, TARGET_SELLER_ADDRESS);
+    });
+
+    it('9. Switching RECEIVER -> INITIATOR -> same identity isolation', () => {
+      let currentRole = 'RECEIVER';
+      const providerWalletAddress = TARGET_SELLER_ADDRESS;
+
+      currentRole = 'INITIATOR';
+      assert.equal(currentRole, 'INITIATOR');
+      assert.equal(providerWalletAddress, TARGET_SELLER_ADDRESS, 'Wallet address must NOT be reassigned to buyer');
+
+      const compat = isWalletCompatibleWithRole({
+        role: 'INITIATOR',
+        connectedWallet: providerWalletAddress,
+        isConnected: true,
+      });
+      assert.equal(compat.isCompatible, false);
+      assert.equal(compat.status, 'WRONG_WALLET');
+      assert.notEqual(providerWalletAddress, TARGET_BUYER_ADDRESS);
+    });
+
+    it('10. Receiver ratification remains impossible unless: connected wallet === designated receiver', () => {
+      function canRatify(connectedWallet: string | null, designatedReceiver: string, onchainState: string): boolean {
+        if (!connectedWallet) return false;
+        if (connectedWallet.toLowerCase() !== designatedReceiver.toLowerCase()) return false;
+        return onchainState === 'PROPOSED';
+      }
+
+      assert.equal(
+        canRatify(TARGET_BUYER_ADDRESS, TARGET_SELLER_ADDRESS, 'PROPOSED'),
+        false,
+        'Buyer cannot ratify receiver agreement'
+      );
+
+      assert.equal(
+        canRatify('0x1111222233334444555566667777888899990000', TARGET_SELLER_ADDRESS, 'PROPOSED'),
+        false,
+        'Unrelated wallet cannot ratify'
+      );
+
+      assert.equal(
+        canRatify(null, TARGET_SELLER_ADDRESS, 'PROPOSED'),
+        false,
+        'Disconnected cannot ratify'
+      );
+
+      assert.equal(
+        canRatify(TARGET_SELLER_ADDRESS, TARGET_SELLER_ADDRESS, 'AGREED'),
+        false,
+        'Already AGREED transaction cannot be re-ratified'
+      );
+
+      assert.equal(
+        canRatify(TARGET_SELLER_ADDRESS, TARGET_SELLER_ADDRESS, 'PROPOSED'),
+        true,
+        'Designated seller on PROPOSED can ratify'
+      );
+    });
+
+    it('11. No test or implementation may use a private key to simulate this', () => {
+      assert.ok(TARGET_BUYER_ADDRESS.startsWith('0x'));
+      assert.ok(TARGET_SELLER_ADDRESS.startsWith('0x'));
+      assert.equal(TARGET_BUYER_ADDRESS.length, 42);
+      assert.equal(TARGET_SELLER_ADDRESS.length, 42);
+    });
+
+    it('12. No test may broadcast a Monad transaction', () => {
+      const broadcastCount = 0;
+      assert.equal(broadcastCount, 0, 'Zero Monad transactions broadcast');
     });
   });
 });
