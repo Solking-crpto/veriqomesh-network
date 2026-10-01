@@ -91,7 +91,7 @@ export default function LandingPage() {
                 </p>
                 <div className="bg-purple-950/40 rounded-lg p-3 border border-purple-900/60 mb-5 text-[11px] font-mono space-y-1">
                   <div className="text-gray-400">Demo Persona: <span className="text-white font-semibold">{initiator.name}</span></div>
-                  <div className="text-gray-400">Agent: <span className="text-purple-300">{initiator.agentName}</span> (Autonomous Policy)</div>
+                  <div className="text-gray-400">Agent: <span className="text-purple-300">{initiator.agentName}</span> (Policy Bounded Assistant)</div>
                   <div className="text-gray-400">Wallet: <code className="text-gray-300">{initiator.wallet.slice(0, 10)}...{initiator.wallet.slice(-6)}</code></div>
                 </div>
               </div>

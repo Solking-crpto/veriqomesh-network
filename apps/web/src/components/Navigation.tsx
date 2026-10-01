@@ -139,6 +139,7 @@ export function Navigation() {
             <button
               onClick={() => wallet.connect()}
               disabled={wallet.isConnecting}
+              title="Connect a Monad Metropolis testnet wallet to participate in agreements. Your connected wallet must match the designated initiator or receiver for actions requiring authorization."
               className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-mono text-[11px] font-bold transition flex items-center gap-1.5 shadow-md shadow-purple-950"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />

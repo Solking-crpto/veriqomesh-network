@@ -125,6 +125,19 @@ export default function ReceiversDirectoryPage() {
           </Link>
         </div>
 
+        {/* Benchmark Directory Notice */}
+        <div className="p-4 rounded-xl bg-blue-950/40 border border-blue-600/70 font-mono text-xs space-y-1">
+          <div className="flex items-center gap-2 text-blue-300 font-bold">
+            <span className="px-2 py-0.5 rounded bg-blue-900 border border-blue-500 text-[10px] uppercase">
+              BENCHMARK COUNTERPARTY DIRECTORY
+            </span>
+            <span>Demonstration Counterparty Profiles</span>
+          </div>
+          <p className="text-gray-300 font-sans text-xs">
+            These receiver profiles and metrics reflect verified demonstration counterparties from historical benchmark scenarios. They illustrate how commercial capabilities, depot locations, and credentials appear on the network.
+          </p>
+        </div>
+
         {/* Search & Filter Bar */}
         <div className="flex flex-col sm:flex-row gap-3">
           <input
@@ -175,15 +188,15 @@ export default function ReceiversDirectoryPage() {
                 {/* Metrics */}
                 <div className="grid grid-cols-3 gap-2 bg-gray-950/80 p-3 rounded-xl border border-gray-800 text-xs font-mono mb-4 text-center">
                   <div>
-                    <div className="text-[10px] text-gray-400">Trust Score</div>
+                    <div className="text-[10px] text-gray-400">Benchmark Reputation</div>
                     <div className="text-emerald-400 font-bold text-sm">{node.score}/100</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-gray-400">Settled Deals</div>
+                    <div className="text-[10px] text-gray-400">Historical Settled Deals</div>
                     <div className="text-white font-bold text-sm">{node.completedTx}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-gray-400">Receipts</div>
+                    <div className="text-[10px] text-gray-400">Benchmark Receipts</div>
                     <div className="text-indigo-400 font-bold text-sm">{node.trustReceipts}</div>
                   </div>
                 </div>

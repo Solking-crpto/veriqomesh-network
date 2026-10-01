@@ -483,7 +483,7 @@ export default function CreateIntentPage() {
                 </h3>
                 <p className="text-xs text-gray-300 font-mono">
                   {createdTxId && broadcastTxHash
-                    ? `Authoritative onchain record broadcast to Monad Metropolis Testnet (Chain ID 10143). Escrow deposit required: ${escrowAmount} MON.`
+                    ? `Authoritative onchain transaction record initialized on Monad Metropolis Testnet (Chain ID 10143). Escrow commitment value: ${escrowAmount} MON.`
                     : 'Proposal stored in persistent database. Share the invitation code with your counterparty.'}
                 </p>
               </div>

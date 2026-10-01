@@ -146,8 +146,13 @@ export default function InitiatorDashboardPage() {
               </span>
               <span className="text-gray-500 font-mono text-xs">Buyer / Principal Console</span>
             </div>
-            <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
+            <h1 className="text-3xl font-extrabold text-white flex flex-wrap items-center gap-3">
               <span>{initiator.name}</span>
+              {!wallet.isConnected && (
+                <span className="px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/80 text-amber-300 font-mono text-xs font-bold uppercase tracking-wider">
+                  DEMO WORKSPACE • Viewing Historical Benchmark Data
+                </span>
+              )}
             </h1>
             <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-gray-400 mt-2">
               <span>Designated Principal: <code className="text-gray-300">{initiator.wallet}</code></span>

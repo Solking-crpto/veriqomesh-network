@@ -74,6 +74,19 @@ export default function EvidenceExplorerPage() {
           </Link>
         </div>
 
+        {/* Prominent Historical Benchmark Context Label */}
+        <div className="p-4 rounded-xl bg-purple-950/40 border border-purple-600/70 font-mono text-xs space-y-1">
+          <div className="flex items-center gap-2 text-purple-300 font-bold">
+            <span className="px-2 py-0.5 rounded bg-purple-900 border border-purple-500 text-[10px] uppercase">
+              HISTORICAL BENCHMARK EVIDENCE
+            </span>
+            <span>Read-Only Architectural Reference</span>
+          </div>
+          <p className="text-gray-300 font-sans text-xs">
+            These records demonstrate the VeriqoMesh evidence and verification architecture using historical testnet scenarios. They are read-only and are not submissions from your current wallet.
+          </p>
+        </div>
+
         {/* Transaction Association Banner */}
         <div className="p-4 rounded-xl bg-gray-900/80 border border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-3 font-mono text-xs">
           <div className="space-y-1">

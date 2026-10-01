@@ -2004,7 +2004,7 @@ export function TransactionRoom({
                       ✓ VERIFICATION PASSED: All 100 units verified intact and conforming.
                     </div>
                     <p className="text-[11px] text-gray-300 font-sans leading-relaxed">
-                      <strong>Verification PASS Unlocks Settlement:</strong> Verification PASS satisfies the onchain condition for authorized settlement. In production, the authorized AI agent invokes settlement autonomously under policy authority. For this operator testnet demonstration, execute settlement via browser-wallet under buyer agent authorization.
+                      <strong>Verification PASS Satisfies Policy:</strong> Independent verifier attestation PASS satisfies the prerequisite condition for settlement eligibility. Final funds release requires cryptographic authorization from the buyer wallet and is enforced onchain by the escrow contract. AI assists. Humans authorize. Verifiers verify. Blockchain enforces.
                     </p>
                     <div className="flex flex-wrap items-center gap-3 pt-1">
                       <button

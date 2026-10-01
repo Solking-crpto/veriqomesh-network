@@ -59,7 +59,7 @@ export default function ReceiverDetailPage() {
 
           <div className="p-3 bg-gray-950/80 rounded-xl border border-gray-800 text-xs font-mono text-gray-300 flex flex-wrap items-center justify-between gap-2">
             <div>Connected Wallet: <code className="text-purple-300">0x6f30D20b8c5bE781bADD86341415b556fB13c873</code></div>
-            <div className="text-emerald-400 font-bold">Trust Score: 98/100 (Accredited)</div>
+            <div className="text-emerald-400 font-bold">Benchmark Reputation: 98/100 (Demo Profile)</div>
           </div>
         </div>
 
@@ -129,7 +129,7 @@ export default function ReceiverDetailPage() {
                   <span className="text-gray-300 font-bold">Demo Scenario A</span>
                 </div>
                 <p className="text-[11px] text-gray-400 font-sans">
-                  Deliverable: Tier-1 PV Modules. Bureau Veritas verified intact packaging and matching serial manifest. Autonomous agent invoked settlement upon verification PASS.
+                  Deliverable: Tier-1 PV Modules. Bureau Veritas verified intact packaging and matching serial manifest. Verifier attestation satisfied policy; human-authorized onchain transaction settled escrow upon verification PASS.
                 </p>
               </div>
               <Link

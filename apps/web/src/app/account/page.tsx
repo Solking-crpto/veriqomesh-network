@@ -364,7 +364,7 @@ export default function AccountPage() {
               </div>
 
               <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-900/60 space-y-3">
-                <div className="text-xs text-purple-300 font-bold">Policy Safeguards &amp; Autonomous Delegations</div>
+                <div className="text-xs text-purple-300 font-bold">Policy Safeguards &amp; Institutional Authorization Rules</div>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -373,7 +373,7 @@ export default function AccountPage() {
                     className="rounded bg-gray-950 border-gray-700 text-purple-600 focus:ring-purple-500"
                   />
                   <span className="text-xs text-gray-300 font-sans">
-                    <strong>Autonomous Agent Execution:</strong> Authorize AI Agent to autonomously invoke settlement when verification outcome is attested <code className="text-emerald-400">PASS</code>.
+                    <strong>Policy-Assisted Verification:</strong> Mark settlement eligible when verification outcome is attested <code className="text-emerald-400">PASS</code>. Onchain release of funds remains cryptographically authorized and contract-enforced.
                   </span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
