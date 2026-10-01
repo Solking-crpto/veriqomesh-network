@@ -46,21 +46,27 @@ export default function LandingPage() {
           </p>
 
           {/* Core Architectural Principle Strip */}
-          <div className="max-w-3xl mx-auto mb-10 p-3 rounded-xl bg-gray-900/90 border border-gray-800 shadow-inner flex flex-wrap items-center justify-around gap-4 text-xs font-mono">
+          <div className="max-w-4xl mx-auto mb-10 p-3 rounded-xl bg-gray-900/90 border border-gray-800 shadow-inner flex flex-wrap items-center justify-around gap-4 text-xs font-mono">
             <div className="flex items-center gap-2">
               <span className="px-2 py-0.5 rounded bg-purple-900/80 text-purple-300 font-bold">1</span>
-              <span className="text-gray-200 font-semibold">AI Executes</span>
-              <span className="text-gray-500 text-[10px]">(policy bounded)</span>
+              <span className="text-gray-200 font-semibold">AI Assists</span>
+              <span className="text-gray-500 text-[10px]">(intent structuring)</span>
             </div>
             <div className="text-gray-600 hidden sm:inline">•</div>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-amber-900/80 text-amber-300 font-bold">2</span>
-              <span className="text-gray-200 font-semibold">Humans Adjudicate</span>
-              <span className="text-gray-500 text-[10px]">(3-judge median quorum)</span>
+              <span className="px-2 py-0.5 rounded bg-blue-900/80 text-blue-300 font-bold">2</span>
+              <span className="text-gray-200 font-semibold">Humans Authorize</span>
+              <span className="text-gray-500 text-[10px]">(wallet ratification)</span>
             </div>
             <div className="text-gray-600 hidden sm:inline">•</div>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-emerald-900/80 text-emerald-300 font-bold">3</span>
+              <span className="px-2 py-0.5 rounded bg-amber-900/80 text-amber-300 font-bold">3</span>
+              <span className="text-gray-200 font-semibold">Verifiers Verify</span>
+              <span className="text-gray-500 text-[10px]">(evidence attestation)</span>
+            </div>
+            <div className="text-gray-600 hidden sm:inline">•</div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-emerald-900/80 text-emerald-300 font-bold">4</span>
               <span className="text-gray-200 font-semibold">Blockchain Enforces</span>
               <span className="text-gray-500 text-[10px]">(Monad onchain escrow)</span>
             </div>
