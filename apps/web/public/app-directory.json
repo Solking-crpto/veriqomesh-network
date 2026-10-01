@@ -1,6 +1,8 @@
 {
   "name": "VeriqoMesh Network",
   "domain": "https://veriqomesh.xyz",
+  "logo": "https://veriqomesh.xyz/brand/veriqomesh-logo.png",
+  "mark": "https://veriqomesh.xyz/brand/veriqomesh-mark.png",
   "category": "Trust / Identity / Commerce Infrastructure",
   "network": "Monad Metropolis Testnet",
   "chainId": 10143,

@@ -1,5 +1,9 @@
 # VeriqoMesh Network
 
+<p align="center">
+  <img src="apps/web/public/brand/veriqomesh-logo.png" alt="VeriqoMesh Network" width="220" />
+</p>
+
 > **The programmable trust layer for human and AI commerce on Monad.**  
 > *Define the deal. Protect the transaction. Verify the outcome.*
 

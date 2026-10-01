@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useDemoNetwork } from '../context/DemoNetworkContext';
 import { getRequestsNavBadge, TARGET_BUYER_ADDRESS, TARGET_SELLER_ADDRESS } from '../lib/invitation-utils';
@@ -84,8 +85,15 @@ export function Navigation() {
         {/* Brand & Proposition */}
         <div className="flex items-center gap-6">
           <Link href="/" className="group flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-700 to-pink-600 flex items-center justify-center font-mono font-black text-white text-xs shadow-md shadow-purple-950">
-              VM
+            <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 bg-[#090a10]">
+              <Image
+                src="/brand/veriqomesh-mark.png"
+                alt="VeriqoMesh"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                priority
+              />
             </div>
             <div>
               <div className="text-sm font-extrabold text-white tracking-wider flex items-center gap-1.5">

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useDemoNetwork } from '../context/DemoNetworkContext';
 
@@ -26,6 +27,20 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
 
         <div className="max-w-6xl mx-auto text-center relative z-10">
+          {/* Official Brand Logo */}
+          <div className="mb-6 flex justify-center">
+            <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full p-1 bg-gradient-to-tr from-purple-900/40 via-blue-900/40 to-transparent border border-purple-500/30 shadow-2xl shadow-purple-950/50">
+              <Image
+                src="/brand/veriqomesh-logo.png"
+                alt="VeriqoMesh Network"
+                width={144}
+                height={144}
+                className="w-full h-full object-contain rounded-full"
+                priority
+              />
+            </div>
+          </div>
+
           {/* Institutional Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-600/50 text-purple-300 font-mono text-xs mb-6 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />

@@ -1,18 +1,33 @@
 import React from 'react';
+import Image from 'next/image';
 
 export function PublicSafetyNotice() {
   return (
     <footer className="mt-12 border-t border-gray-800 bg-[#07080d]/90 py-6 text-xs text-gray-400 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-3">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-gray-900 pb-3">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span className="font-mono text-white font-semibold uppercase text-[11px] tracking-wider">
-              VeriqoMesh Network Public Testnet Notice
-            </span>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-gray-900 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="relative w-6 h-6 rounded-md overflow-hidden flex items-center justify-center flex-shrink-0 bg-[#090a10]">
+              <Image
+                src="/brand/veriqomesh-mark.png"
+                alt="VeriqoMesh"
+                width={24}
+                height={24}
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <div className="font-mono text-white font-bold text-xs uppercase tracking-wider">
+                VeriqoMesh Network
+              </div>
+              <div className="text-[10px] text-gray-400 font-mono">
+                Trust. Verify. Transact.
+              </div>
+            </div>
           </div>
-          <div className="font-mono text-[10px] text-gray-400">
-            Monad Metropolis Testnet • Chain ID: 10143 • EVM Compatible
+          <div className="flex items-center gap-2 font-mono text-[10px] text-gray-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>Monad Metropolis Testnet • Chain ID: 10143 • EVM Compatible</span>
           </div>
         </div>
 

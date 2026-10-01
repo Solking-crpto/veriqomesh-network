@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   useDemoNetwork,
@@ -286,8 +287,14 @@ function TransactionsContent() {
             {!wallet.isConnected ? (
               /* Scenario A: Disconnected / First-Visit State */
               <div className="p-8 sm:p-12 rounded-2xl bg-gradient-to-b from-[#110f22] via-[#0b0c16] to-[#07080d] border border-purple-800/60 text-center space-y-6 shadow-2xl">
-                <div className="w-16 h-16 rounded-2xl bg-purple-950/80 border border-purple-600/60 mx-auto flex items-center justify-center text-2xl shadow-lg shadow-purple-950">
-                  🔒
+                <div className="w-14 h-14 rounded-2xl bg-purple-950/80 border border-purple-600/60 p-2.5 mx-auto flex items-center justify-center shadow-lg shadow-purple-950">
+                  <Image
+                    src="/brand/veriqomesh-mark.png"
+                    alt="VeriqoMesh"
+                    width={36}
+                    height={36}
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <div className="max-w-md mx-auto space-y-2 font-mono">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-950/70 border border-amber-600/60 text-amber-300 text-[11px] font-bold">
@@ -333,8 +340,14 @@ function TransactionsContent() {
             ) : personalTransactions.length === 0 ? (
               /* Scenario B: Connected Wallet with No Relevant Transactions */
               <div className="p-8 sm:p-12 rounded-2xl bg-gradient-to-b from-[#0d101a] to-[#07080d] border border-gray-800 text-center space-y-6 shadow-xl">
-                <div className="w-16 h-16 rounded-2xl bg-gray-900 border border-gray-700 mx-auto flex items-center justify-center text-2xl">
-                  📁
+                <div className="w-14 h-14 rounded-2xl bg-gray-900 border border-gray-700/80 p-2.5 mx-auto flex items-center justify-center opacity-80 shadow-md">
+                  <Image
+                    src="/brand/veriqomesh-mark.png"
+                    alt="VeriqoMesh"
+                    width={36}
+                    height={36}
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <div className="max-w-md mx-auto space-y-2 font-mono">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/70 border border-emerald-700 text-emerald-300 text-[11px]">
