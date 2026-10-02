@@ -1,0 +1,122 @@
+[
+  {
+    "id": "shot01",
+    "name": "Hook",
+    "text": "What happens when AI helps negotiate a deal, but cannot control the money? Let's actually run the deal.",
+    "minDur": 8,
+    "targetDur": 10,
+    "spokenDur": 6.79
+  },
+  {
+    "id": "shot02",
+    "name": "Connect Wallet / Identity",
+    "text": "First, connect your Monad wallet. That wallet is your identity inside VeriqoMesh, so the application knows which side of the transaction you're authorized to act for.",
+    "minDur": 12,
+    "targetDur": 15,
+    "spokenDur": 10.08
+  },
+  {
+    "id": "shot03",
+    "name": "Initiator Creates Deal",
+    "text": "Now I'm the initiator. I start with a plain-English commercial need. What am I buying? How much does it cost? Who receives the payment? Who verifies the result? And what evidence proves the work is complete? VeriqoMesh turns that intent into explicit agreement parameters.",
+    "minDur": 22,
+    "targetDur": 27,
+    "spokenDur": 19.56
+  },
+  {
+    "id": "shot04",
+    "name": "Agreement Parameters",
+    "text": "Now the deal is explicit. Deliverable. Amount. Deadline. Receiver. Verifier. Evidence requirements. No hidden assumptions.",
+    "minDur": 10,
+    "targetDur": 13,
+    "spokenDur": 13.61
+  },
+  {
+    "id": "shot05",
+    "name": "Deterministic Commitment",
+    "text": "Before money moves, those terms are deterministically represented and cryptographically committed. Same agreement. Same terms.",
+    "minDur": 8,
+    "targetDur": 10,
+    "spokenDur": 9.12
+  },
+  {
+    "id": "shot06",
+    "name": "Receiver Workflow",
+    "text": "Now switch to the receiver. The receiver gets the actual agreement, not a vague notification. They can review exactly what was proposed: the amount, the deliverable, the deadline, the verifier, and the evidence requirements.",
+    "minDur": 17,
+    "targetDur": 23,
+    "spokenDur": 14.21
+  },
+  {
+    "id": "shot07",
+    "name": "Receiver Authorization",
+    "text": "If everything is correct, the receiver explicitly authorizes the agreement. This is where human authorization matters.",
+    "minDur": 9,
+    "targetDur": 12,
+    "spokenDur": 7.56
+  },
+  {
+    "id": "shot08",
+    "name": "Escrow / Funding",
+    "text": "Once both sides agree, the transaction can move into the escrow-backed lifecycle. The blockchain controls the financial state, not the AI.",
+    "minDur": 9,
+    "targetDur": 12,
+    "spokenDur": 9.02
+  },
+  {
+    "id": "shot09",
+    "name": "Execution + Evidence",
+    "text": "The work happens offchain. When it's complete, evidence is anchored with a cryptographic commitment.",
+    "minDur": 8,
+    "targetDur": 11,
+    "spokenDur": 6.31
+  },
+  {
+    "id": "shot10",
+    "name": "Verification",
+    "text": "A designated verifier evaluates that evidence and submits an explicit verification outcome.",
+    "minDur": 9,
+    "targetDur": 12,
+    "spokenDur": 5.74
+  },
+  {
+    "id": "shot11",
+    "name": "Onchain Auditability",
+    "text": "Now the transaction state is independently auditable. The blockchain remains authoritative for the financial state.",
+    "minDur": 9,
+    "targetDur": 11,
+    "spokenDur": 7.22
+  },
+  {
+    "id": "shot12",
+    "name": "Settlement",
+    "text": "After the required conditions are satisfied, the transaction reaches onchain settlement.",
+    "minDur": 7,
+    "targetDur": 10,
+    "spokenDur": 5.28
+  },
+  {
+    "id": "shot13",
+    "name": "Trust Receipt",
+    "text": "And the result becomes a Trust Receipt: linking the agreement, evidence, verification outcome, and settlement into one durable record.",
+    "minDur": 7,
+    "targetDur": 9,
+    "spokenDur": 7.97
+  },
+  {
+    "id": "shot14",
+    "name": "Security Principle",
+    "text": "AI assists. Humans authorize. Verifiers verify. Blockchain enforces.",
+    "minDur": 4,
+    "targetDur": 5,
+    "spokenDur": 8.11
+  },
+  {
+    "id": "shot15",
+    "name": "Final Brand",
+    "text": "VeriqoMesh.",
+    "minDur": 2,
+    "targetDur": 3,
+    "spokenDur": 1.87
+  }
+]

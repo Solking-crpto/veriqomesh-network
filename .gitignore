@@ -53,3 +53,4 @@ tools/
 *.exe
 
 .vercel/
+scripts/video-production/segments/
