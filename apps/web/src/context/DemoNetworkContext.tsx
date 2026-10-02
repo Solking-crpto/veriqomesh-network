@@ -385,8 +385,13 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
           : initiator.wallet || TARGET_BUYER_ADDRESS;
 
       const effectiveVerifier =
-        customVerifier || INDEPENDENT_VERIFIER_ADDRESS || APPROVED_OPERATOR_VERIFIER_ADDRESS;
-      const verifierShort = `${effectiveVerifier.slice(0, 6)}...${effectiveVerifier.slice(-4)}`;
+        customVerifier !== undefined
+          ? customVerifier
+          : (INDEPENDENT_VERIFIER_ADDRESS || APPROVED_OPERATOR_VERIFIER_ADDRESS);
+      const verifierShort =
+        effectiveVerifier && effectiveVerifier.length >= 10
+          ? `${effectiveVerifier.slice(0, 6)}...${effectiveVerifier.slice(-4)}`
+          : effectiveVerifier || 'verifier';
       const dynamicEvidenceRequirements = customParams?.evidenceRequirements || intent.evidenceRequirements.map((item) =>
         item.includes('Independent Verifier Attestation')
           ? `Independent Verifier Attestation (${verifierShort})`

@@ -67,7 +67,7 @@ export function PublicSafetyNotice() {
               </li>
               <li>
                 <Link href="/trust" className="hover:text-text-primary transition">
-                  Trust Receipts &amp; Scoring
+                  Trust Receipts &amp; Provenance
                 </Link>
               </li>
             </ul>

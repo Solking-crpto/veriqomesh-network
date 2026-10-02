@@ -22,8 +22,6 @@ import {
   useDemoNetwork,
   TARGET_BUYER_ADDRESS,
   TARGET_SELLER_ADDRESS,
-  INDEPENDENT_VERIFIER_ADDRESS,
-  APPROVED_OPERATOR_VERIFIER_ADDRESS,
 } from '../../../context/DemoNetworkContext';
 import {
   generateFreshTransactionId,
@@ -56,10 +54,9 @@ export default function CreateIntentPage() {
   const [receiverWallet, setReceiverWallet] = useState('');
   const [receiverName, setReceiverName] = useState('');
 
-  // Designated Independent Verifier
-  const [verifierWallet, setVerifierWallet] = useState(
-    INDEPENDENT_VERIFIER_ADDRESS || APPROVED_OPERATOR_VERIFIER_ADDRESS
-  );
+  // Designated Independent Verifier — Empty by default for real user
+  const [verifierWallet, setVerifierWallet] = useState('');
+  const [verifierTouched, setVerifierTouched] = useState(false);
 
   // Evidence Requirements Checklist
   const [evidenceRequirements, setEvidenceRequirements] = useState<string[]>([
@@ -164,7 +161,7 @@ export default function CreateIntentPage() {
       errs.push('Receiver wallet must be a valid Ethereum address (0x...).');
     }
     if (!designatedVerifier) {
-      errs.push('Verifier wallet address is required.');
+      errs.push('A designated verifier address is required.');
     } else if (!isVerifierValid) {
       errs.push('Verifier wallet must be a valid non-zero Ethereum address (0x...).');
     }
@@ -658,10 +655,16 @@ export default function CreateIntentPage() {
               <Input
                 label="Designated Verifier Wallet Address"
                 value={verifierWallet}
-                onChange={(e) => setVerifierWallet(e.target.value)}
+                onChange={(e) => {
+                  setVerifierWallet(e.target.value);
+                  if (!verifierTouched) setVerifierTouched(true);
+                }}
+                onBlur={() => setVerifierTouched(true)}
                 placeholder="0x..."
                 error={
-                  designatedVerifier && !isVerifierValid
+                  verifierTouched && !designatedVerifier
+                    ? 'A designated verifier address is required'
+                    : designatedVerifier && !isVerifierValid
                     ? 'Must be a valid non-zero address'
                     : isBuyerVerifierConflict
                     ? 'Buyer cannot equal Verifier'
@@ -669,7 +672,7 @@ export default function CreateIntentPage() {
                     ? 'Seller cannot equal Verifier'
                     : undefined
                 }
-                helperText="Independent inspector who attests PASS or INCONCLUSIVE before payout"
+                helperText="Independent verifier who attests PASS or INCONCLUSIVE before payout."
               />
 
               {/* Evidence Checklist */}

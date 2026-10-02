@@ -380,7 +380,7 @@ export default function TrustActivity() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-mono font-bold text-purple-400 uppercase tracking-wider">
-              ONCHAIN PROVENANCE &amp; TRUST ACTIVITY
+              PUBLIC ONCHAIN PROVENANCE
             </span>
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-700">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -449,7 +449,7 @@ export default function TrustActivity() {
           <span className="text-purple-300 font-bold text-xs truncate block" title="0x925ea880cA53DE0352b84B24d0C0dee5B258015A">
             0x925e...015A
           </span>
-          <span className="text-[10px] text-emerald-400 block mt-0.5">State 11 Verified</span>
+          <span className="text-[10px] text-emerald-400 block mt-0.5">State: SETTLED (11)</span>
         </div>
 
         <div className="p-3.5 rounded-xl bg-gray-950/70 border border-gray-800/80">
@@ -539,10 +539,19 @@ export default function TrustActivity() {
                     className="p-4 rounded-xl bg-gray-950/60 border border-gray-800/80 hover:border-purple-800/60 transition space-y-2"
                   >
                     <div className="flex items-center justify-between gap-3 text-xs font-mono">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getCategoryBadge(evt.category)}`}>
                           {evt.eventType}
                         </span>
+                        {evt.id.startsWith('flow-') ? (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-purple-950/70 text-purple-300 border border-purple-800/80">
+                            Public Demo / Architectural Benchmark
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-emerald-950/70 text-emerald-300 border border-emerald-800/80">
+                            Live Session Transaction
+                          </span>
+                        )}
                         <span className="text-gray-400">
                           by <strong className="text-gray-200">{evt.actorRole}</strong>
                         </span>
@@ -595,11 +604,16 @@ export default function TrustActivity() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Flow A */}
           <div className="p-5 rounded-xl bg-gradient-to-b from-[#141026] to-[#0a0c14] border border-purple-600/70 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">
-                FLOW A — VERIFIED (PASS)
-              </span>
-              <span className="text-xs font-mono text-emerald-400 font-bold">STATE 11 SETTLED</span>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">
+                  FLOW A — VERIFIED (PASS)
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-purple-950/60 text-purple-300 border border-purple-800">
+                  Public Demo / Architectural Benchmark
+                </span>
+              </div>
+              <span className="text-xs font-mono text-emerald-400 font-bold">STATE: SETTLED (11)</span>
             </div>
 
             <div>
@@ -615,16 +629,20 @@ export default function TrustActivity() {
                 <span className="text-purple-300">0x961c...54e1</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-gray-500">Transaction State:</span>
+                <span className="text-emerald-400 font-bold">SETTLED (11)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Verification Outcome:</span>
+                <span className="text-emerald-400 font-bold">VALID (Outcome 1 / PASS)</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-gray-500">Deliverable Hash:</span>
                 <span className="text-cyan-400">0x08a3...edff</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Verifier Attestation:</span>
-                <span className="text-emerald-400 font-bold">PASS (Outcome 1)</span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-gray-500">Settlement Payout:</span>
-                <span className="text-white font-bold">0.001 MON (100% Release)</span>
+                <span className="text-white font-bold">RELEASED TO SELLER (0.001 MON)</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Settlement Tx:</span>
@@ -649,11 +667,16 @@ export default function TrustActivity() {
 
           {/* Flow B */}
           <div className="p-5 rounded-xl bg-gradient-to-b from-[#141026] to-[#0a0c14] border border-amber-600/70 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-700">
-                FLOW B — CONTESTED (INCONCLUSIVE)
-              </span>
-              <span className="text-xs font-mono text-emerald-400 font-bold">STATE 11 SETTLED</span>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-700">
+                  FLOW B — CONTESTED (INCONCLUSIVE)
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-purple-950/60 text-purple-300 border border-purple-800">
+                  Public Demo / Architectural Benchmark
+                </span>
+              </div>
+              <span className="text-xs font-mono text-emerald-400 font-bold">STATE: SETTLED (11)</span>
             </div>
 
             <div>
@@ -669,7 +692,11 @@ export default function TrustActivity() {
                 <span className="text-purple-300">0x2b57...cfc4</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Initial Verification:</span>
+                <span className="text-gray-500">Transaction State:</span>
+                <span className="text-emerald-400 font-bold">SETTLED (11)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Verification Outcome:</span>
                 <span className="text-amber-400 font-bold">INCONCLUSIVE (Outcome 3)</span>
               </div>
               <div className="flex justify-between">
@@ -677,8 +704,8 @@ export default function TrustActivity() {
                 <span className="text-white font-bold">1,500 bps (15% Buyer Refund)</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Seller Distribution:</span>
-                <span className="text-emerald-400 font-bold">0.00085 MON (85% Release)</span>
+                <span className="text-gray-500">Settlement Payout:</span>
+                <span className="text-emerald-400 font-bold">0.00085 MON (85% RELEASED TO SELLER)</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Settlement Tx:</span>

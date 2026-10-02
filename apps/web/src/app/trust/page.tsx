@@ -23,7 +23,7 @@ export default function TrustReceiptsPage() {
             <span className="text-xs text-text-tertiary">ERC-5192 Soulbound</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
-            Trust Receipts &amp; Provenance Vault
+            Trust Receipts &amp; Provenance
           </h1>
           <p className="text-xs sm:text-sm text-text-secondary mt-1">
             Cryptographic receipts binding commercial intent, attested evidence roots, and immutable onchain settlement.
@@ -72,8 +72,8 @@ export default function TrustReceiptsPage() {
         {receipts.length === 0 ? (
           <EmptyState
             icon={<Shield className="w-6 h-6 text-accent" />}
-            title="No Soulbound Receipts Minted in Current Session"
-            description="Trust receipts are non-transferable ERC-5192 tokens issued automatically upon verified escrow settlement or dispute resolution on Monad Metropolis Testnet."
+            title="Trust receipts are minted automatically when a transaction reaches verified settlement or authorized dispute resolution."
+            description="Complete an escrow agreement on Monad Testnet to generate an immutable soulbound trust attestation."
             action={
               <Link href="/initiator/intent">
                 <Button variant="primary" size="md" rightIcon={<ArrowRight className="w-4 h-4" />}>

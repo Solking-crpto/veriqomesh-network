@@ -47,13 +47,35 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const verifierRaw = body.roles?.verifier;
+    if (!verifierRaw || typeof verifierRaw !== 'string' || !verifierRaw.trim()) {
+      return NextResponse.json(
+        { success: false, error: 'Verifier address is required' },
+        { status: 400 }
+      );
+    }
+    const verifierTrimmed = verifierRaw.trim();
+    if (!ethers.isAddress(verifierTrimmed) || verifierTrimmed === ethers.ZeroAddress) {
+      return NextResponse.json(
+        { success: false, error: 'Verifier must be a valid non-zero address' },
+        { status: 400 }
+      );
+    }
+
     const initiator = body.initiatorWallet.toLowerCase();
     const receiver = body.intendedReceiverWallet.toLowerCase();
+    const verifierLower = verifierTrimmed.toLowerCase();
 
-    // Role isolation: initiator and receiver cannot be the same address
+    // Role isolation: initiator, receiver, and verifier must all be distinct addresses
     if (initiator === receiver) {
       return NextResponse.json(
         { success: false, error: 'Initiator and receiver cannot be the same address' },
+        { status: 400 }
+      );
+    }
+    if (verifierLower === initiator || verifierLower === receiver) {
+      return NextResponse.json(
+        { success: false, error: 'Verifier cannot be the same address as initiator or receiver' },
         { status: 400 }
       );
     }
@@ -119,10 +141,7 @@ export async function POST(req: NextRequest) {
 
     const buyer = body.roles?.buyer || body.initiatorWallet;
     const seller = body.roles?.seller || body.intendedReceiverWallet;
-    const verifier =
-      body.roles?.verifier ||
-      process.env.NEXT_PUBLIC_DEFAULT_VERIFIER_ADDRESS ||
-      '0xb064d69428B9838C2a3e408cF995ea8eb5182c48';
+    const verifier = verifierTrimmed;
 
     const now = Date.now();
     const newInvitation: PersistentInvitation = {
