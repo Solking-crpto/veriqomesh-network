@@ -2,8 +2,28 @@
 
 import React, { useMemo } from 'react';
 import Link from 'next/link';
+import {
+  Plus,
+  ArrowRight,
+  Shield,
+  FileText,
+  AlertCircle,
+  ExternalLink,
+  Lock,
+  Scale,
+  Users,
+} from 'lucide-react';
 import { useDemoNetwork } from '../../context/DemoNetworkContext';
-import { isWalletCompatibleWithRole, TARGET_BUYER_ADDRESS, TARGET_SELLER_ADDRESS } from '../../lib/invitation-utils';
+import {
+  isWalletCompatibleWithRole,
+  TARGET_BUYER_ADDRESS,
+  TARGET_SELLER_ADDRESS,
+} from '../../lib/invitation-utils';
+import { Button } from '../../components/ui/Button';
+import { Card, CardHeader } from '../../components/ui/Card';
+import { Badge } from '../../components/ui/Badge';
+import { StatusChip } from '../../components/ui/StatusChip';
+import { EmptyState } from '../../components/ui/EmptyState';
 
 export default function InitiatorDashboardPage() {
   const { role, switchRole, initiator, requests, wallet } = useDemoNetwork();
@@ -21,399 +41,219 @@ export default function InitiatorDashboardPage() {
   }, [wallet.address, wallet.isConnected, initiator.wallet]);
 
   return (
-    <div className="min-h-screen bg-[#07080d] text-gray-100 py-10 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Role Mismatch Notice */}
-        {!isRoleActive && (
-          <div className="p-4 rounded-xl bg-purple-950/60 border border-purple-600/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <span>You are currently viewing the network as <strong>RECEIVER</strong>. Switch to <strong>INITIATOR</strong> to create commercial intents as Buyer Principal.</span>
-            </div>
-            <button
-              onClick={() => switchRole('INITIATOR')}
-              className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold transition whitespace-nowrap"
-            >
-              Switch to Initiator View
-            </button>
-          </div>
-        )}
-
-        {/* Wrong Wallet Connected Warning */}
-        {wallet.isConnected && !initiatorCompatibility.isCompatible && (
-          <div className="p-5 rounded-2xl bg-amber-950/40 border border-amber-600/70 space-y-3 font-mono text-xs">
-            <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-              <span>Initiator Wallet Required — Connected Wallet Is Not the Designated Buyer</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-950/70 p-3.5 rounded-xl border border-gray-800 text-[11px]">
-              <div>
-                <span className="text-gray-400 block text-[10px]">CURRENT CONNECTED WALLET:</span>
-                <code className="text-amber-300 font-bold">{wallet.address}</code>
-                <span className="block text-gray-500 text-[10px] mt-0.5">
-                  {wallet.address?.toLowerCase() === TARGET_SELLER_ADDRESS.toLowerCase()
-                    ? 'Authorized as Receiver/Seller persona'
-                    : 'External unauthenticated account'}
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-400 block text-[10px]">DESIGNATED INITIATOR PROFILE:</span>
-                <code className="text-purple-300 font-bold">{initiator.wallet}</code>
-                <span className="block text-gray-500 text-[10px] mt-0.5">{initiator.name} (Buyer Principal)</span>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-              <p className="text-gray-400 text-[11px]">
-                Creating commercial intents and depositing escrow capital requires the authorized buyer identity. Switch accounts or disconnect to continue.
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => wallet.disconnect()}
-                  className="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold text-xs transition border border-gray-700"
-                >
-                  Disconnect Wallet
-                </button>
-                <button
-                  onClick={() => wallet.connect()}
-                  className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition"
-                >
-                  Switch Account
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Institutional Connection Status Banner */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-gray-900/60 border border-gray-800 text-xs font-mono">
-          <div className="flex items-center gap-2.5">
-            <span
-              className={`w-2.5 h-2.5 rounded-full ${
-                !wallet.isConnected
-                  ? 'bg-amber-400'
-                  : initiatorCompatibility.isCompatible
-                  ? 'bg-purple-400 animate-pulse'
-                  : 'bg-amber-500 animate-pulse'
-              }`}
-            />
-            <span className="text-gray-300">
-              {wallet.isConnected ? (
-                <>
-                  Connected Wallet: <code className="text-white font-bold">{wallet.address}</code>
-                  {!initiatorCompatibility.isCompatible && (
-                    <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-700 text-[10px] font-bold">
-                      NOT DESIGNATED INITIATOR
-                    </span>
-                  )}
-                </>
-              ) : (
-                <span className="text-amber-300 font-semibold">Disconnected (Wallet Required)</span>
-              )}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 text-gray-400 text-[11px]">
-            <span>Principal Role: <strong className="text-purple-300">Buyer Node</strong></span>
-            <span>•</span>
+    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-8">
+      {/* Role Mismatch Notice */}
+      {!isRoleActive && (
+        <div className="p-4 rounded-card bg-surface-elevated border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-text-secondary">
+            <span className="w-2 h-2 rounded-full bg-status-warning shrink-0" />
             <span>
-              Node Role:{' '}
-              <strong
-                className={
-                  !wallet.isConnected
-                    ? 'text-gray-400'
-                    : initiatorCompatibility.isCompatible
-                    ? 'text-purple-300'
-                    : 'text-amber-400'
-                }
-              >
-                {!wallet.isConnected
-                  ? 'INITIATOR (DISCONNECTED)'
-                  : initiatorCompatibility.isCompatible
-                  ? 'INITIATOR (AUTHENTICATED)'
-                  : 'UNMATCHED (INITIATOR REQUIRED)'}
-              </strong>
+              You are currently viewing as <strong>Seller</strong>. Switch perspective to view as <strong>Buyer</strong>.
             </span>
-            <span>•</span>
-            <span>Network: <span className="text-purple-300">Monad Metropolis Testnet (10143)</span></span>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => switchRole('INITIATOR')}
+          >
+            Switch to Buyer View
+          </Button>
+        </div>
+      )}
+
+      {/* Wallet Incompatibility Warning */}
+      {wallet.isConnected && !initiatorCompatibility.isCompatible && (
+        <div className="p-4 rounded-card bg-status-warning/10 border border-status-warning/30 space-y-3 text-xs">
+          <div className="flex items-center gap-2 text-status-warning font-semibold">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>Buyer Wallet Required</span>
+          </div>
+          <p className="text-text-secondary leading-relaxed">
+            Your connected account (<code className="font-mono text-text-primary">{wallet.address?.slice(0, 8)}...{wallet.address?.slice(-6)}</code>) is not registered as the designated buyer ({initiator.name || 'Buyer Principal'}). Initiating commercial escrows requires authorization from the designated account.
+          </p>
+          <div className="flex items-center gap-3 pt-1">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => wallet.connect()}
+            >
+              Switch Account
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => wallet.disconnect()}
+            >
+              Disconnect
+            </Button>
           </div>
         </div>
+      )}
 
-        {/* Header & Identity */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-800 pb-6">
-          <div>
-            <div className="flex items-center gap-2.5 mb-2">
-              <span className="px-2.5 py-0.5 rounded bg-purple-900/80 text-purple-300 font-mono text-xs font-bold border border-purple-700">
-                INITIATOR DASHBOARD
-              </span>
-              <span className="text-gray-500 font-mono text-xs">Buyer / Principal Console</span>
-            </div>
-            <h1 className="text-3xl font-extrabold text-white flex flex-wrap items-center gap-3">
-              <span>{wallet.isConnected ? 'Buyer Principal Node' : 'Commercial Agreement Initiator'}</span>
-              {!wallet.isConnected && (
-                <span className="px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/80 text-amber-300 font-mono text-xs font-bold uppercase tracking-wider">
-                  PUBLIC TESTNET • Connect Wallet to Initiate Commercial Agreements
-                </span>
-              )}
-            </h1>
-            <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-gray-400 mt-2">
-              <span>Principal Address: <code className="text-gray-300">{wallet.isConnected ? wallet.address : 'Wallet Required'}</code></span>
-              <span>•</span>
-              <span>Authorization: <strong className="text-purple-300">Manual Wallet Signature</strong></span>
-              <span>•</span>
-              <span className="text-emerald-400">Spending Policy: Not Configured</span>
-            </div>
+      {/* Header & Primary Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <Badge variant="accent">BUYER WORKSPACE</Badge>
+            <span className="text-xs text-text-tertiary">Initiator Node</span>
           </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/initiator/intent"
-              className="px-4 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-600 text-white font-mono text-xs font-bold transition shadow-lg shadow-purple-950 flex items-center gap-2"
-            >
-              <span className="text-base">+</span>
-              <span>New Commercial Intent</span>
-            </Link>
-            <Link
-              href="/receivers"
-              className="px-4 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-200 font-mono text-xs font-bold transition"
-            >
-              Find Receivers
-            </Link>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
+            Buyer Workspace
+          </h1>
+          <p className="text-xs sm:text-sm text-text-secondary mt-1">
+            Commission commercial agreements, deposit funds in Monad escrow, and oversee milestone delivery.
+          </p>
         </div>
 
-        {/* Metrics Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
-            <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Active Deal Requests</div>
-            <div className="text-2xl font-bold text-white">{requests.length}</div>
-            <div className="text-[11px] text-purple-400 mt-1">
-              {wallet.isConnected ? 'Registered commercial intents' : 'Connect wallet to view'}
-            </div>
-          </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <Link href="/initiator/intent">
+            <Button
+              variant="primary"
+              size="md"
+              leftIcon={<Plus className="w-4 h-4" />}
+            >
+              Create Agreement
+            </Button>
+          </Link>
+          <Link href="/receivers">
+            <Button variant="secondary" size="md">
+              Find Sellers
+            </Button>
+          </Link>
+        </div>
+      </div>
 
-          <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
-            <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Active Escrows</div>
-            <div className="text-2xl font-bold text-emerald-400">
-              {requests.filter((r) => r.status === 'AGREEMENT_ACTIVE' && r.isOnchain).length}
-            </div>
-            <div className="text-[11px] text-gray-400 mt-1">
-              {wallet.isConnected ? 'Active onchain escrows' : '0 onchain escrows'}
-            </div>
-          </div>
+      {/* 4-Stat Metric Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card padding="sm" className="space-y-1">
+          <span className="text-xs text-text-tertiary block">Active Requests</span>
+          <div className="text-2xl font-bold text-text-primary font-mono">{requests.length}</div>
+          <span className="text-[11px] text-text-secondary block">Registered commercial deals</span>
+        </Card>
 
-          <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
-            <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Spending Policy</div>
-            <div className="text-xl font-bold text-white">Not Configured</div>
-            <div className="text-[11px] text-gray-400 mt-1">Manual authorization required</div>
+        <Card padding="sm" className="space-y-1">
+          <span className="text-xs text-text-tertiary block">Active Escrows</span>
+          <div className="text-2xl font-bold text-status-success font-mono">
+            {requests.filter((r) => r.status === 'AGREEMENT_ACTIVE' && r.isOnchain).length}
           </div>
+          <span className="text-[11px] text-text-secondary block">Funded on Monad testnet</span>
+        </Card>
 
-          <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
-            <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Trust Receipts Held</div>
-            <div className="text-2xl font-bold text-indigo-400">0</div>
-            <div className="text-[11px] text-indigo-300 mt-1">
-              {wallet.isConnected ? 'Verified settlement receipts' : '0 receipts held'}
-            </div>
+        <Card padding="sm" className="space-y-1">
+          <span className="text-xs text-text-tertiary block">Spending Policy</span>
+          <div className="text-lg font-bold text-text-primary">Not Configured</div>
+          <span className="text-[11px] text-text-secondary block">Manual wallet authorization</span>
+        </Card>
+
+        <Card padding="sm" className="space-y-1">
+          <span className="text-xs text-text-tertiary block">Trust Receipts</span>
+          <div className="text-2xl font-bold text-accent font-mono">0</div>
+          <span className="text-[11px] text-text-secondary block">Settled milestone receipts</span>
+        </Card>
+      </div>
+
+      {/* Policy Card */}
+      <Card className="space-y-4">
+        <CardHeader
+          title="Policy &amp; Verification Rules"
+          subtitle="Architectural bounds governing your autonomous agents and smart contracts"
+          action={
+            <Link href="/account">
+              <Button variant="ghost" size="sm">
+                Account Settings →
+              </Button>
+            </Link>
+          }
+        />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div className="p-3.5 rounded-control bg-surface-elevated/60 border border-border space-y-1.5">
+            <span className="text-text-primary font-semibold block">Pre-Authorized Verification</span>
+            <p className="text-text-secondary leading-relaxed">
+              When accredited verification attests PASS, policy rules qualify the transaction for settlement. State changes remain subject to cryptographic authorization.
+            </p>
+          </div>
+          <div className="p-3.5 rounded-control bg-surface-elevated/60 border border-border space-y-1.5">
+            <span className="text-text-primary font-semibold block">Deterministic 3-Judge Median</span>
+            <p className="text-text-secondary leading-relaxed">
+              If physical delivery is disputed, escrow locks onchain and 3 independent judges vote on refund basis points.
+            </p>
+          </div>
+          <div className="p-3.5 rounded-control bg-surface-elevated/60 border border-border space-y-1.5">
+            <span className="text-text-primary font-semibold block">Configured Verifier</span>
+            <p className="text-text-secondary leading-relaxed">
+              Operator-Controlled Verifier (<code className="font-mono text-text-primary">0xb064...2c48</code>) mandated to review deliverables before payout.
+            </p>
           </div>
         </div>
+      </Card>
 
-        {/* Agent Policy Card */}
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-950/30 via-gray-900/60 to-purple-950/20 border border-purple-800/40">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wide">
-                Programmatic Policy &amp; Autonomy Rules
-              </h3>
-            </div>
-            <Link
-              href="/account"
-              className="text-xs font-mono text-purple-400 hover:text-purple-300 transition"
-            >
-              Configure Policy Settings →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
-            <div className="p-3 rounded-lg bg-gray-950/60 border border-gray-800">
-              <span className="text-gray-400 block text-[10px]">POLICY-ASSISTED VERIFICATION:</span>
-              <span className="text-emerald-400 font-semibold">Pre-Authorized Verification Rule</span>
-              <p className="text-gray-400 text-[10px] font-sans mt-1">
-                When accredited verification attests PASS, policy rules determine the eligible settlement path. Final financial state changes remain subject to cryptographic authorization and onchain contract enforcement.
-              </p>
-            </div>
-            <div className="p-3 rounded-lg bg-gray-950/60 border border-gray-800">
-              <span className="text-gray-400 block text-[10px]">CONTESTED ESCALATION:</span>
-              <span className="text-amber-400 font-semibold">Deterministic 3-Judge Median</span>
-              <p className="text-gray-400 text-[10px] font-sans mt-1">
-                If evidence is INCONCLUSIVE or disputed, funds lock onchain and human judges compute refund basis points.
-              </p>
-            </div>
-            <div className="p-3 rounded-lg bg-gray-950/60 border border-gray-800">
-              <span className="text-gray-400 block text-[10px]">CONFIGURED VERIFIER:</span>
-              <span className="text-purple-300 font-semibold">Operator-Controlled Verifier (0xb064...2c48)</span>
-              <p className="text-gray-400 text-[10px] font-sans mt-1">
-                Designated independent verifier attestation mandated before escrow release authorization.
-              </p>
-            </div>
-          </div>
+      {/* Active Deal Requests Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-text-primary">
+            Active Requests ({requests.length})
+          </h2>
+          <Link href="/requests" className="text-xs font-medium text-accent hover:underline">
+            Manage all requests →
+          </Link>
         </div>
 
-        {/* Active Deal Requests Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white font-mono flex items-center gap-2">
-              <span>Active Commercial Requests</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-900/60 text-purple-300 border border-purple-800">
-                {requests.length}
-              </span>
-            </h2>
-            <Link
-              href="/requests"
-              className="text-xs font-mono text-purple-400 hover:text-purple-300 transition"
-            >
-              Manage All Requests →
-            </Link>
-          </div>
-
-          {requests.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-gray-900/40 border border-gray-800 text-center font-mono space-y-3">
-              <div className="text-gray-300 font-semibold text-sm">
-                {wallet.isConnected
-                  ? 'No active commercial requests initiated yet.'
-                  : 'Wallet Disconnected — Connect wallet to view your initiated requests.'}
-              </div>
-              <p className="text-gray-500 text-xs max-w-md mx-auto">
-                Create a new commercial intent to define deliverables, set verification requirements, and establish an escrow agreement on Monad Metropolis Testnet.
-              </p>
-              <div className="pt-2">
-                <Link
-                  href="/initiator/intent"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold transition shadow-md"
-                >
-                  <span>+ Create Commercial Intent</span>
-                  <span>→</span>
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {requests.map((req) => (
-                <div
-                  key={req.id}
-                  className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 hover:border-gray-700 transition flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono text-xs"
-                >
+        {requests.length === 0 ? (
+          <EmptyState
+            icon={<FileText className="w-6 h-6 text-text-tertiary" />}
+            title="No active requests"
+            description="Create a commercial proposal to define deliverables, set verification rules, and establish an escrow agreement on Monad."
+            action={
+              <Link href="/initiator/intent">
+                <Button variant="primary" size="sm" leftIcon={<Plus className="w-3.5 h-3.5" />}>
+                  Create Commercial Intent
+                </Button>
+              </Link>
+            }
+          />
+        ) : (
+          <div className="space-y-3">
+            {requests.map((req) => (
+              <Card key={req.id} variant="default" className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-white">{req.id}</span>
-                      <span className="text-gray-400">•</span>
-                      <span className="text-purple-300 font-semibold">{req.deliverable}</span>
+                      <span className="font-mono text-xs text-text-tertiary">{req.id}</span>
+                      <span className="text-border">•</span>
+                      <span className="font-medium text-text-primary text-sm">{req.deliverable}</span>
                     </div>
-                    <div className="text-gray-400 text-[11px] flex flex-wrap items-center gap-3">
-                      <span>Counterparty: <strong className="text-gray-200">{req.receiver}</strong></span>
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
+                      <span>Counterparty: <strong className="text-text-primary">{req.receiver}</strong></span>
                       <span>•</span>
-                      <span>Escrow: <strong className="text-emerald-400">{req.escrowAmountMon} MON</strong></span>
+                      <span>Amount: <strong className="font-mono text-status-success">{req.escrowAmountMon} MON</strong></span>
                       <span>•</span>
                       <span>Deadline: {req.deadlineDays} days</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                  <div className="flex items-center gap-3 shrink-0">
+                    <StatusChip
+                      status={
                         req.status === 'AGREEMENT_ACTIVE'
-                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-600'
+                          ? 'success'
                           : req.status === 'COUNTERED'
-                          ? 'bg-amber-950 text-amber-300 border border-amber-600'
-                          : 'bg-purple-950 text-purple-300 border border-purple-600'
-                      }`}
-                    >
-                      {req.status.replace(/_/g, ' ')}
-                    </span>
-                    <Link
-                      href="/requests"
-                      className="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold transition"
-                    >
-                      View Terms
+                          ? 'warning'
+                          : 'accent'
+                      }
+                      size="sm"
+                      label={req.status.replace(/_/g, ' ')}
+                    />
+                    <Link href="/requests">
+                      <Button variant="secondary" size="sm">
+                        View Terms
+                      </Button>
                     </Link>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Active Transactions & Escrows Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white font-mono">
-              Live &amp; Verified Escrow Transactions
-            </h2>
-            <Link
-              href="/transactions"
-              className="text-xs font-mono text-purple-400 hover:text-purple-300 transition"
-            >
-              View Transaction Directory →
-            </Link>
+              </Card>
+            ))}
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-            {/* Commercial Escrow Operations */}
-            <div className="p-5 rounded-xl bg-gradient-to-b from-[#141026] to-[#0c0d16] border border-purple-800/60 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-700 text-[10px] font-bold">
-                    ESCROW PROTOCOL VAULT
-                  </span>
-                  <span className="text-gray-400 text-[10px]">Authoritative Onchain State</span>
-                </div>
-                <h3 className="text-sm font-bold text-white mb-1">
-                  Commercial Escrow Operations
-                </h3>
-                <p className="text-[11px] text-gray-300 font-sans mb-3">
-                  Commercial escrows deposited by the buyer principal lock MON funds directly in TrustMeshEscrow. Delivery conditions, cryptographic hashes, and verifier attestations govern release.
-                </p>
-                <div className="bg-gray-950 p-2.5 rounded-lg border border-gray-800 space-y-1 text-[11px] mb-4">
-                  <div className="text-gray-400">Vault: <code className="text-purple-300">0x925ea8...015A</code></div>
-                  <div className="text-gray-400">Authorization: <span className="text-emerald-400 font-bold">Initiator Wallet Signature</span></div>
-                  <div className="text-gray-400">Network: <span className="text-indigo-300 font-bold">Monad Metropolis Testnet (10143)</span></div>
-                </div>
-              </div>
-              <Link
-                href="/transactions"
-                className="w-full text-center py-2 px-3 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-bold transition text-xs shadow-md"
-              >
-                View Protocol Transactions →
-              </Link>
-            </div>
-
-            {/* Commercial Agreement Workspace */}
-            <div className="p-5 rounded-xl bg-gradient-to-b from-[#0e1726] to-[#0a0d16] border border-blue-800/60 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-700 text-[10px] font-bold">
-                    COMMERCIAL AGREEMENT WORKSPACE
-                  </span>
-                  <span className="text-gray-400 text-[10px]">Onchain Escrow</span>
-                </div>
-                <h3 className="text-sm font-bold text-white mb-1">
-                  Create User-Defined Commercial Mandate
-                </h3>
-                <p className="text-[11px] text-gray-300 font-sans mb-3">
-                  Structure your commercial procurement in natural language. Define deliverables, attach verification requirements, and invite counterparties to ratify on Monad Metropolis Testnet.
-                </p>
-                <div className="bg-gray-950 p-2.5 rounded-lg border border-gray-800 space-y-1 text-[11px] mb-4">
-                  <div className="text-gray-400">Escrow Contract: <code className="text-purple-300">0x925ea8...015A</code></div>
-                  <div className="text-gray-400">Registry Contract: <code className="text-blue-300">0xE1994e...B819</code></div>
-                  <div className="text-gray-400">Default Verifier: <code className="text-emerald-300">0xb064...2c48</code></div>
-                </div>
-              </div>
-              <Link
-                href="/initiator/intent"
-                className="w-full text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition text-xs shadow-md"
-              >
-                Launch Intent Creator →
-              </Link>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

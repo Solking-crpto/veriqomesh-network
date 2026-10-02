@@ -2,23 +2,39 @@
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
+import {
+  Wallet,
+  ArrowRight,
+  ExternalLink,
+  Shield,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+  FileText,
+  Search,
+  Filter,
+} from 'lucide-react';
 import {
   useDemoNetwork,
   CANONICAL_TESTNET_TX_ID,
   HISTORICAL_LIVE_TESTNET_TX_ID,
-  HISTORICAL_LIVE_TESTNET_TX_HASH,
   HISTORICAL_PARKED_TESTNET_TX_ID,
   HISTORICAL_PARKED_TESTNET_TX_HASH,
   FRESH_LIVE_TESTNET_TX_ID,
-  FRESH_LIVE_TESTNET_TX_HASH,
   TARGET_BUYER_ADDRESS,
   TARGET_SELLER_ADDRESS,
   APPROVED_OPERATOR_VERIFIER_ADDRESS,
 } from '../../context/DemoNetworkContext';
 import { isDefinitiveBenchmark } from '../../lib/invitation-utils';
 import { TransactionState } from '@trustmesh/types';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { Tabs } from '../../components/ui/Tabs';
+import { StatusChip, StatusType } from '../../components/ui/StatusChip';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { Badge } from '../../components/ui/Badge';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 interface TransactionSummary {
   id: string;
@@ -40,6 +56,15 @@ interface TransactionSummary {
   userRole?: 'BUYER' | 'SELLER' | 'VERIFIER';
 }
 
+function getStatusType(state: string): StatusType {
+  const s = state.toUpperCase();
+  if (s === 'SETTLED' || s === 'COMPLETED' || s === 'RELEASED') return 'success';
+  if (s === 'DISPUTED' || s === 'CONTESTED') return 'warning';
+  if (s === 'FAILED' || s === 'CANCELLED' || s === 'REFUNDED') return 'error';
+  if (s === 'ESCROW_FUNDED' || s === 'VERIFICATION' || s === 'IN_PROGRESS') return 'accent';
+  return 'neutral';
+}
+
 function TransactionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -51,7 +76,7 @@ function TransactionsContent() {
   // /transactions, /transactions?tab=personal, or anything else ALWAYS defaults to personal.
   const activeTab: 'personal' | 'demo' = tabParam === 'demo' ? 'demo' : 'personal';
 
-  const handleSelectTab = (targetTab: 'personal' | 'demo') => {
+  const handleSelectTab = (targetTab: string) => {
     if (targetTab === 'demo') {
       router.push('/transactions?tab=demo');
     } else {
@@ -61,11 +86,13 @@ function TransactionsContent() {
 
   const [demoFilter, setDemoFilter] = useState<'ALL' | 'FLOW_A' | 'FLOW_B' | 'AUTONOMOUS'>('ALL');
   const [liveOnchainStates, setLiveOnchainStates] = useState<Record<string, string>>({});
+  const [isLoadingOnchain, setIsLoadingOnchain] = useState(false);
 
   // Query live onchain state for fresh testnet transactions
   useEffect(() => {
     let mounted = true;
     const checkOnchain = async () => {
+      setIsLoadingOnchain(true);
       try {
         const [freshTx, histParkedTx, histTx] = await Promise.all([
           client.getOnchainTransaction(FRESH_LIVE_TESTNET_TX_ID).catch(() => null),
@@ -87,6 +114,8 @@ function TransactionsContent() {
         }
       } catch {
         // Fallback to local state if offline
+      } finally {
+        if (mounted) setIsLoadingOnchain(false);
       }
     };
     checkOnchain();
@@ -175,7 +204,7 @@ function TransactionsContent() {
     },
   ];
 
-  // 2. CONNECTED-USER PERSONAL TRANSACTIONS (Strictly scoped to genuine wallet participant relationships)
+  // 2. CONNECTED-USER PERSONAL TRANSACTIONS
   const connectedAddress =
     wallet.isConnected && wallet.address ? wallet.address.toLowerCase().trim() : null;
 
@@ -187,9 +216,9 @@ function TransactionsContent() {
 
     const list: TransactionSummary[] = [];
 
-    // Filter genuine requests from allRequests (combining local requests and persistent Redis invitations)
+    // Filter genuine requests from allRequests
     allRequests.forEach((req) => {
-      // Hard benchmark exclusion guard: NEVER allow any benchmark/demo fixture into personalTransactions
+      // Hard benchmark exclusion guard
       if (isDefinitiveBenchmark(req)) {
         return;
       }
@@ -200,11 +229,10 @@ function TransactionsContent() {
       const isBuyer = buyer === connectedAddress;
       const isSeller = seller === connectedAddress;
 
-      // Only include if connected wallet is genuinely buyer or seller
       if (isBuyer || isSeller) {
         list.push({
           id: req.transactionId || req.id,
-          sourceLabel: req.isOnchain ? 'LIVE MONAD TESTNET ESCROW' : 'COMMERCIAL DEAL REQUEST',
+          sourceLabel: req.isOnchain ? 'LIVE MONAD ESCROW' : 'COMMERCIAL REQUEST',
           title: req.title,
           deliverable: req.deliverable,
           buyer: req.initiator,
@@ -233,415 +261,345 @@ function TransactionsContent() {
     return true;
   });
 
+  const tabsConfig = [
+    {
+      id: 'personal',
+      label: 'Your Transactions',
+      count: wallet.isConnected ? personalTransactions.length : 0,
+    },
+    {
+      id: 'demo',
+      label: 'Public Benchmarks',
+      count: demoTransactions.length,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#07080d] text-gray-100 py-10 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 pb-6">
-          <div>
-            <div className="text-xs font-mono text-purple-400 font-bold uppercase tracking-wider mb-1">
-              ESCROW STATE MACHINE &amp; TRANSACTION DIRECTORY
+    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-8">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
+            Transactions Directory
+          </h1>
+          <p className="text-xs sm:text-sm text-text-secondary mt-1">
+            Authenticated personal workspace and verifiable Monad testnet benchmarks.
+          </p>
+        </div>
+
+        {/* Tab Selection */}
+        <div className="shrink-0">
+          <Tabs
+            tabs={tabsConfig}
+            activeTab={activeTab}
+            onChange={handleSelectTab}
+          />
+        </div>
+      </div>
+
+      {/* TAB 1: YOUR TRANSACTIONS (Personal Workspace) */}
+      {activeTab === 'personal' && (
+        <div className="space-y-6">
+          {!wallet.isConnected ? (
+            /* Scenario A: Disconnected State */
+            <EmptyState
+              icon={<Wallet className="w-6 h-6 text-accent" />}
+              title="Connect Wallet to View Transactions"
+              description="Your transactions are cryptographically isolated to your authenticated Monad account. Disconnected sessions display zero private activity."
+              action={
+                <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={() => wallet.connect()}
+                    isLoading={wallet.isConnecting}
+                    leftIcon={<Wallet className="w-4 h-4" />}
+                  >
+                    Connect Wallet
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={() => handleSelectTab('demo')}
+                  >
+                    View Public Benchmarks
+                  </Button>
+                </div>
+              }
+            />
+          ) : personalTransactions.length === 0 ? (
+            /* Scenario B: Connected with No Transactions */
+            <EmptyState
+              icon={<FileText className="w-6 h-6 text-text-tertiary" />}
+              title="No Personal Transactions Yet"
+              description="Your connected wallet has not initiated or participated in any active commercial escrow transactions on Monad."
+              action={
+                <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
+                  <Link href="/initiator/intent">
+                    <Button
+                      variant="primary"
+                      size="md"
+                      rightIcon={<ArrowRight className="w-4 h-4" />}
+                    >
+                      Create Agreement
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={() => handleSelectTab('demo')}
+                  >
+                    Explore Flow A Benchmark
+                  </Button>
+                </div>
+              }
+            />
+          ) : (
+            /* Scenario C: Connected with Transactions */
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs text-text-secondary">
+                  Showing {personalTransactions.length} transaction(s) for{' '}
+                  <code className="font-mono text-text-primary">
+                    {wallet.address?.slice(0, 6)}...{wallet.address?.slice(-4)}
+                  </code>
+                </span>
+              </div>
+
+              {personalTransactions.map((tx) => (
+                <Card key={tx.id} variant="default" className="space-y-5 hover:border-border-strong transition">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="accent">{tx.sourceLabel}</Badge>
+                        {tx.userRole && (
+                          <Badge variant="default">
+                            {tx.userRole === 'BUYER' ? 'Buyer Role' : 'Seller Role'}
+                          </Badge>
+                        )}
+                      </div>
+                      <h3 className="text-base sm:text-lg font-bold text-text-primary">
+                        {tx.title}
+                      </h3>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <StatusChip
+                        status={getStatusType(tx.state)}
+                        size="md"
+                        label={tx.state}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Metadata Row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                    <div className="p-3 rounded-control bg-surface-elevated/60 border border-border space-y-1">
+                      <span className="text-text-tertiary block text-[11px]">Buyer</span>
+                      <div className="font-medium text-text-primary truncate">{tx.buyer}</div>
+                      <div className="font-mono text-text-secondary text-[11px] truncate">
+                        {tx.buyerWallet.slice(0, 8)}...{tx.buyerWallet.slice(-6)}
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-control bg-surface-elevated/60 border border-border space-y-1">
+                      <span className="text-text-tertiary block text-[11px]">Seller</span>
+                      <div className="font-medium text-text-primary truncate">{tx.seller}</div>
+                      <div className="font-mono text-text-secondary text-[11px] truncate">
+                        {tx.sellerWallet.slice(0, 8)}...{tx.sellerWallet.slice(-6)}
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-control bg-surface-elevated/60 border border-border space-y-1">
+                      <span className="text-text-tertiary block text-[11px]">Escrow Amount</span>
+                      <div className="font-bold text-text-primary text-sm">{tx.amountMon}</div>
+                      <div className="text-[11px] text-text-tertiary">Monad Testnet</div>
+                    </div>
+                  </div>
+
+                  {/* Actions Footer */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-border text-xs">
+                    <div className="font-mono text-text-tertiary text-[11px]">
+                      ID: <span className="text-text-secondary">{tx.id.slice(0, 14)}...{tx.id.slice(-6)}</span>
+                    </div>
+
+                    <Link href={`/transactions/${tx.id}`} className="w-full sm:w-auto">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        fullWidth
+                        rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                      >
+                        Enter Transaction Room
+                      </Button>
+                    </Link>
+                  </div>
+                </Card>
+              ))}
             </div>
-            <h1 className="text-3xl font-extrabold text-white">Transactions Directory</h1>
-            <p className="text-xs sm:text-sm text-gray-400 font-mono mt-1">
-              Distinguishing your authenticated personal workspace from verifiable public demonstration benchmarks.
+          )}
+        </div>
+      )}
+
+      {/* TAB 2: PUBLIC DEMO & BENCHMARKS */}
+      {activeTab === 'demo' && (
+        <div className="space-y-6">
+          {/* Header Notice */}
+          <div className="p-4 rounded-card bg-surface-elevated border border-border text-xs space-y-1.5">
+            <div className="flex items-center gap-2 text-accent font-semibold">
+              <Shield className="w-4 h-4" />
+              <span>Public Demonstration &amp; Audit Benchmarks</span>
+            </div>
+            <p className="text-text-secondary leading-relaxed">
+              These records represent canonical verification and dispute scenarios executed on Monad Metropolis Testnet (Chain ID 10143). They are read-only and independent of authenticated personal workspaces.
             </p>
           </div>
 
-          {/* Top-Level Workspace vs Public Demo Switcher */}
-          <div className="flex items-center gap-2 bg-gray-950 p-1.5 rounded-xl border border-gray-800 font-mono text-xs">
+          {/* Filter Pills */}
+          <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={() => handleSelectTab('personal')}
-              className={`px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 ${
-                activeTab === 'personal'
-                  ? 'bg-purple-700 text-white shadow-md shadow-purple-950'
-                  : 'text-gray-400 hover:text-white'
+              onClick={() => setDemoFilter('ALL')}
+              className={`px-3 py-1.5 rounded-control text-xs font-medium transition min-h-[36px] ${
+                demoFilter === 'ALL'
+                  ? 'bg-surface-elevated text-text-primary border border-border shadow-subtle'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-surface'
               }`}
             >
-              <span>Your Transactions</span>
-              {wallet.isConnected && personalTransactions.length > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-emerald-500 text-black text-[10px] font-extrabold">
-                  {personalTransactions.length}
-                </span>
-              )}
+              All Benchmarks ({demoTransactions.length})
             </button>
             <button
-              onClick={() => handleSelectTab('demo')}
-              className={`px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 ${
-                activeTab === 'demo'
-                  ? 'bg-purple-700 text-white shadow-md shadow-purple-950'
-                  : 'text-gray-400 hover:text-white'
+              onClick={() => setDemoFilter('FLOW_A')}
+              className={`px-3 py-1.5 rounded-control text-xs font-medium transition min-h-[36px] ${
+                demoFilter === 'FLOW_A'
+                  ? 'bg-surface-elevated text-text-primary border border-border shadow-subtle'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-surface'
               }`}
             >
-              <span>Public Demo &amp; Benchmarks</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-purple-900 text-purple-200 text-[10px]">
-                {demoTransactions.length}
-              </span>
+              Flow A (Normal Release)
+            </button>
+            <button
+              onClick={() => setDemoFilter('FLOW_B')}
+              className={`px-3 py-1.5 rounded-control text-xs font-medium transition min-h-[36px] ${
+                demoFilter === 'FLOW_B'
+                  ? 'bg-surface-elevated text-text-primary border border-border shadow-subtle'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-surface'
+              }`}
+            >
+              Flow B (Dispute Quorum)
+            </button>
+            <button
+              onClick={() => setDemoFilter('AUTONOMOUS')}
+              className={`px-3 py-1.5 rounded-control text-xs font-medium transition min-h-[36px] ${
+                demoFilter === 'AUTONOMOUS'
+                  ? 'bg-surface-elevated text-text-primary border border-border shadow-subtle'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-surface'
+              }`}
+            >
+              Autonomous Simulation
             </button>
           </div>
-        </div>
 
-        {/* TAB 1: YOUR TRANSACTIONS (Personal Workspace) */}
-        {activeTab === 'personal' && (
-          <div className="space-y-6">
-            {!wallet.isConnected ? (
-              /* Scenario A: Disconnected / First-Visit State */
-              <div className="p-8 sm:p-12 rounded-2xl bg-gradient-to-b from-[#110f22] via-[#0b0c16] to-[#07080d] border border-purple-800/60 text-center space-y-6 shadow-2xl">
-                <div className="w-14 h-14 rounded-2xl bg-purple-950/80 border border-purple-600/60 p-2.5 mx-auto flex items-center justify-center shadow-lg shadow-purple-950">
-                  <Image
-                    src="/brand/veriqomesh-mark.png"
-                    alt="VeriqoMesh"
-                    width={36}
-                    height={36}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div className="max-w-md mx-auto space-y-2 font-mono">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-950/70 border border-amber-600/60 text-amber-300 text-[11px] font-bold">
-                    <span className="w-2 h-2 rounded-full bg-amber-400" />
-                    <span>WALLET REQUIRED</span>
-                  </div>
-                  <h2 className="text-2xl font-bold text-white">Your Personal Transaction Workspace</h2>
-                  <p className="text-xs sm:text-sm text-gray-400">
-                    Connect your Monad wallet to view transactions associated with your account.
-                  </p>
-                  <div className="text-xs text-gray-500 pt-1">
-                    0 transactions
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                  <button
-                    onClick={() => wallet.connect()}
-                    disabled={wallet.isConnecting}
-                    className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-mono text-xs font-bold transition shadow-lg shadow-purple-950 flex items-center justify-center gap-2"
-                  >
-                    <span>{wallet.isConnecting ? 'Connecting...' : 'Connect Wallet to View Transactions'}</span>
-                    <span>→</span>
-                  </button>
-                  <button
-                    onClick={() => handleSelectTab('demo')}
-                    className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 font-mono text-xs font-bold transition"
-                  >
-                    Explore Public Demo Instead →
-                  </button>
-                </div>
-
-                {/* Safe Context Callout */}
-                <div className="p-4 rounded-xl bg-purple-950/30 border border-purple-900/40 max-w-xl mx-auto text-left font-mono text-xs text-gray-300 space-y-1">
-                  <div className="text-purple-300 font-bold flex items-center gap-1.5">
-                    <span>🛡 Workspace Isolation Invariant</span>
-                  </div>
-                  <p className="text-gray-400 text-[11px] font-sans">
-                    VeriqoMesh enforces strict workspace isolation. When disconnected, no transactions from other participants or historical benchmarks will ever appear in your personal transaction list.
-                  </p>
-                </div>
-              </div>
-            ) : personalTransactions.length === 0 ? (
-              /* Scenario B: Connected Wallet with No Relevant Transactions */
-              <div className="p-8 sm:p-12 rounded-2xl bg-gradient-to-b from-[#0d101a] to-[#07080d] border border-gray-800 text-center space-y-6 shadow-xl">
-                <div className="w-14 h-14 rounded-2xl bg-gray-900 border border-gray-700/80 p-2.5 mx-auto flex items-center justify-center opacity-80 shadow-md">
-                  <Image
-                    src="/brand/veriqomesh-mark.png"
-                    alt="VeriqoMesh"
-                    width={36}
-                    height={36}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div className="max-w-md mx-auto space-y-2 font-mono">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/70 border border-emerald-700 text-emerald-300 text-[11px]">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>CONNECTED: {wallet.address?.slice(0, 6)}...{wallet.address?.slice(-4)}</span>
-                  </div>
-                  <h2 className="text-2xl font-bold text-white">No Transactions Found</h2>
-                  <p className="text-xs text-gray-400">
-                    Your connected wallet has not initiated, accepted, or verified any escrow transactions on Monad Metropolis Testnet.
-                  </p>
-                  <div className="text-xs text-gray-500 pt-1">
-                    0 transactions
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                  <Link
-                    href="/initiator/intent"
-                    className="w-full sm:w-auto px-6 py-3 rounded-xl bg-purple-700 hover:bg-purple-600 text-white font-mono text-xs font-bold transition shadow-md shadow-purple-950 flex items-center justify-center gap-2"
-                  >
-                    <span>+ Create Commercial Intent</span>
-                    <span>→</span>
-                  </Link>
-                  <button
-                    onClick={() => handleSelectTab('demo')}
-                    className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 font-mono text-xs font-bold transition"
-                  >
-                    See Public Demo (Flow A) →
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* Scenario C: Connected Wallet that Participates in a Transaction */
-              <div className="space-y-6">
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-800/60 font-mono text-xs">
-                  <div className="flex items-center gap-2 text-emerald-300">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>Active Account: <strong>{wallet.address?.slice(0, 8)}...{wallet.address?.slice(-6)}</strong></span>
-                  </div>
-                  <span className="text-gray-400">{personalTransactions.length} transaction(s) associated with your wallet</span>
-                </div>
-
-                {personalTransactions.map((tx) => (
-                  <div
-                    key={tx.id}
-                    className="p-6 rounded-2xl bg-gradient-to-b from-[#0e172a] via-[#09101c] to-[#07080d] border border-blue-500/80 shadow-2xl space-y-5"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800/80 pb-4">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                          <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-950 text-blue-300 border border-blue-500">
-                            {tx.sourceLabel}
-                          </span>
-                          {tx.userRole && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">
-                              YOUR ROLE: {tx.userRole}
-                            </span>
-                          )}
-                          {tx.receiptId && (
-                            <span className="text-xs font-mono text-gray-400">
-                              Receipt #{tx.receiptId}
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="text-xl font-bold text-white">{tx.title}</h3>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600">
-                          STATE: {tx.state}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-950/80 p-4 rounded-xl border border-gray-800/80 font-mono text-xs">
-                      <div>
-                        <span className="text-[10px] text-purple-400 uppercase font-bold block mb-1">
-                          BUYER / INITIATOR
-                        </span>
-                        <div className="text-white font-bold">{tx.buyer}</div>
-                        <div className="text-gray-400 text-[11px] truncate">
-                          Wallet: <code className="text-purple-300">{tx.buyerWallet}</code>
-                        </div>
-                      </div>
-
-                      <div className="border-t md:border-t-0 md:border-l border-gray-800 pt-3 md:pt-0 md:pl-4">
-                        <span className="text-[10px] text-blue-400 uppercase font-bold block mb-1">
-                          SELLER / RECEIVER
-                        </span>
-                        <div className="text-white font-bold">{tx.seller}</div>
-                        <div className="text-gray-400 text-[11px] truncate">
-                          Wallet: <code className="text-blue-300">{tx.sellerWallet}</code>
-                        </div>
-                      </div>
-
-                      <div className="border-t md:border-t-0 md:border-l border-gray-800 pt-3 md:pt-0 md:pl-4">
-                        <span className="text-[10px] text-teal-400 uppercase font-bold block mb-1">
-                          DESIGNATED VERIFIER
-                        </span>
-                        <div className="text-white font-bold">Independent Depot Auditor</div>
-                        <div className="text-gray-400 text-[11px] truncate">
-                          Wallet: <code className="text-teal-300">{tx.verifier}</code>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-gray-800/80">
-                      <div className="text-xs font-mono text-gray-400">
-                        Tx ID: <code className="text-purple-300">{tx.id.slice(0, 16)}...{tx.id.slice(-8)}</code>
-                      </div>
-                      <Link
-                        href={`/transactions/${tx.id}`}
-                        className="w-full sm:w-auto py-2.5 px-6 rounded-xl font-mono text-xs font-bold transition shadow-md bg-blue-600 hover:bg-blue-500 text-white"
-                      >
-                        Enter Transaction Room →
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* TAB 2: PUBLIC DEMO & CANONICAL BENCHMARKS */}
-        {activeTab === 'demo' && (
-          <div className="space-y-6">
-            {/* Explicit Demo Disclaimer Banner */}
-            <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-950/40 via-indigo-950/40 to-purple-950/30 border border-purple-700/80 font-mono text-xs space-y-2 shadow-xl">
-              <div className="flex items-center gap-2 text-purple-300 font-bold uppercase tracking-wider">
-                <span className="w-2.5 h-2.5 rounded-full bg-purple-400 animate-pulse" />
-                <span>PUBLIC DEMONSTRATION &amp; AUDIT BENCHMARKS</span>
-              </div>
-              <p className="text-gray-300 font-sans text-xs sm:text-sm">
-                These records are verified public demonstrations executed on Monad Metropolis Testnet (Chain ID 10143). They illustrate normal verified deliverable release (Flow A) and multi-judge dispute resolution (Flow B). They are independent of your personal transaction workspace.
-              </p>
-            </div>
-
-            {/* Filter Pills for Demo */}
-            <div className="flex flex-wrap items-center gap-2 bg-gray-900/80 p-1.5 rounded-xl border border-gray-800 font-mono text-xs">
-              <button
-                onClick={() => setDemoFilter('ALL')}
-                className={`px-3 py-1.5 rounded-lg transition ${
-                  demoFilter === 'ALL' ? 'bg-purple-700 text-white font-bold' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                All Benchmarks ({demoTransactions.length})
-              </button>
-              <button
-                onClick={() => setDemoFilter('FLOW_A')}
-                className={`px-3 py-1.5 rounded-lg transition ${
-                  demoFilter === 'FLOW_A' ? 'bg-emerald-600 text-white font-bold' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Flow A (Verified Release)
-              </button>
-              <button
-                onClick={() => setDemoFilter('FLOW_B')}
-                className={`px-3 py-1.5 rounded-lg transition ${
-                  demoFilter === 'FLOW_B' ? 'bg-amber-600 text-white font-bold' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Flow B (Dispute Quorum)
-              </button>
-              <button
-                onClick={() => setDemoFilter('AUTONOMOUS')}
-                className={`px-3 py-1.5 rounded-lg transition ${
-                  demoFilter === 'AUTONOMOUS' ? 'bg-purple-700 text-white font-bold' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Autonomous Simulation
-              </button>
-            </div>
-
-            {/* List of Public Demo Cards */}
-            <div className="space-y-6">
-              {filteredDemos.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="p-6 rounded-2xl bg-gradient-to-b from-[#141026] via-[#0d0e18] to-[#07080d] border border-purple-700/70 shadow-2xl space-y-5"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800/80 pb-4">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                        <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-700">
-                          {tx.sourceLabel}
-                        </span>
-                        {tx.receiptId && (
-                          <span className="text-xs font-mono text-gray-400">
-                            Receipt #{tx.receiptId}
-                          </span>
-                        )}
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-950/80 text-purple-400 border border-purple-800">
-                          PUBLIC DEMO
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-bold text-white">{tx.title}</h3>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600">
-                        STATE: {tx.state}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-950/80 p-4 rounded-xl border border-gray-800/80 font-mono text-xs">
-                    <div>
-                      <span className="text-[10px] text-purple-400 uppercase font-bold block mb-1">
-                        BUYER / INITIATOR
-                      </span>
-                      <div className="text-white font-bold">{tx.buyer}</div>
-                      <div className="text-gray-400 text-[11px] truncate">
-                        Wallet: <code className="text-purple-300">{tx.buyerWallet}</code>
-                      </div>
-                    </div>
-
-                    <div className="border-t md:border-t-0 md:border-l border-gray-800 pt-3 md:pt-0 md:pl-4">
-                      <span className="text-[10px] text-blue-400 uppercase font-bold block mb-1">
-                        SELLER / RECEIVER
-                      </span>
-                      <div className="text-white font-bold">{tx.seller}</div>
-                      <div className="text-gray-400 text-[11px] truncate">
-                        Wallet: <code className="text-blue-300">{tx.sellerWallet}</code>
-                      </div>
-                    </div>
-
-                    <div className="border-t md:border-t-0 md:border-l border-gray-800 pt-3 md:pt-0 md:pl-4">
-                      <span className="text-[10px] text-teal-400 uppercase font-bold block mb-1">
-                        DESIGNATED VERIFIER
-                      </span>
-                      <div className="text-white font-bold">Independent Depot Auditor</div>
-                      <div className="text-gray-400 text-[11px] truncate">
-                        Wallet: <code className="text-teal-300">{tx.verifier}</code>
-                      </div>
-                    </div>
-                  </div>
-
-                  {tx.deliverable && (
-                    <div className="p-3 bg-gray-950/60 rounded-xl border border-gray-800 font-mono text-xs">
-                      <span className="text-gray-400 text-[10px] block uppercase font-bold mb-0.5">
-                        DELIVERABLE INTENT:
-                      </span>
-                      <span className="text-gray-200 font-sans text-xs">{tx.deliverable}</span>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
-                    <div className="p-3 bg-gray-950/60 rounded-xl border border-gray-800">
-                      <span className="text-gray-400 text-[10px] block">ESCROW CAPITAL</span>
-                      <span className="text-emerald-400 font-bold text-sm">{tx.amountMon}</span>
-                      <span className="text-[10px] text-gray-500 block">Monad Metropolis Testnet</span>
-                    </div>
-                    <div className="p-3 bg-gray-950/60 rounded-xl border border-gray-800 sm:col-span-2">
-                      <span className="text-gray-400 text-[10px] block">SETTLEMENT METHOD</span>
-                      <span className="text-white font-bold text-xs">{tx.settlementType}</span>
-                      <span className="text-[10px] text-gray-400 block mt-0.5">
-                        Immutable settlement facts recorded on Monad and indexed by Envio HyperIndex
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-gray-800/80">
-                    <div className="text-xs font-mono text-gray-400 space-y-0.5">
-                      <div>
-                        Internal Tx ID: <code className="text-purple-300">{tx.id.length > 30 ? `${tx.id.slice(0, 16)}...${tx.id.slice(-8)}` : tx.id}</code>
-                      </div>
-                      {tx.onchainTxHash && (
-                        <div className="text-[11px]">
-                          Settlement Tx:{' '}
-                          <a
-                            href={`https://testnet.monadvision.com/tx/${tx.onchainTxHash}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-emerald-400 hover:text-emerald-300 underline font-bold"
-                          >
-                            {tx.onchainTxHash.slice(0, 14)}...{tx.onchainTxHash.slice(-6)} ↗
-                          </a>
-                        </div>
+          {/* Benchmark Cards List */}
+          <div className="space-y-4">
+            {filteredDemos.map((tx) => (
+              <Card key={tx.id} variant="default" className="space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="accent">{tx.sourceLabel}</Badge>
+                      {tx.receiptId && (
+                        <Badge variant="default">Trust Receipt #{tx.receiptId}</Badge>
                       )}
                     </div>
-                    <Link
-                      href={`/transactions/${tx.id}`}
-                      className="w-full sm:w-auto py-2.5 px-6 rounded-xl font-mono text-xs font-bold transition shadow-md bg-purple-700 hover:bg-purple-600 text-white text-center"
-                    >
-                      Inspect Public Demo Room →
-                    </Link>
+                    <h3 className="text-base sm:text-lg font-bold text-text-primary">
+                      {tx.title}
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <StatusChip
+                      status={getStatusType(tx.state)}
+                      size="md"
+                      label={tx.state}
+                    />
                   </div>
                 </div>
-              ))}
-            </div>
+
+                {/* Metadata */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                  <div className="p-3 rounded-control bg-surface-elevated/60 border border-border space-y-1">
+                    <span className="text-text-tertiary block text-[11px]">Buyer</span>
+                    <div className="font-medium text-text-primary truncate">{tx.buyer}</div>
+                    <div className="font-mono text-text-secondary text-[11px] truncate">
+                      {tx.buyerWallet.slice(0, 8)}...{tx.buyerWallet.slice(-6)}
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-control bg-surface-elevated/60 border border-border space-y-1">
+                    <span className="text-text-tertiary block text-[11px]">Seller</span>
+                    <div className="font-medium text-text-primary truncate">{tx.seller}</div>
+                    <div className="font-mono text-text-secondary text-[11px] truncate">
+                      {tx.sellerWallet.slice(0, 8)}...{tx.sellerWallet.slice(-6)}
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-control bg-surface-elevated/60 border border-border space-y-1">
+                    <span className="text-text-tertiary block text-[11px]">Escrow &amp; Settlement</span>
+                    <div className="font-bold text-text-primary text-sm">{tx.amountMon}</div>
+                    <div className="text-[11px] text-text-secondary truncate">
+                      {tx.settlementType}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Deliverable Description */}
+                {tx.deliverable && (
+                  <div className="p-3 rounded-control bg-surface-elevated/40 border border-border text-xs text-text-secondary leading-relaxed">
+                    <span className="font-medium text-text-primary block mb-0.5">
+                      Deliverable Specification:
+                    </span>
+                    {tx.deliverable}
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-border text-xs">
+                  <div className="space-y-1 font-mono text-[11px] text-text-tertiary">
+                    <div>
+                      ID: <span className="text-text-secondary">{tx.id.slice(0, 14)}...{tx.id.slice(-6)}</span>
+                    </div>
+                    {tx.onchainTxHash && (
+                      <div>
+                        Settlement Tx:{' '}
+                        <a
+                          href={`https://testnet.monadvision.com/tx/${tx.onchainTxHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-accent hover:underline inline-flex items-center gap-1"
+                        >
+                          <span>{tx.onchainTxHash.slice(0, 12)}...{tx.onchainTxHash.slice(-6)}</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  <Link href={`/transactions/${tx.id}`} className="w-full sm:w-auto">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      fullWidth
+                      rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                    >
+                      Inspect Demo Room
+                    </Button>
+                  </Link>
+                </div>
+              </Card>
+            ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -650,8 +608,13 @@ export default function TransactionsDirectoryPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#07080d] text-gray-100 py-10 px-4 text-center font-mono text-sm">
-          Loading Transactions Directory...
+        <div className="max-w-6xl mx-auto py-12 px-4 space-y-4">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-96" />
+          <div className="pt-6 space-y-4">
+            <Skeleton className="h-32 w-full rounded-card" />
+            <Skeleton className="h-32 w-full rounded-card" />
+          </div>
         </div>
       }
     >

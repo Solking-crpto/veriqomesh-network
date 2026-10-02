@@ -1,6 +1,7 @@
 import '../styles/globals.css';
 import { DemoNetworkProvider } from '../context/DemoNetworkContext';
 import { Navigation } from '../components/Navigation';
+import { BottomTabBar } from '../components/layout/BottomTabBar';
 import { PublicSafetyNotice } from '../components/PublicSafetyNotice';
 
 export const metadata = {
@@ -51,11 +52,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-[#090a10] text-[#ededed] antialiased flex flex-col justify-between">
+      <body className="min-h-screen bg-bg text-text-primary antialiased flex flex-col justify-between selection:bg-accent/25 selection:text-white">
         <DemoNetworkProvider>
           <Navigation />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 pb-16 lg:pb-0">{children}</main>
           <PublicSafetyNotice />
+          <BottomTabBar />
         </DemoNetworkProvider>
       </body>
     </html>

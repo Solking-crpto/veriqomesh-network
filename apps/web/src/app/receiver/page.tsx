@@ -2,8 +2,29 @@
 
 import React, { useMemo } from 'react';
 import Link from 'next/link';
+import {
+  Inbox,
+  ArrowRight,
+  Shield,
+  FileCheck2,
+  AlertCircle,
+  ExternalLink,
+  Check,
+  User,
+} from 'lucide-react';
 import { useDemoNetwork } from '../../context/DemoNetworkContext';
-import { isBenchmarkRequest, isAwaitingReceiverAction, isWalletCompatibleWithRole, TARGET_BUYER_ADDRESS, TARGET_SELLER_ADDRESS } from '../../lib/invitation-utils';
+import {
+  isBenchmarkRequest,
+  isAwaitingReceiverAction,
+  isWalletCompatibleWithRole,
+  TARGET_BUYER_ADDRESS,
+  TARGET_SELLER_ADDRESS,
+} from '../../lib/invitation-utils';
+import { Button } from '../../components/ui/Button';
+import { Card, CardHeader } from '../../components/ui/Card';
+import { Badge } from '../../components/ui/Badge';
+import { StatusChip } from '../../components/ui/StatusChip';
+import { EmptyState } from '../../components/ui/EmptyState';
 
 export default function ReceiverDashboardPage() {
   const {
@@ -27,7 +48,6 @@ export default function ReceiverDashboardPage() {
     });
   }, [wallet.address, wallet.isConnected, receiver.wallet]);
 
-
   // Only genuine actionable requests addressed to this connected wallet
   const actionableRequests = useMemo(() => {
     if (!wallet.isConnected || !wallet.address) return [];
@@ -40,420 +60,235 @@ export default function ReceiverDashboardPage() {
   }, [allRequests, wallet.isConnected, wallet.address]);
 
   return (
-    <div className="min-h-screen bg-[#07080d] text-gray-100 py-10 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Role Mismatch Notice */}
-        {!isRoleActive && (
-          <div className="p-4 rounded-xl bg-blue-950/60 border border-blue-600/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <span>You are currently viewing the network as <strong>INITIATOR</strong>. Switch to <strong>RECEIVER</strong> to view fulfillment node operations.</span>
-            </div>
-            <button
-              onClick={() => switchRole('RECEIVER')}
-              className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition whitespace-nowrap"
-            >
-              Switch to Receiver View
-            </button>
+    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-8">
+      {/* Role Mismatch Notice */}
+      {!isRoleActive && (
+        <div className="p-4 rounded-card bg-surface-elevated border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-text-secondary">
+            <span className="w-2 h-2 rounded-full bg-status-warning shrink-0" />
+            <span>
+              You are currently viewing as <strong>Buyer</strong>. Switch perspective to view as <strong>Seller</strong>.
+            </span>
           </div>
-        )}
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => switchRole('RECEIVER')}
+          >
+            Switch to Seller View
+          </Button>
+        </div>
+      )}
 
-        {/* Wrong Wallet Connected Warning */}
-        {wallet.isConnected && !receiverCompatibility.isCompatible && (
-          <div className="p-5 rounded-2xl bg-amber-950/40 border border-amber-600/70 space-y-3 font-mono text-xs">
-            <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-              <span>Receiver Wallet Required — Connected Wallet Is Not the Designated Receiver</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-950/70 p-3.5 rounded-xl border border-gray-800 text-[11px]">
-              <div>
-                <span className="text-gray-400 block text-[10px]">CURRENT CONNECTED WALLET:</span>
-                <code className="text-amber-300 font-bold">{wallet.address}</code>
-                <span className="block text-gray-500 text-[10px] mt-0.5">
-                  {wallet.address?.toLowerCase() === TARGET_BUYER_ADDRESS.toLowerCase()
-                    ? 'Authorized as Initiator/Buyer persona'
-                    : 'External unauthenticated account'}
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-400 block text-[10px]">DESIGNATED RECEIVER NODE:</span>
-                <code className="text-blue-300 font-bold">{receiver.wallet}</code>
-                <span className="block text-gray-500 text-[10px] mt-0.5">{receiver.name} (Fulfillment Node)</span>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-              <p className="text-gray-400 text-[11px]">
-                In Monad smart contracts and VeriqoMesh invitation architecture, only the designated seller can call{' '}
-                <code className="text-emerald-300">agreeTransaction()</code>. Switch accounts in MetaMask or disconnect to continue.
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => wallet.disconnect()}
-                  className="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold text-xs transition border border-gray-700"
-                >
-                  Disconnect Wallet
-                </button>
-                <button
-                  onClick={() => wallet.connect()}
-                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition"
-                >
-                  Switch Account
-                </button>
-              </div>
-            </div>
+      {/* Wallet Incompatibility Warning */}
+      {wallet.isConnected && !receiverCompatibility.isCompatible && (
+        <div className="p-4 rounded-card bg-status-warning/10 border border-status-warning/30 space-y-3 text-xs">
+          <div className="flex items-center gap-2 text-status-warning font-semibold">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>Seller Wallet Required</span>
           </div>
-        )}
-
-        {/* Disconnected State Callout */}
-        {!wallet.isConnected && (
-          <div className="p-4 rounded-xl bg-gray-900/60 border border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 font-mono text-xs">
-            <div>
-              <div className="text-white font-bold mb-0.5">Receiver Wallet Required</div>
-              <div className="text-gray-400 text-[11px]">
-                Connect a Monad Metropolis testnet wallet to view inbound agreements.
-              </div>
-            </div>
-            <button
+          <p className="text-text-secondary leading-relaxed">
+            Your connected account (<code className="font-mono text-text-primary">{wallet.address?.slice(0, 8)}...{wallet.address?.slice(-6)}</code>) is not registered as the designated seller ({receiver.name || 'Fulfillment Node'}). Only the authorized seller account can sign and accept deal agreements onchain.
+          </p>
+          <div className="flex items-center gap-3 pt-1">
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => wallet.connect()}
-              disabled={wallet.isConnecting}
-              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition text-xs whitespace-nowrap shadow-md shadow-blue-950"
             >
-              Connect Receiver Wallet
-            </button>
-          </div>
-        )}
-
-        {/* Institutional Connection Status Banner */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-gray-900/60 border border-gray-800 text-xs font-mono">
-          <div className="flex items-center gap-2.5">
-            <span
-              className={`w-2.5 h-2.5 rounded-full ${
-                !wallet.isConnected
-                  ? 'bg-amber-400'
-                  : receiverCompatibility.isCompatible
-                  ? 'bg-emerald-400 animate-pulse'
-                  : 'bg-amber-500 animate-pulse'
-              }`}
-            />
-            <span className="text-gray-300">
-              {wallet.isConnected ? (
-                <>
-                  Connected Wallet: <code className="text-white font-bold">{wallet.address}</code>
-                  {!receiverCompatibility.isCompatible && (
-                    <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-700 text-[10px] font-bold">
-                      NOT DESIGNATED RECEIVER
-                    </span>
-                  )}
-                </>
-              ) : (
-                <span className="text-amber-300 font-semibold">Disconnected (Wallet Required)</span>
-              )}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 text-gray-400 text-[11px]">
-            <span>
-              Actionable Inbound:{' '}
-              <strong className={actionableRequestsCount > 0 && receiverCompatibility.isCompatible ? 'text-amber-400 font-bold' : 'text-gray-300'}>
-                {receiverCompatibility.isCompatible ? actionableRequestsCount : 0}
-              </strong>
-            </span>
-            <span>•</span>
-            <span>
-              Node Role:{' '}
-              <strong
-                className={
-                  !wallet.isConnected
-                    ? 'text-gray-400'
-                    : receiverCompatibility.isCompatible
-                    ? 'text-blue-300'
-                    : 'text-amber-400'
-                }
-              >
-                {!wallet.isConnected
-                  ? 'RECEIVER (DISCONNECTED)'
-                  : receiverCompatibility.isCompatible
-                  ? 'RECEIVER (AUTHENTICATED)'
-                  : 'UNMATCHED (RECEIVER REQUIRED)'}
-              </strong>
-            </span>
-            <span>•</span>
-            <span>Network: <span className="text-purple-300">Monad Metropolis Testnet (10143)</span></span>
+              Switch Account
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => wallet.disconnect()}
+            >
+              Disconnect
+            </Button>
           </div>
         </div>
+      )}
 
-        {/* Header & Identity */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-800 pb-6">
-          <div>
-            <div className="flex items-center gap-2.5 mb-2">
-              <span className="px-2.5 py-0.5 rounded bg-blue-900/80 text-blue-300 font-mono text-xs font-bold border border-blue-700">
-                RECEIVER CONSOLE
-              </span>
-              <span className="text-gray-500 font-mono text-xs">Fulfillment &amp; Supplier Node</span>
-            </div>
-            <h1 className="text-3xl font-extrabold text-white flex flex-wrap items-center gap-3">
-              <span>{wallet.isConnected ? receiver.name : 'Fulfillment Supplier Node'}</span>
-              {!wallet.isConnected && (
-                <span className="px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/80 text-amber-300 font-mono text-xs font-bold uppercase tracking-wider">
-                  PUBLIC TESTNET • Connect Wallet to View Inbound Agreements
-                </span>
-              )}
-            </h1>
-            <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-gray-400 mt-2">
-              <span>Node Address: <code className="text-gray-300">{wallet.isConnected ? wallet.address : 'Wallet Required'}</code></span>
-              <span>•</span>
-              <span>Role: <strong className="text-blue-300">Fulfillment &amp; Delivery Node</strong></span>
-              <span>•</span>
-              <span className="text-emerald-400">Node Status: {wallet.isConnected ? 'AUTHENTICATED' : 'DISCONNECTED'}</span>
-            </div>
+      {/* Header & Primary Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <Badge variant="default">SELLER WORKSPACE</Badge>
+            <span className="text-xs text-text-tertiary">Receiver Node</span>
           </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
+            Seller Workspace
+          </h1>
+          <p className="text-xs sm:text-sm text-text-secondary mt-1">
+            Review inbound commercial proposals, sign agreements on Monad, and submit fulfillment evidence.
+          </p>
+        </div>
 
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/requests"
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs font-bold transition shadow-lg shadow-blue-950 flex items-center gap-2 relative"
+        <div className="flex items-center gap-3 shrink-0">
+          <Link href="/requests">
+            <Button
+              variant="primary"
+              size="md"
+              leftIcon={<Inbox className="w-4 h-4" />}
             >
               <span>Incoming Requests</span>
               {actionableRequestsCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-black text-[10px] font-black">
+                <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-white text-accent text-xs font-bold">
                   {actionableRequestsCount}
                 </span>
               )}
-            </Link>
-            <Link
-              href="/account"
-              className="px-4 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-200 font-mono text-xs font-bold transition"
-            >
-              Edit Node Profile
-            </Link>
+            </Button>
+          </Link>
+          <Link href="/account">
+            <Button variant="secondary" size="md">
+              Node Profile
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* 4-Stat Metric Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card padding="sm" className="space-y-1">
+          <span className="text-xs text-text-tertiary block">Incoming Requests</span>
+          <div className="text-2xl font-bold text-status-warning font-mono">
+            {actionableRequestsCount} New
           </div>
+          <span className="text-[11px] text-text-secondary block">
+            {actionableRequestsCount > 0 ? 'Awaiting your onchain signature' : 'No action needed'}
+          </span>
+        </Card>
+
+        <Card padding="sm" className="space-y-1">
+          <span className="text-xs text-text-tertiary block">Active Agreements</span>
+          <div className="text-2xl font-bold text-text-primary font-mono">
+            {wallet.isConnected && wallet.address
+              ? allRequests.filter(
+                  (r) =>
+                    r.status === 'AGREEMENT_ACTIVE' &&
+                    r.receiverWallet?.toLowerCase() === wallet.address?.toLowerCase()
+                ).length
+              : 0}
+          </div>
+          <span className="text-[11px] text-text-secondary block">Active escrow commitments</span>
+        </Card>
+
+        <Card padding="sm" className="space-y-1">
+          <span className="text-xs text-text-tertiary block">Completed Deals</span>
+          <div className="text-2xl font-bold text-status-success font-mono">0</div>
+          <span className="text-[11px] text-text-secondary block">Fully settled transactions</span>
+        </Card>
+
+        <Card padding="sm" className="space-y-1">
+          <span className="text-xs text-text-tertiary block">Trust Score</span>
+          <div className="text-2xl font-bold text-accent font-mono">100%</div>
+          <span className="text-[11px] text-text-secondary block">Accredited supplier rating</span>
+        </Card>
+      </div>
+
+      {/* Inbound Requests List */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-text-primary">
+            Actionable Inbound Requests ({actionableRequests.length})
+          </h2>
+          <Link href="/requests" className="text-xs font-medium text-accent hover:underline">
+            View full inbox →
+          </Link>
         </div>
 
-        {/* Metrics Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
-            <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Incoming Requests</div>
-            <div className="text-2xl font-bold text-amber-400">{actionableRequestsCount} New</div>
-            <div className="text-[11px] text-gray-400 mt-1">
-              {actionableRequestsCount > 0 ? 'Awaiting your onchain response' : 'No action required'}
-            </div>
-          </div>
+        {actionableRequests.length === 0 ? (
+          <EmptyState
+            icon={<Inbox className="w-6 h-6 text-text-tertiary" />}
+            title="No pending requests awaiting your action"
+            description="When buyers initiate commercial agreements designated for your wallet, they will appear here with an onchain signing prompt."
+            action={
+              <Link href="/requests">
+                <Button variant="secondary" size="sm">
+                  Go to Requests Inbox
+                </Button>
+              </Link>
+            }
+          />
+        ) : (
+          <div className="space-y-3">
+            {actionableRequests.map((req) => (
+              <Card key={req.id} variant="default" className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs text-text-tertiary">{req.id}</span>
+                      <span className="text-border">•</span>
+                      <span className="font-medium text-text-primary text-sm">{req.deliverable}</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
+                      <span>Buyer: <strong className="text-text-primary">{req.initiator}</strong></span>
+                      <span>•</span>
+                      <span>Escrow: <strong className="font-mono text-status-success">{req.escrowAmountMon} MON</strong></span>
+                      <span>•</span>
+                      <span>Timeline: {req.deadlineDays} days</span>
+                    </div>
+                  </div>
 
-          <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
-            <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Active Agreements</div>
-            <div className="text-2xl font-bold text-white">
-              {wallet.isConnected && wallet.address
-                ? allRequests.filter(
-                    (r) =>
-                      r.status === 'AGREEMENT_ACTIVE' &&
-                      r.receiverWallet?.toLowerCase() === wallet.address?.toLowerCase()
-                  ).length
-                : 0}
-            </div>
-            <div className="text-[11px] text-blue-400 mt-1">
-              {wallet.isConnected ? 'Agreed commercial escrows' : 'Connect wallet to view'}
-            </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <StatusChip status="warning" size="sm" label="Action Required" />
+                    <Link href={`/requests?invitation=${req.invitationCode || req.id}`}>
+                      <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
+                        Review &amp; Sign
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
+        )}
+      </div>
 
-          <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
-            <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Completed Deals</div>
-            <div className="text-2xl font-bold text-emerald-400">0</div>
-            <div className="text-[11px] text-emerald-400/80 mt-1">
-              {wallet.isConnected ? 'Settled onchain transactions' : '0 completed deals'}
-            </div>
-          </div>
+      {/* Fulfillment Escrows Cards */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold text-text-primary">
+          Fulfillment &amp; Evidence Workflows
+        </h2>
 
-          <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 font-mono">
-            <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Onchain Trust Receipts</div>
-            <div className="text-2xl font-bold text-indigo-400">0</div>
-            <div className="text-[11px] text-indigo-300 mt-1">
-              {wallet.isConnected ? 'Minted Soulbound receipts' : '0 receipts held'}
-            </div>
-          </div>
-        </div>
-
-        {/* Incoming Commercial Requests Widget */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white font-mono flex items-center gap-2">
-              <span>Inbound Commercial Requests</span>
-              {actionableRequestsCount > 0 && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-900/60 text-amber-300 border border-amber-700 animate-pulse">
-                  {actionableRequestsCount} Action Required
-                </span>
-              )}
-            </h2>
-            <Link
-              href="/requests"
-              className="text-xs font-mono text-blue-400 hover:text-blue-300 transition"
-            >
-              All Requests Inbox →
-            </Link>
-          </div>
-
-          {receiverCompatibility.status === 'WRONG_WALLET' ? (
-            <div className="p-6 rounded-xl bg-amber-950/20 border border-amber-800/40 text-center font-mono text-xs text-amber-200 space-y-2">
-              <div className="font-semibold text-amber-300">
-                Connected wallet ({wallet.address?.slice(0, 6)}...{wallet.address?.slice(-4)}) is not the designated receiver.
-              </div>
-              <p className="text-gray-400 text-[11px] max-w-lg mx-auto">
-                No actionable requests can be viewed or ratified with this wallet. Connect the designated seller node (<code className="text-blue-300">{receiver.wallet?.slice(0, 6)}...{receiver.wallet?.slice(-4)}</code>) to access signing actions.
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="space-y-3 flex flex-col justify-between">
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-accent uppercase tracking-wider block">
+                Evidence Anchoring
+              </span>
+              <h3 className="text-base font-bold text-text-primary">
+                Physical Deliverable Verification
+              </h3>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                When goods are shipped or services completed, upload bill of lading carrier manifests, delivery photos, and serial numbers to IPFS.
               </p>
             </div>
-          ) : actionableRequests.length > 0 && receiverCompatibility.isCompatible ? (
-            <div className="space-y-3">
-              {actionableRequests.map((req) => (
-                <div
-                  key={req.id}
-                  className="p-5 rounded-xl bg-gradient-to-r from-blue-950/40 via-gray-900 to-blue-950/20 border border-blue-600/60 font-mono text-xs space-y-4"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-white text-sm">{req.id}</span>
-                        <span className="text-gray-500">•</span>
-                        <span className="text-blue-300 font-semibold">{req.deliverable}</span>
-                      </div>
-                      <div className="text-gray-400 text-[11px]">
-                        From: <strong className="text-white">{req.initiator}</strong> ({req.initiatorWallet.slice(0, 10)}...)
-                      </div>
-                    </div>
+            <Link href="/evidence">
+              <Button variant="secondary" size="sm" fullWidth rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
+                Explore Evidence Registry
+              </Button>
+            </Link>
+          </Card>
 
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-1 rounded bg-amber-950 text-amber-300 border border-amber-700 text-[10px] font-bold">
-                        ACTION REQUIRED
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-gray-950/80 p-3 rounded-lg border border-gray-800 text-[11px]">
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">DEPOSIT:</span>
-                      <span className="text-emerald-400 font-bold">{req.escrowAmountMon} MON</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">TIMELINE:</span>
-                      <span className="text-white">{req.deadlineDays} Days</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">VERIFIER:</span>
-                      <span className="text-purple-300 font-mono text-[10px]">
-                        {req.verifierAddress ? `${req.verifierAddress.slice(0, 6)}...${req.verifierAddress.slice(-4)}` : 'Designated Verifier'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-gray-800/80">
-                    <span className="text-[11px] text-gray-400">
-                      Authoritative ratification requires onchain agreement and EIP-191 cryptographic mutation.
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={req.invitationCode ? `/requests?invitation=${req.invitationCode}` : '/requests'}
-                        className="py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-black font-bold text-xs transition shadow-md flex items-center gap-1.5"
-                      >
-                        <span>Review &amp; Ratify Onchain</span>
-                        <span>→</span>
-                      </Link>
-                      <Link
-                        href="/requests"
-                        className="py-2 px-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold transition"
-                      >
-                        Full Terms
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-6 rounded-xl bg-gray-900/40 border border-gray-800 text-center font-mono text-xs text-gray-400 space-y-2">
-              <div className="text-gray-300 font-semibold">
-                {wallet.isConnected
-                  ? 'No pending inbound requests awaiting your signature.'
-                  : 'Disconnected — Wallet Required. Connect your wallet to receive live commercial invitations.'}
-              </div>
-              <p className="text-gray-500 text-[11px] max-w-lg mx-auto">
-                All verified commercial requests require onchain escrow ratification in the /requests inbox.
+          <Card className="space-y-3 flex flex-col justify-between">
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-status-success uppercase tracking-wider block">
+                Escrow Settlement
+              </span>
+              <h3 className="text-base font-bold text-text-primary">
+                Onchain Capital Settlement
+              </h3>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Once designated inspector nodes attest PASS, escrowed MON funds release to your seller address on Monad Metropolis Testnet.
               </p>
             </div>
-          )}
-
-        </div>
-
-        {/* Fulfillment Transactions Track */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white font-mono">
-              Fulfillment Escrow Transactions
-            </h2>
-            <Link
-              href="/transactions"
-              className="text-xs font-mono text-blue-400 hover:text-blue-300 transition"
-            >
-              All Transactions →
+            <Link href="/transactions">
+              <Button variant="secondary" size="sm" fullWidth rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
+                View Settled Transactions
+              </Button>
             </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-            {/* Fulfillment Agreement Tracking */}
-            <div className="p-5 rounded-xl bg-gradient-to-b from-[#141026] to-[#0c0d16] border border-purple-800/60 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-700 text-[10px] font-bold">
-                    ESCROW WORKSPACE
-                  </span>
-                  <span className="text-gray-400 text-[10px]">Onchain Ratification</span>
-                </div>
-                <h3 className="text-sm font-bold text-white mb-1">
-                  Active Fulfillment Escrows
-                </h3>
-                <p className="text-[11px] text-gray-300 font-sans mb-3">
-                  Inbound commercial agreements ratified onchain via agreeTransaction() lock escrowed MON capital in the protocol vault. Evidence hashes anchored onchain satisfy release criteria.
-                </p>
-                <div className="bg-gray-950 p-2.5 rounded-lg border border-gray-800 space-y-1 text-[11px] mb-4">
-                  <div className="text-gray-400">Vault: <code className="text-purple-300">0x925ea8...015A</code></div>
-                  <div className="text-gray-400">Authorization: <span className="text-emerald-400 font-bold">Designated Receiver Key</span></div>
-                  <div className="text-gray-400">Resolution: <span className="text-blue-300">Deterministic Onchain Enforcement</span></div>
-                </div>
-              </div>
-              <Link
-                href="/requests"
-                className="w-full text-center py-2 px-3 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-bold transition text-xs shadow-md"
-              >
-                Manage Inbound Agreements →
-              </Link>
-            </div>
-
-            {/* Fulfillment & Settlement Operations */}
-            <div className="p-5 rounded-xl bg-gradient-to-b from-[#0e1726] to-[#0a0d16] border border-blue-800/60 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-700 text-[10px] font-bold">
-                    FULFILLMENT OPERATIONS
-                  </span>
-                  <span className="text-gray-400 text-[10px]">Onchain Settlement</span>
-                </div>
-                <h3 className="text-sm font-bold text-white mb-1">
-                  Deliverable Verification &amp; Release
-                </h3>
-                <p className="text-[11px] text-gray-300 font-sans mb-3">
-                  When agreements are ratified, fulfillment nodes upload carrier BOLs, depot delivery photos, and serial manifests to IPFS. Designated verifier attestations authorize release on Monad Metropolis Testnet.
-                </p>
-                <div className="bg-gray-950 p-2.5 rounded-lg border border-gray-800 space-y-1 text-[11px] mb-4">
-                  <div className="text-gray-400">Escrow Address: <code className="text-purple-300">0x925ea8...015A</code></div>
-                  <div className="text-gray-400">Evidence Anchoring: <span className="text-blue-300">Keccak256 IPFS Hashes</span></div>
-                  <div className="text-gray-400">Release Security: <span className="text-emerald-300">Smart Contract Enforced</span></div>
-                </div>
-              </div>
-              <Link
-                href="/requests"
-                className="w-full text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition text-xs shadow-md"
-              >
-                View Incoming Deals →
-              </Link>
-            </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

@@ -2,7 +2,21 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import {
+  User,
+  Shield,
+  Wallet,
+  Check,
+  RotateCcw,
+  ExternalLink,
+  Lock,
+} from 'lucide-react';
 import { useDemoNetwork, INDEPENDENT_VERIFIER_ADDRESS } from '../../context/DemoNetworkContext';
+import { Button } from '../../components/ui/Button';
+import { Card, CardHeader } from '../../components/ui/Card';
+import { Input, Textarea } from '../../components/ui/Input';
+import { Badge } from '../../components/ui/Badge';
+import { StatusChip } from '../../components/ui/StatusChip';
 
 export default function AccountPage() {
   const {
@@ -39,7 +53,7 @@ export default function AccountPage() {
       autoExecution: autoExec,
       humanFallback,
     });
-    setSaveMessage('Initiator policy parameters saved to local demo session.');
+    setSaveMessage('Initiator policy parameters saved.');
     setTimeout(() => setSaveMessage(null), 3000);
   };
 
@@ -50,406 +64,238 @@ export default function AccountPage() {
       location,
       provides,
     });
-    setSaveMessage('Receiver profile saved to local demo session.');
+    setSaveMessage('Receiver profile saved.');
     setTimeout(() => setSaveMessage(null), 3000);
   };
 
   return (
-    <div className="min-h-screen bg-[#07080d] text-gray-100 py-10 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-5xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 pb-6">
-          <div>
-            <div className="text-xs font-mono text-purple-400 font-bold uppercase tracking-wider mb-1">
-              NETWORK IDENTITY &amp; POLICY CONTROLS
-            </div>
-            <h1 className="text-3xl font-extrabold text-white">Participant Profile &amp; Role Switcher</h1>
-            <p className="text-sm text-gray-400 mt-1 font-mono">
-              VeriqoMesh supports dual-sided commerce between Initiators (Buyers/Agents) and Receivers (Sellers/Nodes).
-            </p>
+    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <Badge variant="accent">GOVERNANCE &amp; PROFILE</Badge>
+            <span className="text-xs text-text-tertiary">Monad Testnet</span>
           </div>
-
-          {/* Quick Role Switcher Pill */}
-          <div className="flex items-center gap-2 bg-gray-900/90 p-1.5 rounded-xl border border-gray-700 font-mono text-xs">
-            <span className="text-gray-400 text-[11px] px-2">Active View:</span>
-            <button
-              onClick={() => switchRole('INITIATOR')}
-              className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${
-                role === 'INITIATOR'
-                  ? 'bg-purple-700 text-white shadow-md shadow-purple-950 border border-purple-500'
-                  : 'text-gray-400 hover:text-gray-200'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${role === 'INITIATOR' ? 'bg-emerald-300' : 'bg-gray-600'}`} />
-              <span>INITIATOR</span>
-            </button>
-            <button
-              onClick={() => switchRole('RECEIVER')}
-              className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${
-                role === 'RECEIVER'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-950 border border-blue-400'
-                  : 'text-gray-400 hover:text-gray-200'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${role === 'RECEIVER' ? 'bg-emerald-300' : 'bg-gray-600'}`} />
-              <span>RECEIVER</span>
-            </button>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
+            Account &amp; Policy Controls
+          </h1>
+          <p className="text-xs sm:text-sm text-text-secondary mt-1">
+            Configure participant profiles, spending bounds, and autonomous agent delegation settings.
+          </p>
         </div>
 
-        {saveMessage && (
-          <div className="p-3 rounded-lg bg-emerald-950/80 border border-emerald-600/60 text-emerald-200 text-xs font-mono flex items-center gap-2">
-            <span className="text-emerald-400 font-bold">✓</span>
-            <span>{saveMessage}</span>
-          </div>
-        )}
-
-        {/* Live Browser Wallet Integration Card */}
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-950/30 via-gray-900 to-indigo-950/30 border border-purple-800/50 flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono text-xs">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${wallet.isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'}`} />
-              <span className="font-bold text-white uppercase">
-                {wallet.isConnected ? 'Browser Wallet Connected' : 'Public Testnet (Wallet Required)'}
-              </span>
-              {wallet.isConnected && (
-                <span className="px-2 py-0.2 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-700">
-                  {wallet.isMonadTestnet ? 'Monad Testnet (10143)' : 'Wrong Network'}
-                </span>
-              )}
-            </div>
-            {wallet.isConnected ? (
-              <div className="text-gray-300 text-[11px] flex flex-wrap items-center gap-2">
-                <span>Address: <code className="text-purple-300">{wallet.address}</code></span>
-                <span>•</span>
-                <span>Balance: <strong className="text-emerald-400">{wallet.balanceMon ? `${wallet.balanceMon} MON` : '0.0 MON'}</strong></span>
-              </div>
-            ) : (
-              <p className="text-gray-400 text-[11px] font-sans">
-                Operating with verified demo participant profiles. Connect your MetaMask wallet to execute real transactions on Monad Testnet.
-              </p>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {!wallet.isConnected ? (
-              <button
-                onClick={() => wallet.connect()}
-                disabled={wallet.isConnecting}
-                className="py-2 px-4 rounded-xl bg-purple-700 hover:bg-purple-600 text-white font-bold transition shadow-md shadow-purple-950 flex items-center gap-1.5"
-              >
-                <span>Connect MetaMask</span>
-                <span>→</span>
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={() => bindConnectedWalletToRole()}
-                  className="py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold transition shadow-md text-[11px]"
-                  title="Assign connected wallet address to the active role profile"
-                >
-                  Use Connected Wallet as {role === 'INITIATOR' ? 'Initiator' : 'Receiver'}
-                </button>
-                <button
-                  onClick={() => wallet.disconnect()}
-                  className="py-2 px-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 transition text-[11px]"
-                >
-                  Disconnect
-                </button>
-              </>
-            )}
-            <button
-              onClick={() => resetToGuidedDefaults()}
-              className="py-2 px-3 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-400 hover:text-white transition text-[11px]"
-              title="Reset all customized session fields back to canonical demo state"
-            >
-              Reset to Guided Defaults
-            </button>
-          </div>
-        </div>
-
-        {/* Role Comparison Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Initiator Summary Box */}
-          <div
-            className={`p-6 rounded-2xl border transition-all ${
+        {/* Perspective Toggle */}
+        <div className="flex items-center p-1 rounded-control bg-surface-elevated border border-border text-xs">
+          <span className="px-2 text-text-tertiary font-medium">Perspective:</span>
+          <button
+            onClick={() => switchRole('INITIATOR')}
+            className={`px-3 py-1.5 rounded-[6px] font-medium transition ${
               role === 'INITIATOR'
-                ? 'bg-[#141226] border-purple-600 shadow-xl shadow-purple-950/30'
-                : 'bg-gray-900/40 border-gray-800 opacity-75'
+                ? 'bg-accent text-white shadow-subtle'
+                : 'text-text-secondary hover:text-text-primary'
             }`}
           >
-            <div className="flex items-center justify-between mb-4">
-              <span className="px-2.5 py-1 rounded bg-purple-900/70 text-purple-300 font-mono text-xs font-bold border border-purple-700">
-                ROLE: TRANSACTION INITIATOR
-              </span>
-              {role === 'INITIATOR' && (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-900 text-emerald-300 text-[10px] font-mono font-bold">
-                  CURRENT ACTIVE
-                </span>
-              )}
-            </div>
-
-            <h3 className="text-xl font-bold text-white mb-1">{initiator.name}</h3>
-            <p className="text-xs text-gray-400 mb-4 font-mono">Principal / Buyer Node • Autonomous AI Agent Delegation</p>
-
-            <div className="space-y-2 text-xs font-mono bg-gray-950/60 p-3.5 rounded-xl border border-gray-800 mb-4">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Designated Profile Address:</span>
-                <span className="text-gray-200 font-semibold">{initiator.wallet.slice(0, 8)}...{initiator.wallet.slice(-6)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Authorized Agent:</span>
-                <span className="text-purple-300 font-semibold">{initiator.agentName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Spending Cap:</span>
-                <span className="text-emerald-300 font-semibold">{initiator.spendingLimitMon} MON / transaction</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Authorized Settlement:</span>
-                <span className="text-emerald-400">{initiator.autoExecution ? 'Enabled (Verification PASS)' : 'Disabled'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Contest Safeguard:</span>
-                <span className="text-amber-400">{initiator.humanFallback ? '3-Judge Deterministic Median' : 'Manual'}</span>
-              </div>
-            </div>
-
-            {role !== 'INITIATOR' ? (
-              <button
-                onClick={() => switchRole('INITIATOR')}
-                className="w-full py-2 px-3 rounded-lg bg-purple-900 hover:bg-purple-800 text-purple-200 text-xs font-mono font-bold transition"
-              >
-                Switch to Initiator Perspective
-              </button>
-            ) : (
-              <Link
-                href="/initiator"
-                className="block text-center w-full py-2 px-3 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-mono font-bold transition"
-              >
-                Open Initiator Dashboard →
-              </Link>
-            )}
-          </div>
-
-          {/* Receiver Summary Box */}
-          <div
-            className={`p-6 rounded-2xl border transition-all ${
+            Buyer
+          </button>
+          <button
+            onClick={() => switchRole('RECEIVER')}
+            className={`px-3 py-1.5 rounded-[6px] font-medium transition ${
               role === 'RECEIVER'
-                ? 'bg-[#0d162a] border-blue-600 shadow-xl shadow-blue-950/30'
-                : 'bg-gray-900/40 border-gray-800 opacity-75'
+                ? 'bg-accent text-white shadow-subtle'
+                : 'text-text-secondary hover:text-text-primary'
             }`}
           >
-            <div className="flex items-center justify-between mb-4">
-              <span className="px-2.5 py-1 rounded bg-blue-900/70 text-blue-300 font-mono text-xs font-bold border border-blue-700">
-                ROLE: TRANSACTION RECEIVER
-              </span>
-              {role === 'RECEIVER' && (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-900 text-emerald-300 text-[10px] font-mono font-bold">
-                  CURRENT ACTIVE
-                </span>
-              )}
-            </div>
-
-            <h3 className="text-xl font-bold text-white mb-1">{wallet.isConnected ? receiver.name : 'Fulfillment Supplier Node'}</h3>
-            <p className="text-xs text-gray-400 mb-4 font-mono">Fulfillment Node / Seller • Monad Metropolis Testnet</p>
-
-            <div className="space-y-2 text-xs font-mono bg-gray-950/60 p-3.5 rounded-xl border border-gray-800 mb-4">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Node Address:</span>
-                <span className="text-gray-200 font-semibold">{wallet.isConnected ? `${wallet.address?.slice(0, 8)}...${wallet.address?.slice(-6)}` : 'Wallet Required'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Depot Location:</span>
-                <span className="text-blue-300 font-semibold">{receiver.location}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Completed Agreements:</span>
-                <span className="text-emerald-300 font-semibold">{receiver.stats.completed} Completed</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Trust Receipts:</span>
-                <span className="text-indigo-300 font-semibold">{receiver.stats.trustReceipts} Onchain Receipts</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Adjudication Cases:</span>
-                <span className="text-amber-300 font-semibold">{receiver.stats.disputed} Disputed</span>
-              </div>
-            </div>
-
-            {role !== 'RECEIVER' ? (
-              <button
-                onClick={() => switchRole('RECEIVER')}
-                className="w-full py-2 px-3 rounded-lg bg-blue-900 hover:bg-blue-800 text-blue-200 text-xs font-mono font-bold transition"
-              >
-                Switch to Receiver Perspective
-              </button>
-            ) : (
-              <Link
-                href="/receiver"
-                className="block text-center w-full py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-mono font-bold transition"
-              >
-                Open Receiver Dashboard →
-              </Link>
-            )}
-          </div>
-        </div>
-
-        {/* Detailed Configuration Panel for Active Role */}
-        <div className="p-6 rounded-2xl bg-gray-900/60 border border-gray-800 shadow-md">
-          <div className="flex items-center justify-between border-b border-gray-800 pb-4 mb-6">
-            <div>
-              <h2 className="text-xl font-bold text-white">
-                {role === 'INITIATOR' ? 'Initiator Policy & Delegation Parameters' : 'Receiver Profile & Fulfillment Settings'}
-              </h2>
-              <p className="text-xs text-gray-400 font-mono mt-1">
-                {role === 'INITIATOR'
-                  ? 'Define the programmatic spending boundaries and settlement rules for your AI agents.'
-                  : 'Configure node capabilities, operational depot location, and attestation readiness.'}
-              </p>
-            </div>
-            <span className="text-xs font-mono px-2.5 py-1 rounded bg-gray-800 text-gray-300">
-              Session Memory Active
-            </span>
-          </div>
-
-          {role === 'INITIATOR' ? (
-            <form onSubmit={handleSaveInitiator} className="space-y-5 text-sm font-mono">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1">Organization / Entity Name</label>
-                  <input
-                    type="text"
-                    value={initiatorName}
-                    onChange={(e) => setInitiatorName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-700 text-white focus:border-purple-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1">Authorized AI Agent Label</label>
-                  <input
-                    type="text"
-                    value={agentName}
-                    onChange={(e) => setAgentName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-700 text-white focus:border-purple-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1">Max Spending Cap Per Transaction (MON)</label>
-                  <input
-                    type="text"
-                    value={spendingLimit}
-                    onChange={(e) => setSpendingLimit(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-700 text-white focus:border-purple-500 focus:outline-none"
-                  />
-                  <span className="text-[10px] text-gray-500 mt-1 block">
-                    Transactions above this limit require direct human co-signature.
-                  </span>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1">Required Verification Node</label>
-                  <input
-                    type="text"
-                    disabled
-                    value={INDEPENDENT_VERIFIER_ADDRESS ? `${INDEPENDENT_VERIFIER_ADDRESS} (Default Verifier Node)` : 'Operator-Designated Independent Verifier Node'}
-                    className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-800 text-gray-400 cursor-not-allowed"
-                  />
-                  <span className="text-[10px] text-gray-500 mt-1 block">
-                    Mandatory accredited physical inspection prior to release authorization.
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-900/60 space-y-3">
-                <div className="text-xs text-purple-300 font-bold">Policy Safeguards &amp; Institutional Authorization Rules</div>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={autoExec}
-                    onChange={(e) => setAutoExec(e.target.checked)}
-                    className="rounded bg-gray-950 border-gray-700 text-purple-600 focus:ring-purple-500"
-                  />
-                  <span className="text-xs text-gray-300 font-sans">
-                    <strong>Policy-Assisted Verification:</strong> Mark settlement eligible when verification outcome is attested <code className="text-emerald-400">PASS</code>. Onchain release of funds remains cryptographically authorized and contract-enforced.
-                  </span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={humanFallback}
-                    onChange={(e) => setHumanFallback(e.target.checked)}
-                    className="rounded bg-gray-950 border-gray-700 text-purple-600 focus:ring-purple-500"
-                  />
-                  <span className="text-xs text-gray-300 font-sans">
-                    <strong>Human Adjudication Fallback:</strong> Automatically lock escrow and route to 3-judge human panel if verification is <code className="text-amber-400">INCONCLUSIVE</code> or contested.
-                  </span>
-                </label>
-              </div>
-
-              <div className="flex justify-end pt-2">
-                <button
-                  type="submit"
-                  className="py-2.5 px-6 rounded-xl bg-purple-700 hover:bg-purple-600 text-white font-bold transition text-xs font-mono shadow-md shadow-purple-950"
-                >
-                  Save Policy Configuration
-                </button>
-              </div>
-            </form>
-          ) : (
-            <form onSubmit={handleSaveReceiver} className="space-y-5 text-sm font-mono">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1">Organization / Supplier Name</label>
-                  <input
-                    type="text"
-                    value={receiverName}
-                    onChange={(e) => setReceiverName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-700 text-white focus:border-blue-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1">Depot / Fulfillment Location</label>
-                  <input
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-700 text-white focus:border-blue-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Commercial Capabilities &amp; Deliverables</label>
-                <textarea
-                  rows={3}
-                  value={provides}
-                  onChange={(e) => setProvides(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-700 text-white focus:border-blue-500 focus:outline-none text-xs font-mono"
-                />
-              </div>
-
-              <div className="p-4 rounded-xl bg-blue-950/20 border border-blue-900/60 space-y-2 text-xs font-mono">
-                <div className="text-blue-300 font-bold">Node Trust Verification</div>
-                <div className="text-gray-300 font-sans">
-                  Verified supplier nodes mint non-transferable Soulbound Trust Receipts on Monad upon satisfactory milestone attestation and escrow completion.
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-2">
-                <button
-                  type="submit"
-                  className="py-2.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition text-xs font-mono shadow-md shadow-blue-950"
-                >
-                  Save Receiver Profile
-                </button>
-              </div>
-            </form>
-          )}
+            Seller
+          </button>
         </div>
       </div>
+
+      {saveMessage && (
+        <div className="p-3 rounded-control bg-status-success/10 border border-status-success/30 text-status-success text-xs flex items-center gap-2">
+          <Check className="w-4 h-4 shrink-0" />
+          <span>{saveMessage}</span>
+        </div>
+      )}
+
+      {/* Connected Wallet Account Card */}
+      <Card className="space-y-4">
+        <CardHeader
+          title="Connected Account &amp; Environment"
+          subtitle="Monad Metropolis Testnet (Chain ID 10143)"
+          action={
+            <StatusChip
+              status={wallet.isConnected && wallet.isMonadTestnet ? 'success' : 'neutral'}
+              label={wallet.isConnected ? (wallet.isMonadTestnet ? 'Monad Active' : 'Wrong Chain') : 'Disconnected'}
+            />
+          }
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div className="p-3.5 rounded-control bg-surface-elevated/60 border border-border space-y-1">
+            <span className="text-text-tertiary block">Account Address</span>
+            <div className="font-mono text-text-primary text-xs break-all">
+              {wallet.isConnected ? wallet.address : 'Wallet not connected'}
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded-control bg-surface-elevated/60 border border-border space-y-1">
+            <span className="text-text-tertiary block">Account Balance</span>
+            <div className="font-mono font-bold text-text-primary text-sm">
+              {wallet.isConnected ? (wallet.balanceMon ? `${wallet.balanceMon} MON` : '0.0 MON') : '—'}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 pt-2">
+          {!wallet.isConnected ? (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => wallet.connect()}
+              isLoading={wallet.isConnecting}
+              leftIcon={<Wallet className="w-3.5 h-3.5" />}
+            >
+              Connect Wallet
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => bindConnectedWalletToRole()}
+              >
+                Bind to Active Role ({role === 'INITIATOR' ? 'Buyer' : 'Seller'})
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => wallet.disconnect()}
+              >
+                Disconnect
+              </Button>
+            </>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => resetToGuidedDefaults()}
+            leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+          >
+            Reset to Defaults
+          </Button>
+        </div>
+      </Card>
+
+      {/* Role Profile & Settings */}
+      <Card className="space-y-6">
+        <CardHeader
+          title={role === 'INITIATOR' ? 'Buyer Policy Configuration' : 'Seller Fulfillment Profile'}
+          subtitle={
+            role === 'INITIATOR'
+              ? 'Define programmatic spending boundaries and settlement rules for transactions'
+              : 'Configure fulfillment supplier details, depot location, and service specifications'
+          }
+        />
+
+        {role === 'INITIATOR' ? (
+          <form onSubmit={handleSaveInitiator} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Entity / Organization Name"
+                value={initiatorName}
+                onChange={(e) => setInitiatorName(e.target.value)}
+              />
+              <Input
+                label="Authorized AI Agent Name"
+                value={agentName}
+                onChange={(e) => setAgentName(e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Max Spending Cap Per Transaction"
+                value={spendingLimit}
+                onChange={(e) => setSpendingLimit(e.target.value)}
+                rightElement="MON"
+                helperText="Transactions above this threshold require human co-signature"
+              />
+              <Input
+                label="Required Verification Node"
+                disabled
+                value={INDEPENDENT_VERIFIER_ADDRESS || 'Operator-Designated Independent Verifier'}
+                helperText="Accredited physical inspection node"
+              />
+            </div>
+
+            <div className="p-4 rounded-control bg-surface-elevated/40 border border-border space-y-3">
+              <span className="text-xs font-semibold text-text-primary block">
+                Policy Safeguards
+              </span>
+
+              <label className="flex items-start gap-3 cursor-pointer text-xs">
+                <input
+                  type="checkbox"
+                  checked={autoExec}
+                  onChange={(e) => setAutoExec(e.target.checked)}
+                  className="w-4 h-4 rounded accent-accent mt-0.5"
+                />
+                <span className="text-text-secondary leading-relaxed">
+                  <strong className="text-text-primary">Policy-Assisted Verification:</strong> Mark settlement eligible when verification outcome is attested <code className="text-status-success font-mono">PASS</code>. Onchain release of funds remains subject to cryptographic wallet authorization.
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer text-xs">
+                <input
+                  type="checkbox"
+                  checked={humanFallback}
+                  onChange={(e) => setHumanFallback(e.target.checked)}
+                  className="w-4 h-4 rounded accent-accent mt-0.5"
+                />
+                <span className="text-text-secondary leading-relaxed">
+                  <strong className="text-text-primary">Human Adjudication Fallback:</strong> Automatically lock escrow and route to 3-judge human panel if verification outcome is <code className="text-status-warning font-mono">INCONCLUSIVE</code> or contested.
+                </span>
+              </label>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button type="submit" variant="primary" size="md">
+                Save Policy Configuration
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleSaveReceiver} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Supplier / Organization Name"
+                value={receiverName}
+                onChange={(e) => setReceiverName(e.target.value)}
+              />
+              <Input
+                label="Depot / Fulfillment Location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+            </div>
+
+            <Textarea
+              label="Commercial Capabilities &amp; Deliverables"
+              rows={3}
+              value={provides}
+              onChange={(e) => setProvides(e.target.value)}
+              helperText="Summary of goods, services, or technical capabilities offered"
+            />
+
+            <div className="flex justify-end pt-2">
+              <Button type="submit" variant="primary" size="md">
+                Save Seller Profile
+              </Button>
+            </div>
+          </form>
+        )}
+      </Card>
     </div>
   );
 }

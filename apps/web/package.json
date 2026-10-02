@@ -15,6 +15,7 @@
     "@trustmesh/sdk": "*",
     "@trustmesh/types": "*",
     "ethers": "^6.17.0",
+    "lucide-react": "^1.49.0",
     "next": "^15.1.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

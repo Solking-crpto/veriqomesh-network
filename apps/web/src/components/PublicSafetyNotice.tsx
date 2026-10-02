@@ -1,83 +1,135 @@
 import React from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
+import { Play, ExternalLink, ShieldCheck, Mail } from 'lucide-react';
 
 export function PublicSafetyNotice() {
   return (
-    <footer className="mt-12 border-t border-gray-800 bg-[#07080d]/90 py-6 text-xs text-gray-400 font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-3">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-gray-900 pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="relative w-6 h-6 rounded-md overflow-hidden flex items-center justify-center flex-shrink-0 bg-[#090a10]">
-              <Image
-                src="/brand/veriqomesh-mark.png"
-                alt="VeriqoMesh"
-                width={24}
-                height={24}
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div>
-              <div className="font-mono text-white font-bold text-xs uppercase tracking-wider">
+    <footer className="mt-16 sm:mt-24 border-t border-border bg-[#0B0D12] text-xs text-text-secondary">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 space-y-8">
+        {/* Top Grid: Brand, Links, Disclosures */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Brand Column */}
+          <div className="space-y-3 md:col-span-1">
+            <div className="flex items-center gap-2.5">
+              <div className="relative w-7 h-7 rounded-control overflow-hidden flex items-center justify-center shrink-0 bg-surface border border-border">
+                <Image
+                  src="/brand/veriqomesh-mark.png"
+                  alt="VeriqoMesh Network"
+                  width={24}
+                  height={24}
+                  className="w-full h-full object-contain p-0.5"
+                />
+              </div>
+              <span className="font-bold text-text-primary text-sm tracking-tight">
                 VeriqoMesh Network
+              </span>
+            </div>
+            <p className="text-xs text-text-tertiary leading-relaxed">
+              Programmable trust layer and cryptographic escrow protocol for commerce between humans and AI agents.
+            </p>
+            <div className="pt-1">
+              <Link
+                href="/demo-video"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-control bg-accent/10 border border-accent/25 text-[#9D85FF] font-medium hover:bg-accent/20 transition text-xs"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Watch Product Walkthrough</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Protocol Links */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider">
+              Protocol
+            </h4>
+            <ul className="space-y-2 text-xs">
+              <li>
+                <Link href="/initiator/intent" className="hover:text-text-primary transition">
+                  Create Agreement
+                </Link>
+              </li>
+              <li>
+                <Link href="/requests" className="hover:text-text-primary transition">
+                  Requests Inbox
+                </Link>
+              </li>
+              <li>
+                <Link href="/transactions" className="hover:text-text-primary transition">
+                  Transactions Directory
+                </Link>
+              </li>
+              <li>
+                <Link href="/transactions?tab=demo" className="hover:text-text-primary transition">
+                  Public Benchmark Flow A &amp; B
+                </Link>
+              </li>
+              <li>
+                <Link href="/trust" className="hover:text-text-primary transition">
+                  Trust Receipts &amp; Scoring
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Testnet Disclosures */}
+          <div className="space-y-3 md:col-span-2">
+            <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider">
+              Testnet Disclosures &amp; Safety
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] leading-relaxed text-text-tertiary">
+              <div className="p-3 rounded-card bg-surface/60 border border-border space-y-1">
+                <span className="font-medium text-text-secondary block">
+                  Testnet Assets Only
+                </span>
+                <p>
+                  Operates on Monad Metropolis Testnet (Chain ID 10143). Tokens and deposits carry zero real-world financial value.
+                </p>
               </div>
-              <div className="text-[10px] text-gray-400 font-mono">
-                Trust. Verify. Transact.
+              <div className="p-3 rounded-card bg-surface/60 border border-border space-y-1">
+                <span className="font-medium text-text-secondary block">
+                  Immutable Commitments
+                </span>
+                <p>
+                  Onchain commitments and evidence hashes are irreversible once verified and settled via smart contracts.
+                </p>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 font-mono text-[10px] text-gray-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            <span>Monad Metropolis Testnet • Chain ID: 10143 • EVM Compatible</span>
-          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-[11px] leading-relaxed">
-          <div className="p-2.5 rounded bg-gray-950/60 border border-gray-900">
-            <span className="text-gray-300 font-medium block mb-1">Testnet Assets Only</span>
-            All tokens, deposits, and settlement transactions operate on Monad Metropolis Testnet. Testnet MON assets carry zero real-world monetary value.
-          </div>
-          <div className="p-2.5 rounded bg-gray-950/60 border border-gray-900">
-            <span className="text-gray-300 font-medium block mb-1">Privacy & Data Boundary</span>
-            Do not submit sensitive personal, proprietary, or confidential data. Onchain commitments and evidence hashes are immutably preserved onchain.
-          </div>
-          <div className="p-2.5 rounded bg-gray-950/60 border border-gray-900">
-            <span className="text-gray-300 font-medium block mb-1">Cryptographic Evidence & Settlement</span>
-            Storage pointers (<code className="text-gray-300 font-mono">ipfs://</code>) serve as content-hash reference commitments. Once verified and authorized, onchain settlements and Trust Receipts are final and irreversible.
-          </div>
-        </div>
-
-        <div className="pt-2 text-[10px] text-gray-400 flex flex-wrap items-center justify-between gap-2 font-mono">
-          <div>
-            Built for Monad Metropolis Hackathon • Track: Trust, Identity & AI Infrastructure
-          </div>
-          <div className="flex items-center gap-3">
-            <span>Escrow: <code className="text-gray-300">0x925ea8...015A</code></span>
+        {/* Smart Contracts Row */}
+        <div className="pt-6 border-t border-border/60 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="flex flex-wrap items-center gap-4 text-text-tertiary font-mono text-[11px]">
+            <span>Monad Metropolis Testnet (10143)</span>
             <span>•</span>
-            <span>Registry: <code className="text-gray-300">0xE1994e...B819</code></span>
+            <span>Escrow: <code className="text-text-secondary">0x925ea8...015A</code></span>
+            <span>•</span>
+            <span>Registry: <code className="text-text-secondary">0xE1994e...B819</code></span>
+            <span>•</span>
+            <span>Resolver: <code className="text-text-secondary">0x12f9e5...c35E</code></span>
           </div>
-        </div>
 
-        <div className="pt-3 border-t border-gray-900/80 flex flex-wrap items-center justify-between gap-3 text-[11px] font-mono">
-          <div className="flex flex-wrap items-center gap-2 text-gray-400">
-            <span className="text-gray-300 font-semibold">Official Network Operations & Contact:</span>
+          {/* Official Contact & Socials */}
+          <div className="flex items-center gap-4 text-xs font-medium">
             <a
               href="mailto:veriqomeshnetwork@gmail.com"
-              className="text-purple-400 hover:text-purple-300 underline transition"
+              className="text-text-secondary hover:text-text-primary transition inline-flex items-center gap-1.5"
             >
-              veriqomeshnetwork@gmail.com
+              <Mail className="w-3.5 h-3.5" />
+              <span>veriqomeshnetwork@gmail.com</span>
             </a>
-            <span className="text-gray-600">•</span>
+            <span className="text-border">•</span>
             <a
               href="https://x.com/veriqomesh_ai"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-purple-400 hover:text-purple-300 underline transition"
+              className="text-text-secondary hover:text-text-primary transition inline-flex items-center gap-1"
             >
-              X: @veriqomesh_ai ↗
+              <span>@veriqomesh_ai</span>
+              <ExternalLink className="w-3 h-3 text-text-tertiary" />
             </a>
-          </div>
-          <div className="text-[10px] text-gray-500">
-            EVM Chain ID: 10143 • Metropolis Testnet
           </div>
         </div>
       </div>

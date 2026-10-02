@@ -4,431 +4,365 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import {
+  ArrowRight,
+  Play,
+  Shield,
+  FileText,
+  Inbox,
+  Users,
+  CheckCircle2,
+  ExternalLink,
+  Lock,
+  Scale,
+  Sparkles,
+} from 'lucide-react';
 import { useDemoNetwork } from '../context/DemoNetworkContext';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
+import { StatusChip } from '../components/ui/StatusChip';
 
 export default function LandingPage() {
   const router = useRouter();
-  const { role, switchRole, initiator, receiver, requests } = useDemoNetwork();
+  const { switchRole } = useDemoNetwork();
 
   const handleEnterInitiator = () => {
     switchRole('INITIATOR');
-    router.push('/initiator');
+    router.push('/initiator/intent');
   };
 
   const handleEnterReceiver = () => {
     switchRole('RECEIVER');
-    router.push('/receiver');
+    router.push('/requests');
   };
 
   return (
-    <div className="min-h-screen bg-[#07080d] text-gray-100 flex flex-col font-sans">
+    <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-16 px-4 sm:px-6 lg:px-8 border-b border-gray-900 bg-gradient-to-b from-[#110f1e] via-[#090a12] to-[#07080d]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
-
-        <div className="max-w-6xl mx-auto text-center relative z-10">
-          {/* Official Brand Logo */}
-          <div className="mb-6 flex justify-center">
-            <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full p-1 bg-gradient-to-tr from-purple-900/40 via-blue-900/40 to-transparent border border-purple-500/30 shadow-2xl shadow-purple-950/50">
+      <section className="relative px-4 sm:px-6 lg:px-8 pt-12 pb-16 sm:pt-20 sm:pb-24 border-b border-border">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          {/* Brand Mark & Tag */}
+          <div className="flex flex-col items-center justify-center gap-3">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-surface border border-border flex items-center justify-center p-2 shadow-card">
               <Image
-                src="/brand/veriqomesh-logo.png"
+                src="/brand/veriqomesh-mark.png"
                 alt="VeriqoMesh Network"
-                width={144}
-                height={144}
-                className="w-full h-full object-contain rounded-full"
+                width={64}
+                height={64}
+                className="w-full h-full object-contain"
                 priority
               />
             </div>
-          </div>
-
-          {/* Institutional Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-600/50 text-purple-300 font-mono text-xs mb-6 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-            <span>VeriqoMesh Network Protocol • Monad Testnet Active</span>
-          </div>
-
-          {/* Main Headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white mb-4">
-            VERIQOMESH <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-300">NETWORK</span>
-          </h1>
-
-          <p className="text-xl sm:text-2xl font-semibold text-gray-200 mb-3 tracking-wide">
-            Trusted Commerce for Humans &amp; AI
-          </p>
-
-          <p className="text-base sm:text-lg text-gray-400 max-w-2xl mx-auto mb-10 font-mono">
-            Define the deal. Protect the transaction. Verify the outcome.
-          </p>
-
-          {/* Core Architectural Principle Strip */}
-          <div className="max-w-4xl mx-auto mb-10 p-3 rounded-xl bg-gray-900/90 border border-gray-800 shadow-inner flex flex-wrap items-center justify-around gap-4 text-xs font-mono">
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-purple-900/80 text-purple-300 font-bold">1</span>
-              <span className="text-gray-200 font-semibold">AI Assists</span>
-              <span className="text-gray-500 text-[10px]">(intent structuring)</span>
-            </div>
-            <div className="text-gray-600 hidden sm:inline">•</div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-blue-900/80 text-blue-300 font-bold">2</span>
-              <span className="text-gray-200 font-semibold">Humans Authorize</span>
-              <span className="text-gray-500 text-[10px]">(wallet ratification)</span>
-            </div>
-            <div className="text-gray-600 hidden sm:inline">•</div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-amber-900/80 text-amber-300 font-bold">3</span>
-              <span className="text-gray-200 font-semibold">Verifiers Verify</span>
-              <span className="text-gray-500 text-[10px]">(evidence attestation)</span>
-            </div>
-            <div className="text-gray-600 hidden sm:inline">•</div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-emerald-900/80 text-emerald-300 font-bold">4</span>
-              <span className="text-gray-200 font-semibold">Blockchain Enforces</span>
-              <span className="text-gray-500 text-[10px]">(Monad onchain escrow)</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-elevated border border-border text-text-secondary text-xs font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-status-success" />
+              <span>Live on Monad Metropolis Testnet · Chain ID 10143</span>
             </div>
           </div>
 
-          {/* TWO PRIMARY ENTRY POINTS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto text-left">
-            {/* INITIATOR CARD */}
-            <div className="p-6 rounded-2xl bg-gradient-to-b from-[#141224] to-[#0c0d16] border border-purple-700/60 shadow-xl shadow-purple-950/20 hover:border-purple-500 transition-all flex flex-col justify-between group">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="px-2.5 py-1 rounded bg-purple-900/80 text-purple-200 font-mono text-xs font-bold border border-purple-700">
-                    BUYER / CLIENT / PRINCIPAL
-                  </span>
-                  <span className="text-purple-400 font-mono text-xs">Origin Node</span>
-                </div>
-                <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-purple-300 transition">
-                  Transaction Initiator
-                </h2>
-                <p className="text-xs text-gray-300 mb-4 leading-relaxed">
-                  Commission commercial agreements, deposit escrow capital, define deliverable milestones, and mandate independent verification before capital release.
-                </p>
-                <div className="bg-purple-950/40 rounded-lg p-3 border border-purple-900/60 mb-5 text-[11px] font-mono space-y-1">
-                  <div className="text-gray-400">Node Role: <span className="text-white font-semibold">Buyer / Principal Node</span></div>
-                  <div className="text-gray-400">Governance: <span className="text-purple-300">Policy-Bounded Intent &amp; Human Authorization</span></div>
-                  <div className="text-gray-400">Network: <span className="text-emerald-300">Monad Metropolis Testnet (10143)</span></div>
-                </div>
-              </div>
-              <button
-                onClick={handleEnterInitiator}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-purple-900/50 transition flex items-center justify-center gap-2"
-              >
-                <span>ENTER AS INITIATOR</span>
-                <span className="text-lg">→</span>
-              </button>
-            </div>
-
-            {/* RECEIVER CARD */}
-            <div className="p-6 rounded-2xl bg-gradient-to-b from-[#0d1624] to-[#0a0d16] border border-blue-700/60 shadow-xl shadow-blue-950/20 hover:border-blue-500 transition-all flex flex-col justify-between group">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="px-2.5 py-1 rounded bg-blue-900/80 text-blue-200 font-mono text-xs font-bold border border-blue-700">
-                    SELLER / SUPPLIER / FULFILLMENT
-                  </span>
-                  <span className="text-blue-400 font-mono text-xs">Fulfillment Node</span>
-                </div>
-                <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-blue-300 transition">
-                  Transaction Receiver
-                </h2>
-                <p className="text-xs text-gray-300 mb-4 leading-relaxed">
-                  Receive inbound commercial requests, review &amp; sign agreements, fulfill deliverables, submit cryptographically hashed proof, and claim escrow.
-                </p>
-                <div className="bg-blue-950/40 rounded-lg p-3 border border-blue-900/60 mb-5 text-[11px] font-mono space-y-1">
-                  <div className="text-gray-400">Node Role: <span className="text-white font-semibold">Fulfillment Supplier &amp; Logistics Node</span></div>
-                  <div className="text-gray-400">Capabilities: <span className="text-blue-300">Commercial Delivery, Inspection &amp; Settlement</span></div>
-                  <div className="text-gray-400">Network: <span className="text-emerald-300">Monad Metropolis Testnet (10143)</span></div>
-                </div>
-              </div>
-              <button
-                onClick={handleEnterReceiver}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-sm shadow-lg shadow-blue-900/50 transition flex items-center justify-center gap-2"
-              >
-                <span>ENTER AS RECEIVER</span>
-                <span className="text-lg">→</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Complete Two-Sided Product Lifecycle Visual Track */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 border-b border-gray-900 bg-[#090b12]">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="text-xs font-mono font-bold text-purple-400 uppercase tracking-widest">
-              END-TO-END COMMERCIAL INFRASTRUCTURE
-            </span>
-            <h2 className="text-3xl font-extrabold text-white mt-1">
-              How VeriqoMesh Connects &amp; Protects Commerce
-            </h2>
-            <p className="text-gray-400 text-sm max-w-xl mx-auto mt-2">
-              From natural intent and direct counterparty negotiation to independent verification and multi-path settlement.
+          {/* Headline */}
+          <div className="space-y-3">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-text-primary leading-[1.1]">
+              Programmable Trust &amp; Escrow for Human and AI Commerce
+            </h1>
+            <p className="text-base sm:text-xl text-text-secondary max-w-2xl mx-auto leading-relaxed">
+              Define the agreement. Protect the transaction. Verify the outcome with cryptographic proof on Monad.
             </p>
           </div>
 
-          {/* Step Sequence Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 font-mono text-xs">
-            {/* Step 1 */}
-            <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 flex flex-col">
-              <div className="text-purple-400 font-bold text-[10px] mb-1">01 • IDENTITIES</div>
-              <div className="text-white font-bold mb-2">Dual Profiles</div>
-              <p className="text-gray-400 text-[11px] font-sans flex-1">
-                Initiator (Buyer/Agent) and Receiver (Fulfillment Supplier) configure policy boundaries, identities, and verified wallets.
-              </p>
-              <div className="mt-3 text-[10px] text-purple-300 bg-purple-950/60 p-1.5 rounded border border-purple-900">
-                Buyer Principal ↔ Fulfillment Supplier
-              </div>
-            </div>
+          {/* Primary & Secondary Actions */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-lg mx-auto">
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              className="whitespace-nowrap"
+              onClick={handleEnterInitiator}
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+            >
+              Create Agreement
+            </Button>
+            <Link href="/demo-video" className="w-full sm:w-auto">
+              <Button
+                variant="secondary"
+                size="lg"
+                fullWidth
+                className="whitespace-nowrap"
+                leftIcon={<Play className="w-4 h-4 fill-current" />}
+              >
+                Watch Walkthrough (02:55)
+              </Button>
+            </Link>
+          </div>
 
-            {/* Step 2 */}
-            <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 flex flex-col">
-              <div className="text-purple-400 font-bold text-[10px] mb-1">02 • CONNECTION</div>
-              <div className="text-white font-bold mb-2">Deal Proposal</div>
-              <p className="text-gray-400 text-[11px] font-sans flex-1">
-                Initiator parses natural language intent into structured parameters and transmits direct commercial request to counterparty.
-              </p>
-              <div className="mt-3 text-[10px] text-gray-300 bg-gray-950 p-1.5 rounded border border-gray-800">
-                Terms: <code className="text-purple-300">Canonical Agreement Hash</code>
+          {/* 4-Step Architecture Strip */}
+          <div className="pt-8 sm:pt-12">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-left">
+              <div className="p-4 rounded-card bg-surface border border-border space-y-1.5">
+                <div className="flex items-center gap-2 text-accent font-semibold text-xs">
+                  <span>01</span>
+                  <span className="text-text-primary">AI Assists</span>
+                </div>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  Translates natural language intent into structured parameters and canonical terms.
+                </p>
               </div>
-            </div>
 
-            {/* Step 3 */}
-            <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 flex flex-col">
-              <div className="text-purple-400 font-bold text-[10px] mb-1">03 • RATIFICATION</div>
-              <div className="text-white font-bold mb-2">Mutual Agreement</div>
-              <p className="text-gray-400 text-[11px] font-sans flex-1">
-                Receiver reviews, counters, or accepts terms. Mutual consent generates onchain terms hash and ratifies escrow authorization.
-              </p>
-              <div className="mt-3 text-[10px] text-emerald-300 bg-emerald-950/60 p-1.5 rounded border border-emerald-900">
-                Ratified Agreement Card
+              <div className="p-4 rounded-card bg-surface border border-border space-y-1.5">
+                <div className="flex items-center gap-2 text-accent font-semibold text-xs">
+                  <span>02</span>
+                  <span className="text-text-primary">Humans Authorize</span>
+                </div>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  Both counterparties review and ratify immutable terms with cryptographic wallet signatures.
+                </p>
               </div>
-            </div>
 
-            {/* Step 4 */}
-            <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 flex flex-col">
-              <div className="text-purple-400 font-bold text-[10px] mb-1">04 • ESCROW</div>
-              <div className="text-white font-bold mb-2">Protected Funds</div>
-              <p className="text-gray-400 text-[11px] font-sans flex-1">
-                Escrow initialized on Monad. Funds are held in strict smart contract state machine. AI Preflight advisory verifies safety.
-              </p>
-              <div className="mt-3 text-[10px] text-gray-300 bg-gray-950 p-1.5 rounded border border-gray-800">
-                Contract: <code className="text-gray-400">0x925e...015A</code>
+              <div className="p-4 rounded-card bg-surface border border-border space-y-1.5">
+                <div className="flex items-center gap-2 text-accent font-semibold text-xs">
+                  <span>03</span>
+                  <span className="text-text-primary">Verifiers Attest</span>
+                </div>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  Physical bills of lading, serial numbers, and inspection proofs committed to IPFS.
+                </p>
               </div>
-            </div>
 
-            {/* Step 5 */}
-            <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 flex flex-col">
-              <div className="text-purple-400 font-bold text-[10px] mb-1">05 • VERIFY</div>
-              <div className="text-white font-bold mb-2">Attestation</div>
-              <p className="text-gray-400 text-[11px] font-sans flex-1">
-                Carrier BOL, delivery photo, &amp; serial manifest submitted to IPFS. Independent inspector node issues cryptographic attestation.
-              </p>
-              <div className="mt-3 text-[10px] text-amber-300 bg-amber-950/60 p-1.5 rounded border border-amber-900">
-                PASS or INCONCLUSIVE
-              </div>
-            </div>
-
-            {/* Step 6 */}
-            <div className="p-4 rounded-xl bg-gray-900/70 border border-gray-800 flex flex-col">
-              <div className="text-purple-400 font-bold text-[10px] mb-1">06 • SETTLE</div>
-              <div className="text-white font-bold mb-2">Dual Settlement</div>
-              <p className="text-gray-400 text-[11px] font-sans flex-1">
-                PASS: Authorized settlement. CONTESTED: 3-judge median quorum determines basis points, verified onchain.
-              </p>
-              <div className="mt-3 text-[10px] text-indigo-300 bg-indigo-950/60 p-1.5 rounded border border-indigo-900">
-                Trust Receipt Generated
+              <div className="p-4 rounded-card bg-surface border border-border space-y-1.5">
+                <div className="flex items-center gap-2 text-accent font-semibold text-xs">
+                  <span>04</span>
+                  <span className="text-text-primary">Monad Enforces</span>
+                </div>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  State machine contract locks deposits and executes settlement or 3-judge mediation.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Live Testnet Dispute Adjudication Callout */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-purple-950/40 via-indigo-950/30 to-purple-950/40 border-b border-gray-900">
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-6">
-          <div className="space-y-2">
+      {/* Two-Sided Entry Cards */}
+      <section className="px-4 sm:px-6 lg:px-8 py-16 max-w-6xl mx-auto w-full">
+        <div className="text-center max-w-xl mx-auto mb-10 space-y-2">
+          <h2 className="text-2xl sm:text-3xl font-bold text-text-primary">
+            Choose Your Role
+          </h2>
+          <p className="text-sm text-text-secondary">
+            Participate as a commissioning buyer or a fulfilling supplier with cryptographic guarantees.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Buyer / Initiator Card */}
+          <Card className="flex flex-col justify-between p-6 sm:p-8 space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Badge variant="accent">BUYER WORKSPACE</Badge>
+                <span className="text-xs text-text-tertiary">Initiator Node</span>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl sm:text-2xl font-bold text-text-primary">
+                  Transaction Initiator
+                </h3>
+                <p className="text-sm text-text-secondary leading-relaxed">
+                  Commission commercial procurement, lock escrow capital safely in Monad contracts, define deliverable specifications, and mandate independent verification.
+                </p>
+              </div>
+              <div className="p-3 rounded-control bg-surface-elevated border border-border text-xs space-y-1.5 text-text-secondary">
+                <div className="flex items-center justify-between">
+                  <span>Role:</span>
+                  <span className="text-text-primary font-medium">Buyer / Principal Node</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Governance:</span>
+                  <span className="text-text-primary font-medium">Policy-Bounded Intent &amp; Signature</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Network:</span>
+                  <span className="text-status-success font-medium">Monad Metropolis (10143)</span>
+                </div>
+              </div>
+            </div>
+            <Button
+              variant="primary"
+              size="md"
+              fullWidth
+              onClick={handleEnterInitiator}
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+            >
+              Enter as Buyer
+            </Button>
+          </Card>
+
+          {/* Seller / Receiver Card */}
+          <Card className="flex flex-col justify-between p-6 sm:p-8 space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Badge variant="default">SELLER WORKSPACE</Badge>
+                <span className="text-xs text-text-tertiary">Receiver Node</span>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl sm:text-2xl font-bold text-text-primary">
+                  Transaction Receiver
+                </h3>
+                <p className="text-sm text-text-secondary leading-relaxed">
+                  Receive inbound commercial deal requests, review proposed agreement terms, counter or ratify, submit fulfillment evidence, and claim verified escrow releases.
+                </p>
+              </div>
+              <div className="p-3 rounded-control bg-surface-elevated border border-border text-xs space-y-1.5 text-text-secondary">
+                <div className="flex items-center justify-between">
+                  <span>Role:</span>
+                  <span className="text-text-primary font-medium">Fulfillment Supplier Node</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Capabilities:</span>
+                  <span className="text-text-primary font-medium">Delivery, Evidence &amp; Settlement</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Network:</span>
+                  <span className="text-status-success font-medium">Monad Metropolis (10143)</span>
+                </div>
+              </div>
+            </div>
+            <Button
+              variant="secondary"
+              size="md"
+              fullWidth
+              onClick={handleEnterReceiver}
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+            >
+              Enter as Seller
+            </Button>
+          </Card>
+        </div>
+      </section>
+
+      {/* Live Benchmark Case Study */}
+      <section className="px-4 sm:px-6 lg:px-8 py-12 bg-surface/40 border-y border-border">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-mono font-bold text-emerald-400">
-                CANONICAL MONAD TESTNET DISPUTE SETTLEMENT
+              <span className="w-2 h-2 rounded-full bg-status-success" />
+              <span className="text-xs font-semibold text-text-primary uppercase tracking-wide">
+                Verifiable Testnet Evidence
               </span>
             </div>
-            <h3 className="text-xl font-bold text-white">
-              Demonstrated Live on Monad Metropolis (Chain ID: 10143)
+            <h3 className="text-xl sm:text-2xl font-bold text-text-primary">
+              Monad Testnet 3-Judge Dispute Resolution
             </h3>
-            <p className="text-xs text-gray-300 max-w-2xl font-mono">
-              Transaction <code className="text-purple-300">0x2b57d6b0...afcc4</code> was contested due to physical module micro-cracks. Three human judges submitted signed ballots; the protocol computed a deterministic median consensus of 1,500 bps (15% refund, 85% release) executed onchain by resolver <code className="text-purple-300">0x12f9...c35E</code>.
+            <p className="text-sm text-text-secondary leading-relaxed">
+              Transaction <code className="font-mono text-text-primary">0x2b57d6b0...afcc4</code> was contested due to physical solar module damage. Three independent human judges submitted signed ballots; the protocol computed a deterministic median consensus of 1,500 bps (15% refund, 85% release) executed by resolver <code className="font-mono text-text-primary">0x12f9...c35E</code>.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/transactions/0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4"
-              className="px-4 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-600 text-white font-mono text-xs font-bold transition shadow-md"
-            >
-              Inspect Live Record
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <Link href="/transactions/0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4">
+              <Button variant="primary" size="md">
+                Inspect Record
+              </Button>
             </Link>
-            <Link
-              href="/trust"
-              className="px-4 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-200 font-mono text-xs font-bold transition"
-            >
-              View Trust Receipt #2
+            <Link href="/trust">
+              <Button variant="secondary" size="md">
+                View Trust Receipt
+              </Button>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Quick Navigation Hub */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
-        <h3 className="text-sm font-mono text-gray-400 font-bold uppercase tracking-wider mb-6">
-          Explore Network Modules
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link
-            href="/initiator/intent"
-            className="p-5 rounded-xl bg-gray-900/60 border border-gray-800 hover:border-purple-600/60 transition group flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-8 h-8 rounded-lg bg-purple-900/50 flex items-center justify-center text-purple-300 text-sm mb-3 font-mono font-bold">
-                01
-              </div>
-              <div className="text-sm font-bold text-white group-hover:text-purple-300 transition">
-                Create Commercial Intent
-              </div>
-              <div className="text-xs text-gray-400 mt-1">
-                Parse natural language procurement instructions into onchain terms with AI policy bounds.
-              </div>
-            </div>
-            <div className="text-purple-400 text-xs font-mono font-bold mt-4">Start Intent →</div>
-          </Link>
-
-          <Link
-            href="/receivers"
-            className="p-5 rounded-xl bg-gray-900/60 border border-gray-800 hover:border-blue-600/60 transition group flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-8 h-8 rounded-lg bg-blue-900/50 flex items-center justify-center text-blue-300 text-sm mb-3 font-mono font-bold">
-                02
-              </div>
-              <div className="text-sm font-bold text-white group-hover:text-blue-300 transition">
-                Receiver Directory
-              </div>
-              <div className="text-xs text-gray-400 mt-1">
-                Discover verified fulfillment suppliers, logistics nodes, and independent physical inspection providers.
-              </div>
-            </div>
-            <div className="text-blue-400 text-xs font-mono font-bold mt-4">Browse Directory →</div>
-          </Link>
-
-          <Link
-            href="/requests"
-            className="p-5 rounded-xl bg-gray-900/60 border border-gray-800 hover:border-emerald-600/60 transition group flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-8 h-8 rounded-lg bg-emerald-900/50 flex items-center justify-center text-emerald-300 text-sm mb-3 font-mono font-bold">
-                03
-              </div>
-              <div className="text-sm font-bold text-white group-hover:text-emerald-300 transition">
-                Deal Requests &amp; Agreements
-              </div>
-              <div className="text-xs text-gray-400 mt-1">
-                Two-sided negotiation room to review, counter, or ratify commercial agreements before escrow.
-              </div>
-            </div>
-            <div className="text-emerald-400 text-xs font-mono font-bold mt-4">View Requests →</div>
-          </Link>
-
-          <Link
-            href="/transactions"
-            className="p-5 rounded-xl bg-gray-900/60 border border-gray-800 hover:border-indigo-600/60 transition group flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-8 h-8 rounded-lg bg-indigo-900/50 flex items-center justify-center text-indigo-300 text-sm mb-3 font-mono font-bold">
-                04
-              </div>
-              <div className="text-sm font-bold text-white group-hover:text-indigo-300 transition">
-                Transaction Rooms
-              </div>
-              <div className="text-xs text-gray-400 mt-1">
-                Interactive rooms executing AI Preflight, attested evidence verification, and dual-track settlement.
-              </div>
-            </div>
-            <div className="text-indigo-400 text-xs font-mono font-bold mt-4">Enter Rooms →</div>
-          </Link>
-        </div>
-      </section>
-
-      {/* Official Network Contact Section */}
-      <section className="py-14 px-4 sm:px-6 lg:px-8 border-b border-gray-900 bg-gradient-to-b from-[#090a12] to-[#07080d]">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-600/50 text-purple-300 font-mono text-xs">
-            <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-            <span>OFFICIAL CONTACT &amp; COMMUNICATIONS</span>
-          </div>
-
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-            Connect with VeriqoMesh Network
-          </h2>
-
-          <p className="text-xs sm:text-sm text-gray-400 font-mono max-w-xl mx-auto leading-relaxed">
-            For institutional inquiries, commercial integrations, verifier accreditation, or developer partnership on Monad Metropolis Testnet:
+      {/* Protocol Navigation Hub */}
+      <section className="px-4 sm:px-6 lg:px-8 py-16 max-w-6xl mx-auto w-full space-y-6">
+        <div>
+          <h3 className="text-lg font-bold text-text-primary">
+            Explore Protocol Modules
+          </h3>
+          <p className="text-xs sm:text-sm text-text-secondary">
+            Access core services and directories across the network.
           </p>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto font-mono text-xs text-left">
-            <a
-              href="mailto:veriqomeshnetwork@gmail.com"
-              className="p-5 rounded-2xl bg-gray-900/80 border border-gray-800 hover:border-purple-600 transition flex items-center gap-4 group shadow-lg"
-            >
-              <div className="w-11 h-11 rounded-xl bg-purple-950 flex items-center justify-center text-purple-300 text-xl border border-purple-800 shrink-0">
-                ✉
-              </div>
-              <div>
-                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">OFFICIAL EMAIL</div>
-                <div className="text-white font-bold group-hover:text-purple-300 transition text-sm">
-                  veriqomeshnetwork@gmail.com
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link href="/initiator/intent">
+            <Card variant="interactive" className="h-full flex flex-col justify-between p-5 space-y-4">
+              <div className="space-y-2">
+                <div className="w-10 h-10 rounded-control bg-accent/10 border border-accent/25 flex items-center justify-center text-accent">
+                  <Sparkles className="w-5 h-5" />
                 </div>
-                <div className="text-[10px] text-gray-500 mt-0.5">Direct commercial &amp; technical inquiries</div>
+                <h4 className="text-base font-semibold text-text-primary">
+                  Create Intent
+                </h4>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  Parse natural language procurement instructions into onchain terms with AI policy bounds.
+                </p>
               </div>
-            </a>
+              <div className="text-xs font-medium text-accent flex items-center gap-1">
+                <span>Start intent</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </Card>
+          </Link>
 
-            <a
-              href="https://x.com/veriqomesh_ai"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-5 rounded-2xl bg-gray-900/80 border border-gray-800 hover:border-blue-600 transition flex items-center gap-4 group shadow-lg"
-            >
-              <div className="w-11 h-11 rounded-xl bg-blue-950 flex items-center justify-center text-blue-300 text-xl border border-blue-800 shrink-0">
-                𝕏
-              </div>
-              <div>
-                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">OFFICIAL X (TWITTER)</div>
-                <div className="text-white font-bold group-hover:text-blue-300 transition text-sm">
-                  @veriqomesh_ai ↗
+          <Link href="/requests">
+            <Card variant="interactive" className="h-full flex flex-col justify-between p-5 space-y-4">
+              <div className="space-y-2">
+                <div className="w-10 h-10 rounded-control bg-surface-elevated border border-border flex items-center justify-center text-text-secondary">
+                  <Inbox className="w-5 h-5" />
                 </div>
-                <div className="text-[10px] text-gray-500 mt-0.5">Network updates, announcements &amp; releases</div>
+                <h4 className="text-base font-semibold text-text-primary">
+                  Requests Inbox
+                </h4>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  Two-sided workspace to review, counter, or ratify commercial proposals before funding.
+                </p>
               </div>
-            </a>
-          </div>
+              <div className="text-xs font-medium text-text-secondary flex items-center gap-1">
+                <span>View inbox</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </Card>
+          </Link>
+
+          <Link href="/transactions">
+            <Card variant="interactive" className="h-full flex flex-col justify-between p-5 space-y-4">
+              <div className="space-y-2">
+                <div className="w-10 h-10 rounded-control bg-surface-elevated border border-border flex items-center justify-center text-text-secondary">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <h4 className="text-base font-semibold text-text-primary">
+                  Transactions
+                </h4>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  Personal workspace and historical public benchmarks with real-time settlement telemetry.
+                </p>
+              </div>
+              <div className="text-xs font-medium text-text-secondary flex items-center gap-1">
+                <span>Browse activity</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </Card>
+          </Link>
+
+          <Link href="/trust">
+            <Card variant="interactive" className="h-full flex flex-col justify-between p-5 space-y-4">
+              <div className="space-y-2">
+                <div className="w-10 h-10 rounded-control bg-surface-elevated border border-border flex items-center justify-center text-text-secondary">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <h4 className="text-base font-semibold text-text-primary">
+                  Trust Layer
+                </h4>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  Tamper-evident Trust Receipts, participant reputation scores, and verification evidence.
+                </p>
+              </div>
+              <div className="text-xs font-medium text-text-secondary flex items-center gap-1">
+                <span>Inspect trust</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </Card>
+          </Link>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="mt-auto py-8 border-t border-gray-900 bg-[#06070a] text-center text-xs font-mono text-gray-500">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-gray-300">VeriqoMesh Network</span>
-            <span>•</span>
-            <span>Trusted Commerce for Humans &amp; AI</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-4 text-gray-400">
-            <a href="mailto:veriqomeshnetwork@gmail.com" className="hover:text-purple-300 transition">Email</a>
-            <a href="https://x.com/veriqomesh_ai" target="_blank" rel="noopener noreferrer" className="hover:text-purple-300 transition">X: @veriqomesh_ai</a>
-            <Link href="/demo-video" className="hover:text-purple-300 transition">Video Demo</Link>
-            <Link href="/evidence" className="hover:text-purple-300 transition">Evidence Explorer</Link>
-            <Link href="/trust" className="hover:text-purple-300 transition">Trust Receipts</Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

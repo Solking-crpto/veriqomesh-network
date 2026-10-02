@@ -5,6 +5,20 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ethers } from 'ethers';
 import {
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  Copy,
+  ExternalLink,
+  Plus,
+  Trash2,
+  Shield,
+  Sparkles,
+  AlertCircle,
+  FileText,
+  Lock,
+} from 'lucide-react';
+import {
   useDemoNetwork,
   TARGET_BUYER_ADDRESS,
   TARGET_SELLER_ADDRESS,
@@ -18,10 +32,15 @@ import {
   isWalletCompatibleWithRole,
   type CanonicalAgreementTerms,
 } from '../../../lib/invitation-utils';
+import { Button } from '../../../components/ui/Button';
+import { Card, CardHeader } from '../../../components/ui/Card';
+import { Input, Textarea } from '../../../components/ui/Input';
+import { Badge } from '../../../components/ui/Badge';
+import { StatusChip } from '../../../components/ui/StatusChip';
 
 export default function CreateIntentPage() {
   const router = useRouter();
-  const { initiator, createDealRequest, switchRole, wallet, client } = useDemoNetwork();
+  const { initiator, createDealRequest, wallet, client } = useDemoNetwork();
 
   // Natural Language Commercial Need — Empty by default for real user
   const [promptText, setPromptText] = useState('');
@@ -78,7 +97,6 @@ export default function CreateIntentPage() {
   const isBuyerValid = ethers.isAddress(buyerAddress);
   const isSellerValid = ethers.isAddress(sellerAddress);
   const isVerifierValid = ethers.isAddress(designatedVerifier) && designatedVerifier !== ethers.ZeroAddress;
-  const isVerifierZero = designatedVerifier === ethers.ZeroAddress;
 
   const isBuyerSellerConflict =
     isBuyerValid && isSellerValid && buyerAddress.toLowerCase() === sellerAddress.toLowerCase();
@@ -184,14 +202,6 @@ export default function CreateIntentPage() {
       designatedInitiator: buyerAddress,
     });
   }, [wallet.address, wallet.isConnected, buyerAddress]);
-
-  const canBroadcast =
-    !broadcastOnchain ||
-    (wallet.isConnected &&
-      wallet.isMonadTestnet &&
-      initiatorCompatibility.isCompatible &&
-      isValidForReview &&
-      !isBroadcasting);
 
   // Evidence Checklist Helpers
   const handleAddRequirement = () => {
@@ -416,766 +426,457 @@ export default function CreateIntentPage() {
       : '';
 
   return (
-    <div className="min-h-screen bg-[#07080d] text-gray-100 py-10 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Navigation Breadcrumb */}
-        <div className="flex items-center justify-between text-xs font-mono text-gray-400">
-          <div className="flex items-center gap-2">
-            <Link href="/initiator" className="hover:text-purple-300">Initiator Dashboard</Link>
-            <span>/</span>
-            <span className="text-purple-400 font-bold">Create Commercial Deal</span>
-          </div>
+    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-8">
+      {/* Header */}
+      <div className="border-b border-border pb-6">
+        <div className="flex items-center gap-2 mb-1.5">
+          <Badge variant="accent">BUYER WORKSPACE</Badge>
+          <span className="text-xs text-text-tertiary">Step 1 of 2</span>
         </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
+          Create Commercial Agreement
+        </h1>
+        <p className="text-xs sm:text-sm text-text-secondary mt-1">
+          Define commercial deliverables in plain language; VeriqoMesh structures verifiable parameters into a deterministic canonical agreement on Monad.
+        </p>
+      </div>
 
-        {/* Header */}
-        <div className="border-b border-gray-800 pb-5">
-          <div className="text-xs font-mono text-purple-400 font-bold uppercase tracking-wider mb-1">
-            STEP 1 • SPECIFY COMMERCIAL NEED &amp; PARAMETERIZE TERMS
-          </div>
-          <h1 className="text-3xl font-extrabold text-white">Create Commercial Deal</h1>
-          <p className="text-xs sm:text-sm text-gray-400 font-mono mt-1">
-            Describe what you need in natural language; VeriqoMesh structures verifiable parameters into a deterministic canonical agreement committed onchain.
-          </p>
-        </div>
-
-        {/* Success Modal / Shareable Invitation Banner */}
-        {createdRequestId && (
-          <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-950/90 to-purple-950/80 border border-emerald-500 shadow-2xl space-y-5">
-            <div className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-full bg-emerald-500 text-black flex items-center justify-center font-bold text-lg">
-                ✓
-              </span>
-              <div>
-                <h3 className="text-lg font-bold text-white font-mono">
-                  {createdTxId && broadcastTxHash
-                    ? 'Live Monad Testnet Transaction Initialized!'
-                    : 'Deal Invitation Created Successfully!'}
-                </h3>
-                <p className="text-xs text-gray-300 font-mono">
-                  {createdTxId && broadcastTxHash
-                    ? `Authoritative onchain transaction record initialized on Monad Metropolis Testnet (Chain ID 10143). Escrow commitment value: ${escrowAmount} MON.`
-                    : 'Proposal stored in persistent database. Share the invitation code with your counterparty.'}
-                </p>
-              </div>
+      {/* Success Notification Banner */}
+      {createdRequestId && (
+        <Card variant="elevated" className="space-y-5 border-status-success/30 bg-surface">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-status-success/20 text-status-success flex items-center justify-center shrink-0">
+              <Check className="w-5 h-5" />
             </div>
-
-            {/* Persistence Warning if offchain Redis failed */}
-            {persistenceWarning && (
-              <div className="p-3 bg-amber-950/70 border border-amber-600 rounded-lg text-amber-200 text-xs font-mono">
-                {persistenceWarning}
-              </div>
-            )}
-
-            {/* THREE-TIER IDENTIFIER SEPARATION CARD */}
-            <div className="p-4 bg-black/70 rounded-xl border border-emerald-600/70 font-mono text-xs space-y-3">
-              <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider border-b border-gray-800 pb-1">
-                Transaction Identification &amp; Counterparty Sharing
-              </div>
-
-              {/* 1. Human Invitation Code */}
-              {createdInvitationCode && (
-                <div className="p-3 rounded-lg bg-purple-950/60 border border-purple-600/60 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-purple-300 font-bold text-[11px]">
-                      1. HUMAN INVITATION CODE (SHARE WITH COUNTERPARTY):
-                    </span>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(createdInvitationCode);
-                        setCopiedCode(true);
-                        setTimeout(() => setCopiedCode(false), 2000);
-                      }}
-                      className="px-2.5 py-0.5 rounded bg-purple-700 hover:bg-purple-600 text-white font-bold text-[10px] transition"
-                    >
-                      {copiedCode ? 'COPIED ✓' : 'COPY CODE'}
-                    </button>
-                  </div>
-                  <div className="text-2xl font-black text-white tracking-widest">
-                    {createdInvitationCode}
-                  </div>
-                  <div className="flex items-center justify-between pt-1 border-t border-purple-900/60 text-[11px]">
-                    <span className="text-gray-400">Shareable Link:</span>
-                    <div className="flex items-center gap-2">
-                      <code className="text-purple-200">{shareUrl}</code>
-                      <button
-                        onClick={() => {
-                          if (shareUrl) {
-                            navigator.clipboard.writeText(shareUrl);
-                            setCopiedLink(true);
-                            setTimeout(() => setCopiedLink(false), 2000);
-                          }
-                        }}
-                        className="text-emerald-400 hover:text-emerald-300 font-bold"
-                      >
-                        {copiedLink ? '✓ Copied' : 'Copy URL'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 2. Escrow Smart Contract bytes32 Transaction ID */}
-              {createdTxId && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1 border-t border-gray-800 text-[11px]">
-                  <span className="text-gray-400 font-bold">2. ESCROW BYTES32 ID (SMART CONTRACT):</span>
-                  <code className="text-emerald-300 font-bold break-all">{createdTxId}</code>
-                </div>
-              )}
-
-              {/* 3. EVM Blockchain Transaction Hash */}
-              {broadcastTxHash && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1 border-t border-gray-800 text-[11px]">
-                  <span className="text-gray-400 font-bold">3. EVM TRANSACTION HASH:</span>
-                  <a
-                    href={`https://testnet.monadvision.com/tx/${broadcastTxHash}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-emerald-400 hover:text-emerald-300 underline font-bold break-all"
-                  >
-                    {broadcastTxHash} ↗
-                  </a>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-gray-800 text-[11px]">
-                <div>
-                  <span className="text-gray-400">Buyer (Initiator): </span>
-                  <code className="text-gray-200">{buyerAddress}</code>
-                </div>
-                <div>
-                  <span className="text-gray-400">Seller (Counterparty): </span>
-                  <code className="text-gray-200">{sellerAddress}</code>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-3 bg-black/40 rounded-xl border border-emerald-600/40 text-xs font-mono space-y-1">
-              <div className="text-emerald-300 font-semibold">
-                Counterparty Interaction Flow:
-              </div>
-              <p className="text-gray-300">
-                Send the invitation link or code to the counterparty. When they open <code className="text-purple-300">/receive/{createdInvitationCode || 'CODE'}</code>, they can review the terms, connect their designated wallet, and sign the agreement onchain via <code className="text-emerald-300">agreeTransaction()</code>.
+            <div className="space-y-1">
+              <h3 className="text-base sm:text-lg font-bold text-text-primary">
+                {createdTxId && broadcastTxHash
+                  ? 'Agreement Initialized on Monad Testnet'
+                  : 'Proposal Created Successfully'}
+              </h3>
+              <p className="text-xs sm:text-sm text-text-secondary">
+                {createdTxId && broadcastTxHash
+                  ? `Onchain transaction confirmed on Monad Metropolis Testnet (Chain ID 10143) with escrow commitment of ${escrowAmount} MON.`
+                  : 'Proposal persisted to database. Share the invitation code with your counterparty to proceed.'}
               </p>
             </div>
+          </div>
 
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              {createdInvitationCode && (
-                <Link
-                  href={`/receive/${createdInvitationCode}`}
-                  className="py-2.5 px-5 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-mono text-xs font-bold transition shadow-lg flex items-center gap-2"
-                >
-                  <span>OPEN /RECEIVE/{createdInvitationCode}</span>
-                  <span>→</span>
-                </Link>
-              )}
-              {createdTxId && (
-                <Link
-                  href={`/transactions/${createdTxId}`}
-                  className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-black font-mono text-xs font-bold transition shadow-lg flex items-center gap-2"
-                >
-                  <span>ENTER TRANSACTION ROOM</span>
-                  <span>→</span>
-                </Link>
-              )}
-              <Link
-                href="/requests"
-                className="py-2.5 px-4 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-200 font-mono text-xs font-bold transition"
-              >
-                Go to Requests Inbox
-              </Link>
+          {persistenceWarning && (
+            <div className="p-3 rounded-control bg-status-warning/10 border border-status-warning/30 text-status-warning text-xs">
+              {persistenceWarning}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Institutional Principle Banner */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-950/40 via-indigo-950/30 to-gray-900 border border-purple-800/40 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-purple-300 font-bold">
-              Core Architecture Principle
-            </span>
-            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/70 border border-emerald-800 px-2 py-0.5 rounded">
-              Zero Autonomous Financial Authority
-            </span>
-          </div>
-          <div className="text-sm font-semibold text-white font-sans">
-            &ldquo;AI assists. Humans authorize. Verifiers verify. Blockchain enforces.&rdquo;
-          </div>
-          <p className="text-[11px] text-gray-400 font-mono leading-relaxed">
-            AI structures commercial parameters and policies. Only the authorized human wallet can sign transactions and allocate financial escrow capital on Monad Metropolis.
-          </p>
-        </div>
-
-        {/* Form Body */}
-        <form onSubmit={handleAuthorizeTransaction} className="space-y-6">
-          {!isReviewing ? (
-            /* STAGE 1: EDIT FORM */
-            <div className="space-y-6">
-              {/* 1. Natural Language Commercial Need */}
-              <div className="p-5 rounded-2xl bg-gray-900/60 border border-gray-800 space-y-3">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="commercial-need" className="text-xs font-mono font-bold text-purple-300 uppercase tracking-wide flex items-center gap-2">
-                    <span>Natural Language Commercial Need</span>
-                    <span className="text-[10px] text-purple-400 font-normal">(Initiator Input)</span>
-                  </label>
-                  <span className="text-[10px] font-mono text-purple-400 bg-purple-950 px-2 py-0.5 rounded border border-purple-800">
-                    Editable Field
-                  </span>
-                </div>
-                <textarea
-                  id="commercial-need"
-                  rows={4}
-                  value={promptText}
-                  onChange={(e) => setPromptText(e.target.value)}
-                  className="w-full p-3.5 rounded-xl bg-gray-950 border border-gray-700 text-white font-mono text-xs focus:border-purple-500 focus:outline-none leading-relaxed placeholder-gray-600"
-                  placeholder="Describe what you are purchasing, selling, hiring, delivering, or otherwise agreeing to..."
-                />
-                <div className="text-[11px] text-gray-400 font-mono flex items-center justify-between">
-                  <span>Describe the commercial outcome you want the counterparty to agree to. Be specific about the deliverable, expectations, and relevant constraints.</span>
-                  <span className={`text-[10px] ${promptText.trim().length >= 10 ? 'text-emerald-400' : 'text-gray-500'}`}>
-                    {promptText.trim().length} chars
-                  </span>
-                </div>
-              </div>
-
-              {/* 2. Structured Agreement Parameters */}
-              <div className="p-5 rounded-2xl bg-gray-900/60 border border-gray-800 space-y-5 font-mono text-xs">
-                <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-                  <span className="font-bold text-white uppercase tracking-wide">
-                    Structured Agreement Parameters
-                  </span>
-                  <span className="text-[10px] text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
-                    Fully User-Editable
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="deal-title" className="block text-gray-400 mb-1 text-[11px] font-bold">
-                      Agreement / Transaction Title *
-                    </label>
-                    <input
-                      id="deal-title"
-                      type="text"
-                      value={agreementTitle}
-                      onChange={(e) => setAgreementTitle(e.target.value)}
-                      placeholder="e.g. Enterprise Security Audit Report"
-                      className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-700 text-white text-xs focus:border-purple-500 focus:outline-none placeholder-gray-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="deal-deliverable" className="block text-gray-400 mb-1 text-[11px] font-bold">
-                      Deliverable Scope / Item Description *
-                    </label>
-                    <input
-                      id="deal-deliverable"
-                      type="text"
-                      value={deliverable}
-                      onChange={(e) => setDeliverable(e.target.value)}
-                      placeholder="e.g. Full smart contract audit report with formal verification"
-                      className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-700 text-white text-xs focus:border-purple-500 focus:outline-none placeholder-gray-600"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label htmlFor="deal-amount" className="block text-gray-400 mb-1 text-[11px] font-bold">
-                      Escrow Deposit Amount (MON) *
-                    </label>
-                    <input
-                      id="deal-amount"
-                      type="text"
-                      value={escrowAmount}
-                      onChange={(e) => setEscrowAmount(e.target.value)}
-                      placeholder="e.g. 0.05"
-                      className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-700 text-white text-xs focus:border-purple-500 focus:outline-none placeholder-gray-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="deal-deadline" className="block text-gray-400 mb-1 text-[11px] font-bold">
-                      Inspection / Fulfillment Window (Days) *
-                    </label>
-                    <input
-                      id="deal-deadline"
-                      type="number"
-                      min={1}
-                      value={deadlineDays}
-                      onChange={(e) => setDeadlineDays(Number(e.target.value))}
-                      className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-700 text-white text-xs focus:border-purple-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="deal-location" className="block text-gray-400 mb-1 text-[11px]">
-                      Location / Execution Venue
-                    </label>
-                    <input
-                      id="deal-location"
-                      type="text"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="e.g. Remote / GitHub Repo or Site Address"
-                      className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-700 text-white text-xs focus:border-purple-500 focus:outline-none placeholder-gray-600"
-                    />
-                  </div>
-                </div>
-
-                {/* Counterparty Receiver Address */}
-                <div className="pt-2 border-t border-gray-800">
-                  <div className="flex items-center justify-between mb-2">
-                    <label htmlFor="counterparty-wallet" className="text-gray-400 text-[11px] font-bold uppercase tracking-wide">
-                      Target Counterparty Receiver (Seller) *
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setReceiverWallet(TARGET_SELLER_ADDRESS);
-                        setReceiverName('Fulfillment Counterparty Node');
-                      }}
-                      className="text-[10px] text-purple-400 hover:text-purple-300 underline"
-                    >
-                      Fill Configured Seller (0x0e73...6Ee8)
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <input
-                        id="counterparty-wallet"
-                        type="text"
-                        value={receiverWallet}
-                        onChange={(e) => setReceiverWallet(e.target.value)}
-                        placeholder="0x... (Enter receiver's Ethereum address)"
-                        className={`w-full px-3 py-2 rounded-lg bg-gray-950 border text-white text-xs focus:outline-none placeholder-gray-600 ${
-                          !receiverWallet
-                            ? 'border-gray-700'
-                            : isSellerValid
-                            ? 'border-emerald-600/70 focus:border-emerald-400'
-                            : 'border-red-600/70 focus:border-red-400'
-                        }`}
-                      />
-                    </div>
-                    <div>
-                      <input
-                        type="text"
-                        value={receiverName}
-                        onChange={(e) => setReceiverName(e.target.value)}
-                        placeholder="Optional counterparty name or label"
-                        className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-700 text-white text-xs focus:border-purple-500 focus:outline-none placeholder-gray-600"
-                      />
-                    </div>
-                  </div>
-                  {isBuyerSellerConflict && (
-                    <span className="text-[10px] text-red-400 font-bold block mt-1">
-                      ⚠️ Conflict: Receiver wallet cannot equal Buyer wallet ({buyerAddress}).
-                    </span>
-                  )}
-                </div>
-
-                {/* Designated Independent Verifier */}
-                <div className="pt-2 border-t border-gray-800">
-                  <label htmlFor="verifier-wallet" className="block text-gray-400 mb-1 text-[11px] font-bold uppercase tracking-wide">
-                    Designated Independent Verifier (Operator-Controlled Wallet) *
-                  </label>
-                  <input
-                    id="verifier-wallet"
-                    type="text"
-                    value={verifierWallet}
-                    onChange={(e) => setVerifierWallet(e.target.value)}
-                    placeholder="0x... (Enter operator-controlled MetaMask verifier address)"
-                    className={`w-full px-3 py-2 rounded-lg bg-gray-950 border text-white text-xs focus:outline-none placeholder-gray-600 ${
-                      !verifierWallet.trim()
-                        ? 'border-amber-600/70 focus:border-amber-400'
-                        : isVerifierValid
-                        ? 'border-emerald-600/70 focus:border-emerald-400'
-                        : 'border-red-600/70 focus:border-red-400'
-                    }`}
-                  />
-                  <span className="text-[10px] text-gray-400 mt-1 block">
-                    Default independent verifier: <code className="text-purple-300">{APPROVED_OPERATOR_VERIFIER_ADDRESS}</code>. Must be distinct from Buyer and Seller.
-                  </span>
-                  {isBuyerVerifierConflict && (
-                    <span className="text-[10px] text-red-400 font-bold block mt-1">
-                      ⚠️ Conflict: Verifier address cannot equal Buyer wallet ({buyerAddress}).
-                    </span>
-                  )}
-                  {isSellerVerifierConflict && (
-                    <span className="text-[10px] text-red-400 font-bold block mt-1">
-                      ⚠️ Conflict: Verifier address cannot equal Seller wallet ({sellerAddress}).
-                    </span>
-                  )}
-                  {isVerifierZero && (
-                    <span className="text-[10px] text-red-400 font-bold block mt-1">
-                      ⚠️ Conflict: Verifier address cannot be the zero address.
-                    </span>
-                  )}
-                </div>
-
-                {/* Dynamic Evidence Requirements Checklist */}
-                <div className="pt-2 border-t border-gray-800 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-gray-400 text-[11px] font-bold uppercase tracking-wide">
-                      Mandatory Evidence Requirements Checklist *
-                    </label>
-                    <span className="text-[10px] text-gray-500">
-                      {evidenceRequirements.length} criteria defined
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    {evidenceRequirements.map((reqItem, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between gap-2 p-2 rounded-lg bg-gray-950 border border-gray-800 text-gray-200 text-[11px]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-purple-400 font-bold">{idx + 1}.</span>
-                          <span>{reqItem}</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveRequirement(idx)}
-                          className="text-gray-500 hover:text-red-400 text-xs px-2 py-0.5 rounded"
-                          title="Remove requirement"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-1">
-                    <input
-                      type="text"
-                      value={newRequirementInput}
-                      onChange={(e) => setNewRequirementInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddRequirement();
-                        }
-                      }}
-                      placeholder="Add custom evidence requirement (e.g. Testnet transaction receipt, audit hash)..."
-                      className="flex-1 px-3 py-1.5 rounded-lg bg-gray-950 border border-gray-800 text-white text-xs focus:border-purple-500 focus:outline-none placeholder-gray-600"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddRequirement}
-                      className="px-3 py-1.5 rounded-lg bg-purple-800 hover:bg-purple-700 text-white font-bold text-xs"
-                    >
-                      + Add
-                    </button>
-                  </div>
-                </div>
-
-                {/* Additional Commercial Conditions */}
-                <div className="pt-2 border-t border-gray-800">
-                  <label htmlFor="additional-conditions" className="block text-gray-400 mb-1 text-[11px]">
-                    Additional Commercial Conditions / Milestones (Optional)
-                  </label>
-                  <textarea
-                    id="additional-conditions"
-                    rows={2}
-                    value={additionalConditions}
-                    onChange={(e) => setAdditionalConditions(e.target.value)}
-                    placeholder="e.g. Work must commence within 48 hours of escrow funding. Partial delivery not accepted."
-                    className="w-full p-2.5 rounded-lg bg-gray-950 border border-gray-800 text-white text-xs focus:border-purple-500 focus:outline-none placeholder-gray-600"
-                  />
-                </div>
-              </div>
-
-              {/* Validation Summary if any error */}
-              {validationErrors.length > 0 && (
-                <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-600/50 space-y-1 text-xs font-mono">
-                  <div className="text-amber-300 font-bold flex items-center gap-2">
-                    <span>⚠️</span>
-                    <span>Required Fields Incomplete:</span>
-                  </div>
-                  <ul className="list-disc list-inside text-amber-200/80 text-[11px] space-y-0.5">
-                    {validationErrors.map((err, i) => (
-                      <li key={i}>{err}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Proceed to Review Button */}
-              <div className="flex justify-end pt-2">
-                <button
-                  type="button"
-                  disabled={!isValidForReview}
-                  onClick={() => setIsReviewing(true)}
-                  className={`py-3 px-8 rounded-xl font-mono text-xs font-bold transition shadow-lg flex items-center gap-2 ${
-                    !isValidForReview
-                      ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700'
-                      : 'bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white shadow-purple-950'
-                  }`}
+          {/* Invitation Code Display */}
+          {createdInvitationCode && (
+            <div className="p-4 rounded-control bg-surface-elevated border border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                  Counterparty Invitation Code
+                </span>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(createdInvitationCode);
+                    setCopiedCode(true);
+                    setTimeout(() => setCopiedCode(false), 2000);
+                  }}
+                  leftIcon={copiedCode ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 >
-                  <span>Review Agreement Terms</span>
-                  <span>→</span>
-                </button>
+                  {copiedCode ? 'Copied' : 'Copy code'}
+                </Button>
               </div>
-            </div>
-          ) : (
-            /* STAGE 2: EXPLICIT REVIEW & AUTHORIZE SCREEN (Requirement 5) */
-            <div className="space-y-6">
-              <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-950/40 to-gray-900 border border-purple-600/80 space-y-4 font-mono text-xs">
-                <div className="flex items-center justify-between border-b border-purple-900/60 pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-purple-400 animate-pulse" />
-                    <span className="font-bold text-white uppercase text-sm">
-                      EXPLICIT AGREEMENT REVIEW BEFORE ONCHAIN CREATION
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsReviewing(false)}
-                    className="text-purple-300 hover:text-purple-200 text-xs font-bold underline"
+
+              <div className="font-mono text-2xl sm:text-3xl font-black text-text-primary tracking-widest py-1">
+                {createdInvitationCode}
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-border text-xs">
+                <span className="text-text-tertiary">Shareable URL:</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-text-secondary truncate max-w-xs">{shareUrl}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (shareUrl) {
+                        navigator.clipboard.writeText(shareUrl);
+                        setCopiedLink(true);
+                        setTimeout(() => setCopiedLink(false), 2000);
+                      }
+                    }}
                   >
-                    ← Edit Terms
-                  </button>
+                    {copiedLink ? 'Copied' : 'Copy URL'}
+                  </Button>
                 </div>
-
-                {/* 1. Commercial Need */}
-                <div className="p-3 bg-black/60 rounded-xl border border-gray-800 space-y-1">
-                  <span className="text-gray-400 text-[10px] uppercase font-bold block">
-                    COMMERCIAL NEED (NATURAL LANGUAGE)
-                  </span>
-                  <div className="text-white text-xs leading-relaxed whitespace-pre-wrap">
-                    {promptText}
-                  </div>
-                </div>
-
-                {/* 2. Structured Agreement */}
-                <div className="p-3 bg-black/60 rounded-xl border border-gray-800 space-y-3">
-                  <span className="text-gray-400 text-[10px] uppercase font-bold block">
-                    STRUCTURED AGREEMENT PARAMETERS
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">AGREEMENT TITLE:</span>
-                      <span className="text-white font-bold">{agreementTitle}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">DELIVERABLE SCOPE:</span>
-                      <span className="text-white">{deliverable}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">EXECUTION / DELIVERY LOCATION:</span>
-                      <span className="text-gray-300">{location || 'Not specified'}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">INSPECTION WINDOW:</span>
-                      <span className="text-white font-bold">{deadlineDays} Days</span>
-                    </div>
-                  </div>
-
-                  {additionalConditions && (
-                    <div className="pt-2 border-t border-gray-800">
-                      <span className="text-gray-400 block text-[10px]">ADDITIONAL CONDITIONS:</span>
-                      <span className="text-gray-300">{additionalConditions}</span>
-                    </div>
-                  )}
-
-                  <div className="pt-2 border-t border-gray-800 space-y-1">
-                    <span className="text-gray-400 block text-[10px]">MANDATORY EVIDENCE CHECKLIST ({evidenceRequirements.length}):</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                      {evidenceRequirements.map((req, i) => (
-                        <div key={i} className="flex items-center gap-1.5 text-gray-300 text-[11px]">
-                          <span className="text-emerald-400">✓</span>
-                          <span>{req}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Counterparty, Verifier & Escrow Amount */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="p-3 bg-black/60 rounded-xl border border-gray-800">
-                    <span className="text-gray-400 text-[10px] block uppercase">COUNTERPARTY (SELLER):</span>
-                    <span className="text-white font-bold block truncate">{receiverName || 'Counterparty'}</span>
-                    <code className="text-purple-300 text-[10px] break-all block">{sellerAddress}</code>
-                  </div>
-                  <div className="p-3 bg-black/60 rounded-xl border border-gray-800">
-                    <span className="text-gray-400 text-[10px] block uppercase">DESIGNATED VERIFIER:</span>
-                    <span className="text-white font-bold block">Accredited Inspection</span>
-                    <code className="text-emerald-300 text-[10px] break-all block">{designatedVerifier}</code>
-                  </div>
-                  <div className="p-3 bg-black/60 rounded-xl border border-gray-800">
-                    <span className="text-gray-400 text-[10px] block uppercase">ESCROW AMOUNT:</span>
-                    <span className="text-emerald-400 font-extrabold text-base block">{escrowAmount} MON</span>
-                    <span className="text-[10px] text-gray-400">Locked upon mutual agreement</span>
-                  </div>
-                </div>
-
-                {/* 4. Committed Terms Hash */}
-                <div className="p-3 bg-black/60 rounded-xl border border-cyan-800/60 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-cyan-300 text-[10px] uppercase font-bold">
-                      CANONICAL TERMS HASH (keccak256):
-                    </span>
-                    <span className="text-[10px] text-gray-500">Committed Onchain</span>
-                  </div>
-                  <code className="text-cyan-300 font-mono text-[11px] break-all block select-all">
-                    {currentTermsHash}
-                  </code>
-                  <div className="text-[10px] text-gray-400">
-                    Deterministic hash over complete canonical terms (need + all structured parameters). Any change alters this hash.
-                  </div>
-                </div>
-              </div>
-
-              {/* Execution Mode Selector */}
-              <div className="p-5 rounded-2xl bg-gray-900/80 border border-gray-800 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wide">
-                      Execution Mode
-                    </h4>
-                    <p className="text-[11px] text-gray-400 font-mono">
-                      Broadcast to Monad Metropolis Testnet (live smart contract) or run in simulated sandbox mode.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setBroadcastOnchain(false)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition ${
-                        !broadcastOnchain
-                          ? 'bg-purple-950 text-purple-300 border border-purple-600'
-                          : 'bg-gray-950 text-gray-400 border border-gray-800 hover:text-white'
-                      }`}
-                    >
-                      SIMULATED SANDBOX
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBroadcastOnchain(true)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition ${
-                        broadcastOnchain
-                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-500 shadow-md'
-                          : 'bg-gray-950 text-gray-400 border border-gray-800 hover:text-white'
-                      }`}
-                    >
-                      LIVE MONAD TESTNET
-                    </button>
-                  </div>
-                </div>
-
-                {broadcastOnchain && (
-                  <div className="p-4 rounded-xl bg-gray-950/80 border border-emerald-500/40 space-y-3 font-mono text-xs">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-emerald-400 font-bold flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        LIVE ONCHAIN CONTRACT EXECUTION (Chain ID: 10143)
-                      </span>
-                      <span className="text-gray-400">
-                        Escrow: <code className="text-purple-300">0x925ea8...015A</code>
-                      </span>
-                    </div>
-
-                    {!wallet.isConnected ? (
-                      <div className="flex items-center justify-between p-3 bg-amber-950/40 border border-amber-600/50 rounded-lg">
-                        <span className="text-amber-300 text-[11px]">
-                          Connect your browser wallet (MetaMask) to authorize and sign this transaction on Monad.
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => wallet.connect()}
-                          className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded transition"
-                        >
-                          Connect Wallet
-                        </button>
-                      </div>
-                    ) : !wallet.isMonadTestnet ? (
-                      <div className="flex items-center justify-between p-3 bg-red-950/40 border border-red-600/50 rounded-lg">
-                        <span className="text-red-300 text-[11px]">
-                          Your wallet is on Chain {wallet.chainId || 'unknown'}. Switch to Monad Testnet (10143).
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => wallet.switchNetwork()}
-                          className="px-3 py-1 bg-red-500 hover:bg-red-400 text-black font-bold text-xs rounded transition"
-                        >
-                          Switch Network
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-gray-900 rounded-lg border border-gray-800 text-[11px]">
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-400">Connected Wallet (msg.sender):</span>
-                          <code className="text-emerald-400 font-bold">{wallet.address}</code>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-400">Live Balance:</span>
-                          <span className="text-emerald-400 font-bold">{wallet.balanceMon || '0.0000'} MON</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {broadcastError && (
-                  <div className="p-3 rounded-xl bg-red-950/60 border border-red-500/60 text-xs font-mono text-red-200">
-                    <span className="font-bold text-red-400">Execution Error: </span>
-                    {broadcastError}
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsReviewing(false)}
-                  className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 font-mono text-xs font-bold transition"
-                >
-                  ← Edit Terms
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={!canBroadcast}
-                  className={`w-full sm:w-auto py-3.5 px-8 rounded-xl font-mono text-xs font-bold transition shadow-lg flex items-center justify-center gap-2 ${
-                    isBroadcasting
-                      ? 'bg-purple-900 text-purple-300 cursor-wait'
-                      : !canBroadcast
-                      ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700'
-                      : broadcastOnchain
-                      ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-950'
-                      : 'bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white shadow-purple-950'
-                  }`}
-                >
-                  {isBroadcasting ? (
-                    <>
-                      <span className="w-3.5 h-3.5 border-2 border-purple-300 border-t-transparent rounded-full animate-spin" />
-                      <span>AUTHORIZING IN BROWSER WALLET...</span>
-                    </>
-                  ) : hasParticipantConflict ? (
-                    <span>AUTHORIZATION BLOCKED (PARTICIPANT CONFLICT)</span>
-                  ) : !wallet.isConnected ? (
-                    <span>CONNECT BUYER WALLET TO AUTHORIZE</span>
-                  ) : !wallet.isMonadTestnet ? (
-                    <span>SWITCH TO MONAD TESTNET (10143)</span>
-                  ) : broadcastOnchain ? (
-                    <>
-                      <span>CREATE &amp; AUTHORIZE TRANSACTION</span>
-                      <span>→</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>CREATE SANDBOX PROPOSAL</span>
-                      <span>→</span>
-                    </>
-                  )}
-                </button>
               </div>
             </div>
           )}
-        </form>
-      </div>
+
+          {/* Action Links */}
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            {createdInvitationCode && (
+              <Link href={`/receive/${createdInvitationCode}`}>
+                <Button variant="primary" size="md" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                  Open Receiver View
+                </Button>
+              </Link>
+            )}
+            {createdTxId && (
+              <Link href={`/transactions/${createdTxId}`}>
+                <Button variant="secondary" size="md">
+                  Enter Transaction Room
+                </Button>
+              </Link>
+            )}
+            <Link href="/requests">
+              <Button variant="ghost" size="md">
+                View Requests Inbox
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      )}
+
+      {/* Main Form Body */}
+      <form onSubmit={handleAuthorizeTransaction} className="space-y-8">
+        {!isReviewing ? (
+          /* STEP 1: FORM INPUTS */
+          <div className="space-y-6">
+            {/* Commercial Need */}
+            <Card className="space-y-4">
+              <CardHeader
+                title="1. Commercial Need"
+                subtitle="Describe what you are purchasing, procuring, or agreeing to in plain language"
+              />
+              <Textarea
+                id="commercial-need"
+                rows={4}
+                value={promptText}
+                onChange={(e) => setPromptText(e.target.value)}
+                placeholder="e.g. Supply and delivery of 100 Tier-1 bifacial solar PV modules (550W) to Dallas freight warehouse, with verified bill of lading and independent inspection attestation..."
+                helperText="Minimum 10 characters. VeriqoMesh will bind this intent into the deterministic canonical agreement."
+              />
+            </Card>
+
+            {/* Structured Parameters */}
+            <Card className="space-y-5">
+              <CardHeader
+                title="2. Agreement Parameters"
+                subtitle="Specify verifiable terms, delivery window, and escrow deposit"
+              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="Agreement Title"
+                  value={agreementTitle}
+                  onChange={(e) => setAgreementTitle(e.target.value)}
+                  placeholder="e.g. Commercial Solar Procurement"
+                  helperText="Human-readable title for the transaction"
+                />
+
+                <Input
+                  label="Deliverable Scope"
+                  value={deliverable}
+                  onChange={(e) => setDeliverable(e.target.value)}
+                  placeholder="e.g. 100 Solar Panels (550W)"
+                  helperText="Brief summary of required goods or services"
+                />
+
+                <Input
+                  label="Escrow Amount"
+                  type="text"
+                  value={escrowAmount}
+                  onChange={(e) => setEscrowAmount(e.target.value)}
+                  placeholder="0.001"
+                  rightElement="MON"
+                  helperText="Capital locked in Monad smart contract"
+                />
+
+                <Input
+                  label="Delivery Window (Days)"
+                  type="number"
+                  min={1}
+                  value={deadlineDays}
+                  onChange={(e) => setDeadlineDays(parseInt(e.target.value) || 14)}
+                  rightElement="days"
+                  helperText="Days allowed before fulfillment expires"
+                />
+              </div>
+
+              <Input
+                label="Delivery Location / Destination"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. Dallas Regional Logistics Hub, Bay 4"
+                helperText="Physical or digital destination"
+              />
+            </Card>
+
+            {/* Counterparty & Verifier */}
+            <Card className="space-y-5">
+              <CardHeader
+                title="3. Participants &amp; Verification"
+                subtitle="Designate the counterparty seller and the independent verification auditor"
+              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="Seller Wallet Address"
+                  value={receiverWallet}
+                  onChange={(e) => setReceiverWallet(e.target.value)}
+                  placeholder="0x..."
+                  error={
+                    sellerAddress && !isSellerValid
+                      ? 'Must be a valid Ethereum address'
+                      : isBuyerSellerConflict
+                      ? 'Buyer cannot equal Seller'
+                      : undefined
+                  }
+                  helperText="Designated address authorized to sign this deal"
+                />
+
+                <Input
+                  label="Seller Organization / Name"
+                  value={receiverName}
+                  onChange={(e) => setReceiverName(e.target.value)}
+                  placeholder="e.g. Dallas Solar Supply Co."
+                  helperText="Display name for receipt records"
+                />
+              </div>
+
+              <Input
+                label="Designated Verifier Wallet Address"
+                value={verifierWallet}
+                onChange={(e) => setVerifierWallet(e.target.value)}
+                placeholder="0x..."
+                error={
+                  designatedVerifier && !isVerifierValid
+                    ? 'Must be a valid non-zero address'
+                    : isBuyerVerifierConflict
+                    ? 'Buyer cannot equal Verifier'
+                    : isSellerVerifierConflict
+                    ? 'Seller cannot equal Verifier'
+                    : undefined
+                }
+                helperText="Independent inspector who attests PASS or INCONCLUSIVE before payout"
+              />
+
+              {/* Evidence Checklist */}
+              <div className="space-y-3 pt-2 border-t border-border">
+                <label className="block text-xs sm:text-sm font-medium text-text-primary">
+                  Required Evidence Milestones
+                </label>
+                <div className="space-y-2">
+                  {evidenceRequirements.map((req, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-2.5 rounded-control bg-surface-elevated border border-border text-xs"
+                    >
+                      <div className="flex items-center gap-2 text-text-primary">
+                        <Check className="w-3.5 h-3.5 text-status-success shrink-0" />
+                        <span>{req}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRequirement(idx)}
+                        className="text-text-tertiary hover:text-status-error p-1 transition"
+                        title="Remove requirement"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <input
+                    type="text"
+                    value={newRequirementInput}
+                    onChange={(e) => setNewRequirementInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddRequirement();
+                      }
+                    }}
+                    placeholder="Add custom evidence requirement..."
+                    className="flex-1 bg-surface border border-border rounded-control text-xs px-3 py-2 text-text-primary focus:border-accent focus:outline-none"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleAddRequirement}
+                  >
+                    Add
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
+            {/* Additional Conditions */}
+            <Card className="space-y-4">
+              <CardHeader
+                title="4. Additional Conditions (Optional)"
+                subtitle="Governing terms, inspection criteria, or special provisions"
+              />
+              <Textarea
+                rows={3}
+                value={additionalConditions}
+                onChange={(e) => setAdditionalConditions(e.target.value)}
+                placeholder="e.g. Any damage over 5% requires immediate 3-judge mediation on Monad Metropolis..."
+              />
+            </Card>
+
+            {/* Validation Errors Notice */}
+            {validationErrors.length > 0 && (
+              <div className="p-4 rounded-card bg-status-warning/10 border border-status-warning/30 text-xs text-status-warning space-y-1">
+                <span className="font-semibold block">Please complete all required fields:</span>
+                <ul className="list-disc list-inside space-y-0.5 text-text-secondary">
+                  {validationErrors.map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Continue to Review Action */}
+            <div className="flex justify-end pt-2">
+              <Button
+                type="button"
+                variant="primary"
+                size="lg"
+                disabled={!isValidForReview}
+                onClick={() => setIsReviewing(true)}
+                rightIcon={<ArrowRight className="w-4 h-4" />}
+              >
+                Review Agreement Terms
+              </Button>
+            </div>
+          </div>
+        ) : (
+          /* STEP 2: REVIEW & COMMIT SCREEN */
+          <div className="space-y-6">
+            <Card className="space-y-6">
+              <CardHeader
+                title="Review Canonical Agreement"
+                subtitle="Verify all parameters before signing and broadcasting to Monad Testnet"
+                action={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsReviewing(false)}
+                    leftIcon={<ArrowLeft className="w-3.5 h-3.5" />}
+                  >
+                    Edit Form
+                  </Button>
+                }
+              />
+
+              {/* Natural Language Summary */}
+              <div className="p-4 rounded-control bg-surface-elevated/60 border border-border space-y-1.5">
+                <span className="text-xs font-semibold text-text-tertiary uppercase">Commercial Intent</span>
+                <p className="text-sm text-text-primary leading-relaxed">{promptText}</p>
+              </div>
+
+              {/* Key Details Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="p-3.5 rounded-control bg-surface-elevated/40 border border-border space-y-1">
+                  <span className="text-text-tertiary block">Title &amp; Deliverable</span>
+                  <div className="font-semibold text-text-primary text-sm">{agreementTitle}</div>
+                  <div className="text-text-secondary">{deliverable}</div>
+                </div>
+
+                <div className="p-3.5 rounded-control bg-surface-elevated/40 border border-border space-y-1">
+                  <span className="text-text-tertiary block">Escrow Commitment</span>
+                  <div className="font-bold text-status-success text-base">{escrowAmount} MON</div>
+                  <div className="text-text-secondary">Window: {deadlineDays} days</div>
+                </div>
+
+                <div className="p-3.5 rounded-control bg-surface-elevated/40 border border-border space-y-1">
+                  <span className="text-text-tertiary block">Buyer (Initiator)</span>
+                  <div className="font-mono text-text-primary truncate">{buyerAddress}</div>
+                </div>
+
+                <div className="p-3.5 rounded-control bg-surface-elevated/40 border border-border space-y-1">
+                  <span className="text-text-tertiary block">Seller (Counterparty)</span>
+                  <div className="font-mono text-text-primary truncate">{sellerAddress}</div>
+                  {receiverName && <div className="text-text-secondary">{receiverName}</div>}
+                </div>
+              </div>
+
+              {/* Canonical Terms Hash */}
+              <div className="p-4 rounded-control bg-surface-elevated border border-border space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-accent flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Canonical Agreement Hash</span>
+                  </span>
+                  <Badge variant="accent">keccak256</Badge>
+                </div>
+                <div className="font-mono text-xs text-text-primary break-all bg-surface p-2.5 rounded-control border border-border select-all">
+                  {currentTermsHash}
+                </div>
+                <p className="text-[11px] text-text-tertiary">
+                  Deterministic hash computed from serialized canonical terms. Both counterparties ratify this hash onchain.
+                </p>
+              </div>
+
+              {/* Broadcast Options */}
+              <div className="p-4 rounded-control bg-surface-elevated/50 border border-border flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-semibold text-text-primary">
+                    Broadcast to Monad Testnet
+                  </div>
+                  <div className="text-xs text-text-secondary">
+                    Initializes an authoritative smart contract transaction on Chain ID 10143
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={broadcastOnchain}
+                  onChange={(e) => setBroadcastOnchain(e.target.checked)}
+                  className="w-4 h-4 accent-accent rounded cursor-pointer"
+                />
+              </div>
+
+              {/* Broadcast Error */}
+              {broadcastError && (
+                <div className="p-4 rounded-card bg-status-error/10 border border-status-error/30 text-xs text-status-error flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{broadcastError}</span>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between pt-4 border-t border-border">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="md"
+                  onClick={() => setIsReviewing(false)}
+                  leftIcon={<ArrowLeft className="w-4 h-4" />}
+                >
+                  Back to Edit
+                </Button>
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  isLoading={isBroadcasting}
+                  rightIcon={<ArrowRight className="w-4 h-4" />}
+                >
+                  {broadcastOnchain ? 'Sign & Commit to Monad' : 'Create Sandbox Proposal'}
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
+      </form>
     </div>
   );
 }
