@@ -417,4 +417,122 @@ describe('17. Verifier Manual Entry & Trust Provenance UI Invariants', () => {
       assert.ok(existsSync(videoAssetPath), 'veriqomesh-hackathon-submission.mp4 must exist in public/video');
     });
   });
+
+  describe('Part E: Trust Page Provenance Filtering & Envio Historical Isolation Invariants', () => {
+    const rootCandidate1 = resolve(process.cwd());
+    const rootCandidate2 = resolve(process.cwd(), '..');
+    const rootDir = existsSync(resolve(rootCandidate1, 'apps')) ? rootCandidate1 : rootCandidate2;
+
+    it('1. apps/web/src/components/TrustActivity.tsx eliminates "Live Session Transaction" and uses "Public Benchmark Event" / "Current Session Event"', () => {
+      const activityPath = resolve(rootDir, 'apps/web/src/components/TrustActivity.tsx');
+      assert.ok(existsSync(activityPath), 'TrustActivity.tsx must exist');
+      const content = readFileSync(activityPath, 'utf-8');
+
+      // Eliminates misleading label
+      assert.ok(
+        !content.includes('Live Session Transaction'),
+        'Must never display "Live Session Transaction"'
+      );
+
+      // Uses proper provenance labels
+      assert.ok(
+        content.includes('Public Benchmark Event'),
+        'Must label benchmark records with "Public Benchmark Event"'
+      );
+      assert.ok(
+        content.includes('Current Session Event'),
+        'Must label session records with "Current Session Event"'
+      );
+      assert.ok(
+        content.includes('Public Demo / Architectural Benchmark'),
+        'Must label benchmark records with "Public Demo / Architectural Benchmark"'
+      );
+    });
+
+    it('2. Flow A and Flow B remain exact canonical benchmarks on Trust page', () => {
+      const activityPath = resolve(rootDir, 'apps/web/src/components/TrustActivity.tsx');
+      const content = readFileSync(activityPath, 'utf-8');
+
+      // Flow A
+      assert.ok(content.includes('0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1'));
+      assert.ok(content.includes('0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52'));
+      assert.ok(content.includes('66436615'));
+      assert.ok(content.includes('VALID (Outcome 1 / PASS)'));
+      assert.ok(content.includes('#3 (Soulbound ERC-5192)'));
+
+      // Flow B
+      assert.ok(content.includes('0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4'));
+      assert.ok(content.includes('INCONCLUSIVE (Outcome 3)'));
+      assert.ok(content.includes('1,500 bps (15% Buyer Refund)'));
+      assert.ok(content.includes('#2 (Soulbound ERC-5192)'));
+    });
+
+    it('3. Trust terminology strictly separates Transaction State from Verification Outcome', () => {
+      const activityPath = resolve(rootDir, 'apps/web/src/components/TrustActivity.tsx');
+      const content = readFileSync(activityPath, 'utf-8');
+
+      assert.ok(
+        !content.includes('issued for transaction outcome 11'),
+        'Must never display "issued for transaction outcome 11"'
+      );
+      assert.ok(
+        content.includes('Trust Receipt #3 issued'),
+        'Must display "Trust Receipt #3 issued"'
+      );
+      assert.ok(
+        content.includes('Verification Outcome: VALID (Outcome 1 / PASS)'),
+        'Must explicitly display Verification Outcome: VALID (Outcome 1 / PASS)'
+      );
+      assert.ok(
+        content.includes('Transaction State: SETTLED (11)'),
+        'Must explicitly display Transaction State: SETTLED (11)'
+      );
+    });
+
+    it('4. Envio GraphQL query and RPC fallback remain fully operational and preserved', () => {
+      const activityPath = resolve(rootDir, 'apps/web/src/components/TrustActivity.tsx');
+      const content = readFileSync(activityPath, 'utf-8');
+
+      assert.ok(
+        content.includes('LifecycleEvent(order_by: { blockNumber: desc }, limit: 50)'),
+        'Envio GraphQL query must be preserved'
+      );
+      assert.ok(
+        content.includes('Envio HyperIndex (GraphQL Primary)'),
+        'Envio primary read layer indicator must be preserved'
+      );
+      assert.ok(
+        content.includes('Monad RPC (Live Trace Fallback)'),
+        'Monad RPC fallback indicator must be preserved'
+      );
+      assert.ok(
+        content.includes('Envio HyperIndex GraphQL Query Specification'),
+        'GraphQL schema specification tab must be preserved'
+      );
+    });
+
+    it('5. Principled session filtering excludes disconnected visitors and dev fixtures', () => {
+      const activityPath = resolve(rootDir, 'apps/web/src/components/TrustActivity.tsx');
+      const content = readFileSync(activityPath, 'utf-8');
+
+      // Disconnected guard
+      assert.ok(
+        content.includes('if (!connectedAddress)') || content.includes('if (!connectedWallet)'),
+        'Must have strict disconnected check that clears session events'
+      );
+
+      // Dev fixtures blacklist defense-in-depth
+      assert.ok(content.includes('0x9047df33704601c76d17dee95bd5a0c295d065ebb831a79ba18555ea39d4cc5d'));
+      assert.ok(content.includes('0xbc7555bb1f8b5b84e9adb1bc17fb61ee5fe4a9dd97a858b3814ac45e9dd84acf'));
+      assert.ok(content.includes('0xbd300c0999901576ced189cedd074cd577b57df181abdb19d0fd261780c77956'));
+      assert.ok(content.includes('0xb2e9622c0680abc07bd894864b088687462a802f7d3d1d92d005579b67a0e7d6'));
+
+      // Empty session state
+      assert.ok(
+        content.includes('Wallet connection required for session provenance.') ||
+        content.includes('Connect your Monad wallet to track live commercial escrow'),
+        'Must render disconnected wallet guidance when filtering by session'
+      );
+    });
+  });
 });

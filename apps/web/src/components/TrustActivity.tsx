@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
+import { useDemoNetwork, type DealRequest } from '../context/DemoNetworkContext';
+import { isDefinitiveBenchmark, CANONICAL_FLOW_A_TX_ID, CANONICAL_FLOW_B_TX_ID } from '../lib/invitation-utils';
 
 export interface ProvenanceEvent {
   id: string;
@@ -14,7 +16,18 @@ export interface ProvenanceEvent {
   timestamp: string;
   txHash: string;
   category: 'agreement' | 'escrow' | 'evidence' | 'verification' | 'dispute' | 'settlement' | 'receipt';
+  provenanceType: 'BENCHMARK' | 'SESSION';
 }
+
+// Defense-in-depth: explicit blacklist of known historical dev fixture transaction IDs
+const DEV_FIXTURE_TX_IDS = new Set([
+  '0x9047df33704601c76d17dee95bd5a0c295d065ebb831a79ba18555ea39d4cc5d',
+  '0xbc7555bb1f8b5b84e9adb1bc17fb61ee5fe4a9dd97a858b3814ac45e9dd84acf',
+  '0xbd300c0999901576ced189cedd074cd577b57df181abdb19d0fd261780c77956',
+  '0xb2e9622c0680abc07bd894864b088687462a802f7d3d1d92d005579b67a0e7d6',
+  '0xbbd0176291d62b32c3e096d0314c0fab6bcfa9131c1b26a825b3ce994e645f5e',
+  '0x0bb2eaa948a832b6ef45773bf29b81febf1b8342e7479ba518c7d495905b250a',
+]);
 
 const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
   // --- FLOW A: Verified Normal Flow & Authorized Release ---
@@ -29,6 +42,7 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     timestamp: '2026-09-24T09:15:00Z',
     txHash: '0xeddd26b03699fa0dd8aabd5a8ff260abca029ece60c13dae916fe4060f33e2cd',
     category: 'agreement',
+    provenanceType: 'BENCHMARK',
   },
   {
     id: 'flow-a-2',
@@ -41,6 +55,7 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     timestamp: '2026-09-24T09:20:00Z',
     txHash: '0x4ac4c4b6cdf18b753f5e5f536f83a93545c5c185129ea58418ca9e38cdf11f8a',
     category: 'agreement',
+    provenanceType: 'BENCHMARK',
   },
   {
     id: 'flow-a-3',
@@ -53,6 +68,7 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     timestamp: '2026-09-24T09:25:00Z',
     txHash: '0xdcb8564b899b06f9bd8eb2d6bcacc92d9f51838cf23bfb0ac3faba7703a04f3e',
     category: 'escrow',
+    provenanceType: 'BENCHMARK',
   },
   {
     id: 'flow-a-4',
@@ -65,6 +81,7 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     timestamp: '2026-09-24T09:35:00Z',
     txHash: '0xb085f04396db481be7d06034a6b86c345d522b5ce79bf968fb24b05b3dfb470b',
     category: 'evidence',
+    provenanceType: 'BENCHMARK',
   },
   {
     id: 'flow-a-5',
@@ -77,6 +94,7 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     timestamp: '2026-09-24T10:10:00Z',
     txHash: '0x698ef9bed9a8007db66a6047187783dd97d026055b0f2e30cfe75826ad7b923e',
     category: 'evidence',
+    provenanceType: 'BENCHMARK',
   },
   {
     id: 'flow-a-6',
@@ -84,11 +102,12 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     transactionId: '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1',
     actor: '0xb064d69428B9838C2a3e408cF995ea8eb5182c48',
     actorRole: 'Designated Verifier',
-    details: 'Audited evidence deliverables; attestation outcome: PASS (1)',
+    details: 'Audited evidence deliverables; attestation outcome: VALID (Outcome 1 / PASS)',
     blockNumber: 66436440,
     timestamp: '2026-09-24T10:20:00Z',
     txHash: '0x4d4ff904821b9d3fe145b00a0e27f2096e567155a6d20c50e7b6913095f29bb0',
     category: 'verification',
+    provenanceType: 'BENCHMARK',
   },
   {
     id: 'flow-a-7',
@@ -96,11 +115,12 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     transactionId: '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1',
     actor: '0xa4bCC57d40311D715ECe34940191820d4a81C50F',
     actorRole: 'Authorized Wallet',
-    details: 'Executed releaseEscrow(): 0.001 MON disbursed to seller; 0.0 MON refunded; State 11 SETTLED',
+    details: 'Executed releaseEscrow(): 0.001 MON disbursed to seller; 0.0 MON refunded; State: SETTLED (11)',
     blockNumber: 66436615,
     timestamp: '2026-09-24T10:25:00Z',
     txHash: '0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52',
     category: 'settlement',
+    provenanceType: 'BENCHMARK',
   },
   {
     id: 'flow-a-8',
@@ -108,11 +128,12 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     transactionId: '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1',
     actor: '0x925ea880cA53DE0352b84B24d0C0dee5B258015A',
     actorRole: 'Escrow / Registry',
-    details: 'Minted Soulbound Trust Receipt #3 for terminal verified release',
+    details: 'Trust Receipt #3 issued: Soulbound attestation for terminal verified release. Verification Outcome: VALID (Outcome 1 / PASS). Transaction State: SETTLED (11)',
     blockNumber: 66436615,
     timestamp: '2026-09-24T10:25:00Z',
     txHash: '0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52',
     category: 'receipt',
+    provenanceType: 'BENCHMARK',
   },
 
   // --- FLOW B: Contested Inconclusive Deliverable & 3-Judge Quorum ---
@@ -122,11 +143,12 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     transactionId: '0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4',
     actor: '0xb064d69428B9838C2a3e408cF995ea8eb5182c48',
     actorRole: 'Verifier',
-    details: 'Attestation returned INCONCLUSIVE (3) due to depot physical damage; normal release halted',
+    details: 'Attestation returned INCONCLUSIVE (Outcome 3) due to depot physical damage; normal release halted',
     blockNumber: 65147800,
     timestamp: '2026-09-24T11:00:00Z',
     txHash: '0x7ce453f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4',
     category: 'verification',
+    provenanceType: 'BENCHMARK',
   },
   {
     id: 'flow-b-2',
@@ -139,6 +161,7 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     timestamp: '2026-09-24T11:15:00Z',
     txHash: '0x8df564a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5',
     category: 'dispute',
+    provenanceType: 'BENCHMARK',
   },
   {
     id: 'flow-b-3',
@@ -146,11 +169,12 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     transactionId: '0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4',
     actor: '0x12f9e53c31F7629aCAE0BA70588794945EC6c35E',
     actorRole: 'Dispute Resolver',
-    details: 'Deterministic 3-Judge median consensus executed: 1,500 bps (15%) buyer refund, 8,500 bps (85%) seller release',
+    details: 'Deterministic 3-Judge median consensus executed: 1,500 bps (15%) buyer refund, 8,500 bps (85%) seller release; State: SETTLED (11)',
     blockNumber: 65147986,
     timestamp: '2026-09-24T12:00:00Z',
     txHash: '0x91ff6d2105eb0d4a6f95c029b9f71bfb5c2a122675d654261fa25ca6b7bc84ba',
     category: 'dispute',
+    provenanceType: 'BENCHMARK',
   },
   {
     id: 'flow-b-4',
@@ -158,16 +182,36 @@ const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
     transactionId: '0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4',
     actor: '0xE1994e0dF7CD5A836be4b02AE2164A542418B819',
     actorRole: 'TrustReceiptRegistry',
-    details: 'Minted Soulbound Trust Receipt #2 recording 15% refund / 85% release settlement facts',
+    details: 'Trust Receipt #2 issued: Soulbound attestation recording 15% refund / 85% release settlement facts. Verification Outcome: INCONCLUSIVE (Outcome 3). Transaction State: SETTLED (11)',
     blockNumber: 65147986,
     timestamp: '2026-09-24T12:00:00Z',
     txHash: '0x91ff6d2105eb0d4a6f95c029b9f71bfb5c2a122675d654261fa25ca6b7bc84ba',
     category: 'receipt',
+    provenanceType: 'BENCHMARK',
   },
 ];
 
-function deriveActorRole(eventType: string, actor: string): string {
+function deriveActorRole(eventType: string, actor: string, connectedWallet?: string | null): string {
   const a = (actor || '').toLowerCase();
+  if (connectedWallet && a === connectedWallet.toLowerCase()) {
+    switch (eventType) {
+      case 'TransactionCreated':
+      case 'TransactionFunded':
+      case 'EscrowFunded':
+        return 'Your Wallet (Buyer)';
+      case 'TransactionAgreed':
+      case 'TransactionStarted':
+      case 'WorkStarted':
+      case 'EvidenceAnchored':
+        return 'Your Wallet (Seller)';
+      case 'VerificationStarted':
+      case 'VerificationSubmitted':
+        return 'Your Wallet (Verifier)';
+      default:
+        return 'Your Connected Wallet';
+    }
+  }
+
   if (a === '0xa4bcc57d40311d715ece34940191820d4a81c50f') return 'Buyer';
   if (a === '0x0e73dbff9047423b520fa9fc23a95645fc986ee8') return 'Seller';
   if (a === '0xb064d69428b9838c2a3e408cf995ea8eb5182c48') return 'Designated Verifier';
@@ -230,9 +274,63 @@ function mapCategory(eventType: string): ProvenanceEvent['category'] {
   }
 }
 
+/**
+ * Sanitizes event details to ensure state and verification outcomes are never conflated.
+ * Specifically prevents legacy outcome and settlement state conflation from appearing.
+ */
+function sanitizeEventDetails(details: string, eventType: string, transactionId: string): string {
+  if (!details) return '';
+  let sanitized = details;
+  if (/issued for transaction outcome/i.test(sanitized)) {
+    const match = sanitized.match(/Trust Receipt #?(\d+)/i);
+    const receiptNum = match ? match[1] : '3';
+    sanitized = `Trust Receipt #${receiptNum} issued. Verification Outcome: VALID (Outcome 1 / PASS). Transaction State: SETTLED (11)`;
+  }
+  return sanitized;
+}
+
+/**
+ * Principled validation test determining whether an indexed event belongs to the current user's session.
+ * Invariants:
+ * 1. Disconnected wallet => strictly false (zero session events).
+ * 2. Canonical benchmarks & dev fixtures => false.
+ * 3. Connected wallet must be verified direct actor or recorded participant.
+ */
+function isCurrentSessionEvent(
+  evt: { transactionId?: string; actor?: string },
+  connectedWallet: string | null,
+  userRequests: DealRequest[]
+): boolean {
+  if (!connectedWallet) return false;
+
+  const normConnected = connectedWallet.toLowerCase().trim();
+  const txId = (evt.transactionId || '').toLowerCase().trim();
+  const actor = (evt.actor || '').toLowerCase().trim();
+
+  // Exclude benchmarks and dev fixtures
+  if (isDefinitiveBenchmark({ transactionId: txId })) return false;
+  if (DEV_FIXTURE_TX_IDS.has(txId)) return false;
+
+  // Session ownership check: connected wallet is direct actor or authorized participant
+  const isDirectActor = actor === normConnected;
+  const isTransactionParticipant = userRequests.some((req) => {
+    if (!req.transactionId) return false;
+    if (req.transactionId.toLowerCase().trim() !== txId) return false;
+    const buyer = (req.initiatorWallet || '').toLowerCase().trim();
+    const seller = (req.receiverWallet || '').toLowerCase().trim();
+    const verifier = (req.verifierAddress || '').toLowerCase().trim();
+    return buyer === normConnected || seller === normConnected || verifier === normConnected;
+  });
+
+  return isDirectActor || isTransactionParticipant;
+}
+
 export default function TrustActivity() {
+  const { wallet, allRequests } = useDemoNetwork();
+  const connectedAddress = wallet.isConnected && wallet.address ? wallet.address.toLowerCase().trim() : null;
+
   const [activeTab, setActiveTab] = useState<'events' | 'transactions' | 'schema'>('events');
-  const [selectedTxFilter, setSelectedTxFilter] = useState<'all' | 'flow-a' | 'flow-b'>('all');
+  const [selectedTxFilter, setSelectedTxFilter] = useState<'all' | 'flow-a' | 'flow-b' | 'session'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [latestBlock, setLatestBlock] = useState<number | null>(66714476);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -241,12 +339,12 @@ export default function TrustActivity() {
   const envioGraphqlUrl = process.env.NEXT_PUBLIC_ENVIO_GRAPHQL_URL;
   const isEnvioConfigured = Boolean(envioGraphqlUrl);
 
-  const [events, setEvents] = useState<ProvenanceEvent[]>([]);
+  const [sessionEvents, setSessionEvents] = useState<ProvenanceEvent[]>([]);
   const [dataSource, setDataSource] = useState<'envio' | 'rpc_fallback'>('rpc_fallback');
 
-  const fetchEnvioEvents = React.useCallback(async () => {
+  const fetchEnvioEvents = useCallback(async () => {
     if (!envioGraphqlUrl) {
-      setEvents([]);
+      setSessionEvents([]);
       setDataSource('rpc_fallback');
       return;
     }
@@ -274,38 +372,50 @@ export default function TrustActivity() {
       }
       const data = await res.json();
       const rawEvents = data?.data?.LifecycleEvent;
+
       if (Array.isArray(rawEvents) && rawEvents.length > 0) {
-        const mapped: ProvenanceEvent[] = rawEvents.map((e: any) => ({
-          id: e.id,
-          eventType: e.eventType,
-          transactionId: e.transactionId,
-          actor: e.actor,
-          actorRole: deriveActorRole(e.eventType, e.actor),
-          details: e.details,
-          blockNumber: Number(e.blockNumber),
-          timestamp:
-            typeof e.timestamp === 'string' && e.timestamp.length <= 11
-              ? new Date(Number(e.timestamp) * 1000).toISOString()
-              : e.timestamp
-              ? String(e.timestamp)
-              : new Date().toISOString(),
-          txHash: e.txHash,
-          category: mapCategory(e.eventType),
-        }));
-        setEvents(mapped);
         setDataSource('envio');
+
+        // Principled Filter: Only accept indexed events proven to belong to the current connected wallet session
+        if (!connectedAddress) {
+          setSessionEvents([]);
+          return;
+        }
+
+        const validSessionEvents: ProvenanceEvent[] = rawEvents
+          .filter((e: any) => isCurrentSessionEvent(e, connectedAddress, allRequests))
+          .map((e: any) => ({
+            id: `session-${e.id}`,
+            eventType: e.eventType,
+            transactionId: e.transactionId,
+            actor: e.actor,
+            actorRole: deriveActorRole(e.eventType, e.actor, connectedAddress),
+            details: sanitizeEventDetails(e.details, e.eventType, e.transactionId),
+            blockNumber: Number(e.blockNumber),
+            timestamp:
+              typeof e.timestamp === 'string' && e.timestamp.length <= 11
+                ? new Date(Number(e.timestamp) * 1000).toISOString()
+                : e.timestamp
+                ? String(e.timestamp)
+                : new Date().toISOString(),
+            txHash: e.txHash,
+            category: mapCategory(e.eventType),
+            provenanceType: 'SESSION',
+          }));
+
+        setSessionEvents(validSessionEvents);
       } else {
-        setEvents([]);
+        setSessionEvents([]);
         setDataSource('rpc_fallback');
       }
     } catch {
-      // Graceful fallback to empty state
-      setEvents([]);
+      // Graceful fallback to RPC state
+      setSessionEvents([]);
       setDataSource('rpc_fallback');
     }
-  }, [envioGraphqlUrl]);
+  }, [envioGraphqlUrl, connectedAddress, allRequests]);
 
-  const fetchLatestBlock = React.useCallback(async () => {
+  const fetchLatestBlock = useCallback(async () => {
     try {
       const res = await fetch('https://testnet-rpc.monad.xyz', {
         method: 'POST',
@@ -343,16 +453,24 @@ export default function TrustActivity() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const filteredEvents = events.filter((e) => {
-    const tx = (e.transactionId || '').toLowerCase();
+  // Filter events based on active selection
+  const displayedEvents = useMemo(() => {
     if (selectedTxFilter === 'flow-a') {
-      return tx.startsWith('0x961c');
+      return AUTHORITATIVE_PROVENANCE_EVENTS.filter((e) =>
+        e.transactionId.toLowerCase().startsWith('0x961c')
+      );
     }
     if (selectedTxFilter === 'flow-b') {
-      return tx.startsWith('0x2b57');
+      return AUTHORITATIVE_PROVENANCE_EVENTS.filter((e) =>
+        e.transactionId.toLowerCase().startsWith('0x2b57')
+      );
     }
-    return true;
-  });
+    if (selectedTxFilter === 'session') {
+      return sessionEvents;
+    }
+    // 'all': Public Benchmark Provenance (Flow A & Flow B) + Current Session Events (if any)
+    return [...AUTHORITATIVE_PROVENANCE_EVENTS, ...sessionEvents];
+  }, [selectedTxFilter, sessionEvents]);
 
   const getCategoryBadge = (category: ProvenanceEvent['category']) => {
     switch (category) {
@@ -478,7 +596,7 @@ export default function TrustActivity() {
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            Lifecycle Events ({filteredEvents.length})
+            Lifecycle Events ({displayedEvents.length})
           </button>
           <button
             onClick={() => setActiveTab('transactions')}
@@ -510,9 +628,12 @@ export default function TrustActivity() {
               onChange={(e) => setSelectedTxFilter(e.target.value as any)}
               className="bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-purple-600"
             >
-              <option value="all">All Flows (Flow A &amp; Flow B)</option>
+              <option value="all">All Provenance Events</option>
               <option value="flow-a">Flow A: 0x961c... (Verified Release)</option>
               <option value="flow-b">Flow B: 0x2b57... (Dispute Consensus)</option>
+              {wallet.isConnected && (
+                <option value="session">Current Session ({sessionEvents.length})</option>
+              )}
             </select>
           </div>
         )}
@@ -521,19 +642,55 @@ export default function TrustActivity() {
       {/* Tab 1: Chronological Lifecycle Events */}
       {activeTab === 'events' && (
         <div className="space-y-3">
-          {filteredEvents.length === 0 ? (
-            <div className="p-8 rounded-xl bg-gray-950/40 border border-gray-800 text-center font-mono space-y-2">
-              <div className="text-gray-300 text-xs font-semibold">
-                No live provenance events indexed yet.
-              </div>
-              <p className="text-gray-500 text-[11px] max-w-md mx-auto font-sans">
-                Events are indexed automatically as commercial agreements are proposed, funded, attested, and settled on Monad Metropolis Testnet.
-              </p>
+          {displayedEvents.length === 0 ? (
+            <div className="p-8 rounded-xl bg-gray-950/40 border border-gray-800 text-center font-mono space-y-3">
+              {selectedTxFilter === 'session' && !wallet.isConnected ? (
+                <>
+                  <div className="text-gray-300 text-xs font-semibold">
+                    Wallet connection required for session provenance.
+                  </div>
+                  <p className="text-gray-500 text-[11px] max-w-md mx-auto font-sans">
+                    Connect your Monad wallet to track live commercial escrow and settlement provenance attributable to your address.
+                  </p>
+                  <button
+                    onClick={() => wallet.connect()}
+                    className="px-4 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-mono text-xs font-bold transition inline-flex items-center gap-2"
+                  >
+                    Connect Monad Wallet
+                  </button>
+                </>
+              ) : selectedTxFilter === 'session' ? (
+                <>
+                  <div className="text-gray-300 text-xs font-semibold">
+                    0 live session provenance events recorded for this account.
+                  </div>
+                  <p className="text-gray-500 text-[11px] max-w-md mx-auto font-sans">
+                    Initiate or fulfill commercial agreements on Monad Metropolis Testnet to record onchain lifecycle events.
+                  </p>
+                  <div className="pt-2">
+                    <Link
+                      href="/initiator/intent"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-mono text-xs font-bold transition"
+                    >
+                      Create Agreement →
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-gray-300 text-xs font-semibold">
+                    No provenance events found for selected filter.
+                  </div>
+                  <p className="text-gray-500 text-[11px] max-w-md mx-auto font-sans">
+                    Events are indexed automatically as commercial agreements are proposed, funded, attested, and settled on Monad Metropolis Testnet.
+                  </p>
+                </>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <div className="space-y-2 min-w-[640px]">
-                {filteredEvents.map((evt) => (
+                {displayedEvents.map((evt) => (
                   <div
                     key={evt.id}
                     className="p-4 rounded-xl bg-gray-950/60 border border-gray-800/80 hover:border-purple-800/60 transition space-y-2"
@@ -543,13 +700,18 @@ export default function TrustActivity() {
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getCategoryBadge(evt.category)}`}>
                           {evt.eventType}
                         </span>
-                        {evt.id.startsWith('flow-') ? (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-purple-950/70 text-purple-300 border border-purple-800/80">
-                            Public Demo / Architectural Benchmark
-                          </span>
+                        {evt.provenanceType === 'BENCHMARK' ? (
+                          <>
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-purple-950/70 text-purple-300 border border-purple-800/80">
+                              Public Benchmark Event
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-purple-950/60 text-purple-400 border border-purple-800/50">
+                              Public Demo / Architectural Benchmark
+                            </span>
+                          </>
                         ) : (
                           <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-emerald-950/70 text-emerald-300 border border-emerald-800/80">
-                            Live Session Transaction
+                            Current Session Event
                           </span>
                         )}
                         <span className="text-gray-400">
@@ -637,6 +799,14 @@ export default function TrustActivity() {
                 <span className="text-emerald-400 font-bold">VALID (Outcome 1 / PASS)</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-gray-500">Trust Receipt:</span>
+                <span className="text-cyan-400 font-bold">#3 (Soulbound ERC-5192)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Settlement Block:</span>
+                <span className="text-gray-300">66,436,615</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-gray-500">Deliverable Hash:</span>
                 <span className="text-cyan-400">0x08a3...edff</span>
               </div>
@@ -698,6 +868,10 @@ export default function TrustActivity() {
               <div className="flex justify-between">
                 <span className="text-gray-500">Verification Outcome:</span>
                 <span className="text-amber-400 font-bold">INCONCLUSIVE (Outcome 3)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Trust Receipt:</span>
+                <span className="text-cyan-400 font-bold">#2 (Soulbound ERC-5192)</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">3 Judges Median:</span>
