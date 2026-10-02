@@ -545,10 +545,10 @@ export default function CreateIntentPage() {
         {!isReviewing ? (
           /* STEP 1: FORM INPUTS */
           <div className="space-y-6">
-            {/* Commercial Need */}
+            {/* Step 1: What do you need? */}
             <Card className="space-y-4">
               <CardHeader
-                title="1. Commercial Need"
+                title="Step 1 · What do you need?"
                 subtitle="Describe what you are purchasing, procuring, or agreeing to in plain language"
               />
               <Textarea
@@ -561,10 +561,10 @@ export default function CreateIntentPage() {
               />
             </Card>
 
-            {/* Structured Parameters */}
+            {/* Step 2: Agreement details */}
             <Card className="space-y-5">
               <CardHeader
-                title="2. Agreement Parameters"
+                title="Step 2 · Agreement details"
                 subtitle="Specify verifiable terms, delivery window, and escrow deposit"
               />
 
@@ -615,11 +615,11 @@ export default function CreateIntentPage() {
               />
             </Card>
 
-            {/* Counterparty & Verifier */}
+            {/* Step 3: Counterparty */}
             <Card className="space-y-5">
               <CardHeader
-                title="3. Participants &amp; Verification"
-                subtitle="Designate the counterparty seller and the independent verification auditor"
+                title="Step 3 · Counterparty"
+                subtitle="Designate the counterparty seller authorized to review and ratify this agreement"
               />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -642,10 +642,18 @@ export default function CreateIntentPage() {
                   label="Seller Organization / Name"
                   value={receiverName}
                   onChange={(e) => setReceiverName(e.target.value)}
-                  placeholder="e.g. Dallas Solar Supply Co."
+                  placeholder="e.g. Custom Counterparty"
                   helperText="Display name for receipt records"
                 />
               </div>
+            </Card>
+
+            {/* Step 4: Verification & evidence */}
+            <Card className="space-y-5">
+              <CardHeader
+                title="Step 4 · Verification &amp; evidence"
+                subtitle="Designate the independent inspection auditor and milestone proofs"
+              />
 
               <Input
                 label="Designated Verifier Wallet Address"
@@ -720,7 +728,7 @@ export default function CreateIntentPage() {
             {/* Additional Conditions */}
             <Card className="space-y-4">
               <CardHeader
-                title="4. Additional Conditions (Optional)"
+                title="Additional conditions (optional)"
                 subtitle="Governing terms, inspection criteria, or special provisions"
               />
               <Textarea
@@ -752,17 +760,18 @@ export default function CreateIntentPage() {
                 disabled={!isValidForReview}
                 onClick={() => setIsReviewing(true)}
                 rightIcon={<ArrowRight className="w-4 h-4" />}
+                className="w-full sm:w-auto"
               >
                 Review Agreement Terms
               </Button>
             </div>
           </div>
         ) : (
-          /* STEP 2: REVIEW & COMMIT SCREEN */
+          /* STEP 5: REVIEW & COMMIT SCREEN */
           <div className="space-y-6">
             <Card className="space-y-6">
               <CardHeader
-                title="Review Canonical Agreement"
+                title="Step 5 · Review &amp; create"
                 subtitle="Verify all parameters before signing and broadcasting to Monad Testnet"
                 action={
                   <Button

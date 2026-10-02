@@ -55,7 +55,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-bg text-text-primary antialiased flex flex-col justify-between selection:bg-accent/25 selection:text-white">
         <DemoNetworkProvider>
           <Navigation />
-          <main className="flex-1 pb-16 lg:pb-0">{children}</main>
+          <main className="flex-1 pb-24 lg:pb-8">{children}</main>
           <PublicSafetyNotice />
           <BottomTabBar />
         </DemoNetworkProvider>

@@ -9,8 +9,8 @@ import {
   FileCheck2,
   AlertCircle,
   ExternalLink,
-  Check,
-  User,
+  Wallet,
+  CheckCircle2,
 } from 'lucide-react';
 import { useDemoNetwork } from '../../context/DemoNetworkContext';
 import {
@@ -21,7 +21,7 @@ import {
   TARGET_SELLER_ADDRESS,
 } from '../../lib/invitation-utils';
 import { Button } from '../../components/ui/Button';
-import { Card, CardHeader } from '../../components/ui/Card';
+import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { StatusChip } from '../../components/ui/StatusChip';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -35,8 +35,6 @@ export default function ReceiverDashboardPage() {
     actionableRequestsCount,
     wallet,
   } = useDemoNetwork();
-
-  const isRoleActive = role === 'RECEIVER';
 
   // Role compatibility check for connected wallet vs designated receiver
   const receiverCompatibility = useMemo(() => {
@@ -60,152 +58,85 @@ export default function ReceiverDashboardPage() {
   }, [allRequests, wallet.isConnected, wallet.address]);
 
   return (
-    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-8">
-      {/* Role Mismatch Notice */}
-      {!isRoleActive && (
-        <div className="p-4 rounded-card bg-surface-elevated border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 text-text-secondary">
-            <span className="w-2 h-2 rounded-full bg-status-warning shrink-0" />
-            <span>
-              You are currently viewing as <strong>Buyer</strong>. Switch perspective to view as <strong>Seller</strong>.
-            </span>
+    <div className="py-6 sm:py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6">
+      {/* Page Header */}
+      <div className="space-y-1 border-b border-border pb-5">
+        <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
+          Review agreements
+        </h1>
+        <p className="text-sm text-text-secondary">
+          You have been asked to review an agreement.
+        </p>
+      </div>
+
+      {/* Disconnected State: Compact Alert */}
+      {!wallet.isConnected ? (
+        <Card className="p-4 sm:p-5 bg-surface border-border space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-control bg-accent/10 border border-accent/20 text-accent shrink-0">
+              <Wallet className="w-4 h-4" />
+            </div>
+            <div className="space-y-1 flex-1">
+              <h2 className="text-sm font-semibold text-text-primary">
+                Wallet required
+              </h2>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Connect your Monad wallet to see agreements sent to this address.
+              </p>
+            </div>
           </div>
           <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => switchRole('RECEIVER')}
+            variant="primary"
+            size="md"
+            fullWidth
+            onClick={() => wallet.connect()}
+            isLoading={wallet.isConnecting}
+            className="sm:w-auto"
           >
-            Switch to Seller View
+            Connect wallet
           </Button>
-        </div>
-      )}
-
-      {/* Wallet Incompatibility Warning */}
-      {wallet.isConnected && !receiverCompatibility.isCompatible && (
-        <div className="p-4 rounded-card bg-status-warning/10 border border-status-warning/30 space-y-3 text-xs">
+        </Card>
+      ) : !receiverCompatibility.isCompatible ? (
+        /* Connected but role mismatched */
+        <Card className="p-4 sm:p-5 bg-status-warning/10 border border-status-warning/30 space-y-3 text-xs">
           <div className="flex items-center gap-2 text-status-warning font-semibold">
             <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>Seller Wallet Required</span>
+            <span>Seller wallet required</span>
           </div>
           <p className="text-text-secondary leading-relaxed">
-            Your connected account (<code className="font-mono text-text-primary">{wallet.address?.slice(0, 8)}...{wallet.address?.slice(-6)}</code>) is not registered as the designated seller ({receiver.name || 'Fulfillment Node'}). Only the authorized seller account can sign and accept deal agreements onchain.
+            Your connected account (<code className="font-mono text-text-primary">{wallet.address?.slice(0, 8)}...{wallet.address?.slice(-6)}</code>) is not registered as the designated seller ({receiver.name || 'Seller'}). Only the authorized seller account can sign agreements onchain.
           </p>
-          <div className="flex items-center gap-3 pt-1">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => wallet.connect()}
-            >
-              Switch Account
+          <div className="flex items-center gap-2 pt-1">
+            <Button variant="secondary" size="sm" onClick={() => wallet.connect()}>
+              Switch account
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => wallet.disconnect()}
-            >
+            <Button variant="ghost" size="sm" onClick={() => wallet.disconnect()}>
               Disconnect
             </Button>
           </div>
-        </div>
-      )}
-
-      {/* Header & Primary Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <Badge variant="default">SELLER WORKSPACE</Badge>
-            <span className="text-xs text-text-tertiary">Receiver Node</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
-            Seller Workspace
-          </h1>
-          <p className="text-xs sm:text-sm text-text-secondary mt-1">
-            Review inbound commercial proposals, sign agreements on Monad, and submit fulfillment evidence.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 shrink-0">
-          <Link href="/requests">
-            <Button
-              variant="primary"
-              size="md"
-              leftIcon={<Inbox className="w-4 h-4" />}
-            >
-              <span>Incoming Requests</span>
-              {actionableRequestsCount > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-white text-accent text-xs font-bold">
-                  {actionableRequestsCount}
-                </span>
-              )}
-            </Button>
-          </Link>
-          <Link href="/account">
-            <Button variant="secondary" size="md">
-              Node Profile
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* 4-Stat Metric Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card padding="sm" className="space-y-1">
-          <span className="text-xs text-text-tertiary block">Incoming Requests</span>
-          <div className="text-2xl font-bold text-status-warning font-mono">
-            {actionableRequestsCount} New
-          </div>
-          <span className="text-[11px] text-text-secondary block">
-            {actionableRequestsCount > 0 ? 'Awaiting your onchain signature' : 'No action needed'}
-          </span>
         </Card>
+      ) : null}
 
-        <Card padding="sm" className="space-y-1">
-          <span className="text-xs text-text-tertiary block">Active Agreements</span>
-          <div className="text-2xl font-bold text-text-primary font-mono">
-            {wallet.isConnected && wallet.address
-              ? allRequests.filter(
-                  (r) =>
-                    r.status === 'AGREEMENT_ACTIVE' &&
-                    r.receiverWallet?.toLowerCase() === wallet.address?.toLowerCase()
-                ).length
-              : 0}
-          </div>
-          <span className="text-[11px] text-text-secondary block">Active escrow commitments</span>
-        </Card>
-
-        <Card padding="sm" className="space-y-1">
-          <span className="text-xs text-text-tertiary block">Completed Deals</span>
-          <div className="text-2xl font-bold text-status-success font-mono">0</div>
-          <span className="text-[11px] text-text-secondary block">Fully settled transactions</span>
-        </Card>
-
-        <Card padding="sm" className="space-y-1">
-          <span className="text-xs text-text-tertiary block">Trust Score</span>
-          <div className="text-2xl font-bold text-accent font-mono">100%</div>
-          <span className="text-[11px] text-text-secondary block">Accredited supplier rating</span>
-        </Card>
-      </div>
-
-      {/* Inbound Requests List */}
-      <div className="space-y-4">
+      {/* Main Section: Requests for you */}
+      <section className="space-y-3 pt-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-text-primary">
-            Actionable Inbound Requests ({actionableRequests.length})
+          <h2 className="text-base sm:text-lg font-bold text-text-primary">
+            Requests for you
           </h2>
-          <Link href="/requests" className="text-xs font-medium text-accent hover:underline">
-            View full inbox →
-          </Link>
+          <span className="text-xs text-text-tertiary">
+            {actionableRequests.length} awaiting your action
+          </span>
         </div>
 
         {actionableRequests.length === 0 ? (
           <EmptyState
-            icon={<Inbox className="w-6 h-6 text-text-tertiary" />}
-            title="No pending requests awaiting your action"
-            description="When buyers initiate commercial agreements designated for your wallet, they will appear here with an onchain signing prompt."
+            icon={<Inbox className="w-5 h-5 text-text-tertiary" />}
+            title="0 awaiting your action"
+            description="When buyers initiate commercial agreements designated for your wallet, they will appear here with an authorization action."
             action={
               <Link href="/requests">
                 <Button variant="secondary" size="sm">
-                  Go to Requests Inbox
+                  View full inbox
                 </Button>
               </Link>
             }
@@ -213,84 +144,87 @@ export default function ReceiverDashboardPage() {
         ) : (
           <div className="space-y-3">
             {actionableRequests.map((req) => (
-              <Card key={req.id} variant="default" className="space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-text-tertiary">{req.id}</span>
-                      <span className="text-border">•</span>
-                      <span className="font-medium text-text-primary text-sm">{req.deliverable}</span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
-                      <span>Buyer: <strong className="text-text-primary">{req.initiator}</strong></span>
-                      <span>•</span>
-                      <span>Escrow: <strong className="font-mono text-status-success">{req.escrowAmountMon} MON</strong></span>
-                      <span>•</span>
-                      <span>Timeline: {req.deadlineDays} days</span>
-                    </div>
-                  </div>
+              <Card key={req.id} variant="default" className="p-4 sm:p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-accent uppercase tracking-wider">
+                    New agreement
+                  </span>
+                  <StatusChip status="warning" size="sm" label="Awaiting your authorization" />
+                </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    <StatusChip status="warning" size="sm" label="Action Required" />
-                    <Link href={`/requests?invitation=${req.invitationCode || req.id}`}>
-                      <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
-                        Review &amp; Sign
-                      </Button>
-                    </Link>
+                <div className="space-y-1">
+                  <h3 className="text-base font-bold text-text-primary">
+                    {req.title || req.deliverable}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-secondary">
+                    <span className="font-mono font-semibold text-status-success">
+                      {req.escrowAmountMon} MON
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Receiver: <code className="font-mono text-text-tertiary">{req.receiverWallet ? `${req.receiverWallet.slice(0, 6)}...${req.receiverWallet.slice(-4)}` : '0x...'}</code>
+                    </span>
+                    <span>•</span>
+                    <span>Deadline: {req.deadlineDays} days</span>
                   </div>
+                </div>
+
+                <div className="pt-2 flex items-center justify-between border-t border-border gap-3">
+                  <span className="text-[11px] text-text-tertiary font-mono">
+                    ID: {req.id.slice(0, 12)}...
+                  </span>
+                  <Link href={`/requests?invitation=${req.invitationCode || req.id}`}>
+                    <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
+                      Review agreement
+                    </Button>
+                  </Link>
                 </div>
               </Card>
             ))}
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Fulfillment Escrows Cards */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-bold text-text-primary">
-          Fulfillment &amp; Evidence Workflows
+      {/* Fulfillment & Evidence Workflows (Secondary) */}
+      <section className="space-y-3 pt-6 border-t border-border">
+        <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
+          Fulfillment workflows
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="space-y-3 flex flex-col justify-between">
-            <div className="space-y-2">
-              <span className="text-xs font-semibold text-accent uppercase tracking-wider block">
-                Evidence Anchoring
-              </span>
-              <h3 className="text-base font-bold text-text-primary">
-                Physical Deliverable Verification
-              </h3>
-              <p className="text-xs text-text-secondary leading-relaxed">
-                When goods are shipped or services completed, upload bill of lading carrier manifests, delivery photos, and serial numbers to IPFS.
-              </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Card padding="sm" className="space-y-2">
+            <div className="flex items-center gap-2 text-text-primary text-xs font-semibold">
+              <FileCheck2 className="w-4 h-4 text-accent" />
+              <span>Evidence Anchoring</span>
             </div>
-            <Link href="/evidence">
-              <Button variant="secondary" size="sm" fullWidth rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
-                Explore Evidence Registry
-              </Button>
-            </Link>
+            <p className="text-xs text-text-secondary leading-relaxed">
+              Upload bills of lading, delivery proofs, and serial numbers to IPFS when deliverables are ready.
+            </p>
+            <div className="pt-1">
+              <Link href="/evidence" className="text-xs text-accent hover:underline inline-flex items-center gap-1 font-medium">
+                <span>Open evidence explorer</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
           </Card>
 
-          <Card className="space-y-3 flex flex-col justify-between">
-            <div className="space-y-2">
-              <span className="text-xs font-semibold text-status-success uppercase tracking-wider block">
-                Escrow Settlement
-              </span>
-              <h3 className="text-base font-bold text-text-primary">
-                Onchain Capital Settlement
-              </h3>
-              <p className="text-xs text-text-secondary leading-relaxed">
-                Once designated inspector nodes attest PASS, escrowed MON funds release to your seller address on Monad Metropolis Testnet.
-              </p>
+          <Card padding="sm" className="space-y-2">
+            <div className="flex items-center gap-2 text-text-primary text-xs font-semibold">
+              <Shield className="w-4 h-4 text-status-success" />
+              <span>Onchain Settlement</span>
             </div>
-            <Link href="/transactions">
-              <Button variant="secondary" size="sm" fullWidth rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
-                View Settled Transactions
-              </Button>
-            </Link>
+            <p className="text-xs text-text-secondary leading-relaxed">
+              Funds release to your wallet once designated inspectors attest compliance on Monad Testnet.
+            </p>
+            <div className="pt-1">
+              <Link href="/transactions" className="text-xs text-accent hover:underline inline-flex items-center gap-1 font-medium">
+                <span>View transactions</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
           </Card>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

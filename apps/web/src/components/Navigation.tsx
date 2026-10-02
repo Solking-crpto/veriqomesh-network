@@ -11,8 +11,6 @@ import {
   ChevronDown,
   ShieldCheck,
   AlertTriangle,
-  Play,
-  ArrowRight,
 } from 'lucide-react';
 import { useDemoNetwork } from '../context/DemoNetworkContext';
 import {
@@ -59,33 +57,26 @@ export function Navigation() {
     <>
       <DismissibleBanner />
 
-      <header className="sticky top-0 z-40 bg-[#0B0D12]/90 backdrop-blur-md border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+      <header className="sticky top-0 z-40 bg-[#0B0D12]/95 backdrop-blur-md border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
           {/* Brand Logo & Name */}
           <div className="flex items-center gap-6 shrink-0">
             <Link href="/" className="group flex items-center gap-2.5">
-              <div className="relative w-8 h-8 rounded-control overflow-hidden flex items-center justify-center shrink-0 bg-surface border border-border group-hover:border-accent/40 transition-colors">
+              <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-control overflow-hidden flex items-center justify-center shrink-0 bg-surface border border-border group-hover:border-accent/40 transition-colors">
                 <Image
                   src="/brand/veriqomesh-mark.png"
-                  alt="VeriqoMesh Network"
-                  width={28}
-                  height={28}
+                  alt="VeriqoMesh"
+                  width={24}
+                  height={24}
                   className="w-full h-full object-contain p-0.5 group-hover:scale-105 transition-transform"
                   priority
                 />
               </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5 leading-none">
-                  <span className="font-bold text-text-primary text-sm sm:text-base tracking-tight">
-                    VeriqoMesh
-                  </span>
-                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-accent/15 text-[#9D85FF] border border-accent/25">
-                    TESTNET
-                  </span>
-                </div>
-                <span className="text-[10px] text-text-tertiary hidden sm:block mt-0.5">
-                  Programmable Trust &amp; Escrow
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-text-primary text-sm sm:text-base tracking-tight">
+                  VeriqoMesh
                 </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-status-success hidden sm:inline-block" title="Connected to Monad Testnet" />
               </div>
             </Link>
 
@@ -185,7 +176,7 @@ export function Navigation() {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setWalletDropdownOpen(!walletDropdownOpen)}
-                  className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-control bg-surface border border-border hover:border-border-strong transition min-h-[36px] sm:min-h-[40px] text-xs sm:text-sm"
+                  className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-control bg-surface border border-border hover:border-border-strong transition min-h-[36px] text-xs sm:text-sm"
                   aria-expanded={walletDropdownOpen}
                 >
                   <span className="w-2 h-2 rounded-full bg-status-success shrink-0" />
@@ -196,7 +187,7 @@ export function Navigation() {
                   <span className="font-mono text-text-secondary">
                     {wallet.address?.slice(0, 6)}...{wallet.address?.slice(-4)}
                   </span>
-                  <ChevronDown className="w-3.5 h-3.5 text-text-tertiary hidden sm:inline" />
+                  <ChevronDown className="w-3.5 h-3.5 text-text-tertiary" />
                 </button>
 
                 {/* Wallet Details Dropdown */}
@@ -206,7 +197,7 @@ export function Navigation() {
                       <span className="text-xs font-medium text-text-secondary">
                         Connected Account
                       </span>
-                      <StatusChip status="success" size="sm" label="Monad Testnet" />
+                      <StatusChip status="success" size="sm" label="Monad 10143" />
                     </div>
 
                     <div className="space-y-1">
@@ -218,50 +209,30 @@ export function Navigation() {
 
                     <div className="flex items-center justify-between text-xs py-1">
                       <span className="text-text-secondary">Balance</span>
-                      <span className="font-mono font-medium text-text-primary">
-                        {wallet.balanceMon ? `${wallet.balanceMon} MON` : '0.0 MON'}
+                      <span className="font-mono font-semibold text-text-primary">
+                        {wallet.balanceMon ? `${wallet.balanceMon} MON` : '0.0000 MON'}
                       </span>
                     </div>
 
-                    {/* Role Tag */}
-                    <div className="flex items-center justify-between text-xs py-1">
-                      <span className="text-text-secondary">Role</span>
-                      <span className="text-text-primary font-medium">
-                        {wallet.address?.toLowerCase() === TARGET_BUYER_ADDRESS.toLowerCase()
-                          ? 'Buyer (Initiator)'
-                          : wallet.address?.toLowerCase() === TARGET_SELLER_ADDRESS.toLowerCase()
-                          ? 'Seller (Receiver)'
-                          : 'Connected Node'}
-                      </span>
-                    </div>
-
-                    <div className="pt-2 border-t border-border flex flex-col gap-1.5">
+                    <div className="pt-2 border-t border-border flex items-center justify-between">
                       <a
                         href={`https://testnet.monadvision.com/address/${wallet.address}`}
                         target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between px-2.5 py-1.5 rounded-control text-xs text-text-secondary hover:text-text-primary hover:bg-surface transition"
+                        rel="noreferrer"
+                        className="text-xs text-accent hover:underline flex items-center gap-1"
                       >
-                        <span>View on MonadVision</span>
-                        <ExternalLink className="w-3 h-3 text-text-tertiary" />
+                        <span>Explorer</span>
+                        <ExternalLink className="w-3 h-3" />
                       </a>
-                      <Link
-                        href="/account"
-                        onClick={() => setWalletDropdownOpen(false)}
-                        className="flex items-center justify-between px-2.5 py-1.5 rounded-control text-xs text-text-secondary hover:text-text-primary hover:bg-surface transition"
-                      >
-                        <span>Account Settings</span>
-                        <ArrowRight className="w-3 h-3 text-text-tertiary" />
-                      </Link>
                       <button
                         onClick={() => {
-                          setWalletDropdownOpen(false);
                           wallet.disconnect();
+                          setWalletDropdownOpen(false);
                         }}
-                        className="flex items-center justify-between px-2.5 py-1.5 rounded-control text-xs text-status-error hover:bg-status-error/10 transition w-full text-left"
+                        className="text-xs text-status-error hover:underline flex items-center gap-1"
                       >
-                        <span>Disconnect Wallet</span>
                         <LogOut className="w-3 h-3" />
+                        <span>Disconnect</span>
                       </button>
                     </div>
                   </div>

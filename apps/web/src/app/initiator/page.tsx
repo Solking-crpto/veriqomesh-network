@@ -9,8 +9,8 @@ import {
   FileText,
   AlertCircle,
   ExternalLink,
-  Lock,
-  Scale,
+  Wallet,
+  CheckCircle2,
   Users,
 } from 'lucide-react';
 import { useDemoNetwork } from '../../context/DemoNetworkContext';
@@ -20,15 +20,13 @@ import {
   TARGET_SELLER_ADDRESS,
 } from '../../lib/invitation-utils';
 import { Button } from '../../components/ui/Button';
-import { Card, CardHeader } from '../../components/ui/Card';
+import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { StatusChip } from '../../components/ui/StatusChip';
 import { EmptyState } from '../../components/ui/EmptyState';
 
 export default function InitiatorDashboardPage() {
   const { role, switchRole, initiator, requests, wallet } = useDemoNetwork();
-
-  const isRoleActive = role === 'INITIATOR';
 
   // Role compatibility check for connected wallet vs designated initiator
   const initiatorCompatibility = useMemo(() => {
@@ -41,172 +39,129 @@ export default function InitiatorDashboardPage() {
   }, [wallet.address, wallet.isConnected, initiator.wallet]);
 
   return (
-    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-8">
-      {/* Role Mismatch Notice */}
-      {!isRoleActive && (
-        <div className="p-4 rounded-card bg-surface-elevated border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 text-text-secondary">
-            <span className="w-2 h-2 rounded-full bg-status-warning shrink-0" />
-            <span>
-              You are currently viewing as <strong>Seller</strong>. Switch perspective to view as <strong>Buyer</strong>.
-            </span>
+    <div className="py-6 sm:py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6">
+      {/* Header & Primary Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
+            Create an agreement
+          </h1>
+          <p className="text-sm text-text-secondary">
+            Describe what you need and define the commercial terms.
+          </p>
+        </div>
+
+        <Link href="/initiator/intent" className="shrink-0">
+          <Button
+            variant="primary"
+            size="md"
+            fullWidth
+            leftIcon={<Plus className="w-4 h-4" />}
+            className="sm:w-auto"
+          >
+            Create agreement
+          </Button>
+        </Link>
+      </div>
+
+      {/* Disconnected State: Compact Alert */}
+      {!wallet.isConnected ? (
+        <Card className="p-4 sm:p-5 bg-surface border-border space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-control bg-accent/10 border border-accent/20 text-accent shrink-0">
+              <Wallet className="w-4 h-4" />
+            </div>
+            <div className="space-y-1 flex-1">
+              <h2 className="text-sm font-semibold text-text-primary">
+                Wallet required
+              </h2>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Connect your wallet to create an agreement and deposit escrow on Monad.
+              </p>
+            </div>
           </div>
           <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => switchRole('INITIATOR')}
+            variant="primary"
+            size="md"
+            fullWidth
+            onClick={() => wallet.connect()}
+            isLoading={wallet.isConnecting}
+            className="sm:w-auto"
           >
-            Switch to Buyer View
+            Connect wallet
           </Button>
-        </div>
-      )}
-
-      {/* Wallet Incompatibility Warning */}
-      {wallet.isConnected && !initiatorCompatibility.isCompatible && (
-        <div className="p-4 rounded-card bg-status-warning/10 border border-status-warning/30 space-y-3 text-xs">
+        </Card>
+      ) : !initiatorCompatibility.isCompatible ? (
+        /* Connected but role mismatched */
+        <Card className="p-4 sm:p-5 bg-status-warning/10 border border-status-warning/30 space-y-3 text-xs">
           <div className="flex items-center gap-2 text-status-warning font-semibold">
             <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>Buyer Wallet Required</span>
+            <span>Buyer wallet required</span>
           </div>
           <p className="text-text-secondary leading-relaxed">
-            Your connected account (<code className="font-mono text-text-primary">{wallet.address?.slice(0, 8)}...{wallet.address?.slice(-6)}</code>) is not registered as the designated buyer ({initiator.name || 'Buyer Principal'}). Initiating commercial escrows requires authorization from the designated account.
+            Your connected account (<code className="font-mono text-text-primary">{wallet.address?.slice(0, 8)}...{wallet.address?.slice(-6)}</code>) is not registered as the designated buyer ({initiator.name || 'Buyer'}). Initiating commercial escrows requires authorization from the designated account.
           </p>
-          <div className="flex items-center gap-3 pt-1">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => wallet.connect()}
-            >
-              Switch Account
+          <div className="flex items-center gap-2 pt-1">
+            <Button variant="secondary" size="sm" onClick={() => wallet.connect()}>
+              Switch account
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => wallet.disconnect()}
-            >
+            <Button variant="ghost" size="sm" onClick={() => wallet.disconnect()}>
               Disconnect
             </Button>
           </div>
-        </div>
-      )}
+        </Card>
+      ) : null}
 
-      {/* Header & Primary Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <Badge variant="accent">BUYER WORKSPACE</Badge>
-            <span className="text-xs text-text-tertiary">Initiator Node</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
-            Buyer Workspace
-          </h1>
-          <p className="text-xs sm:text-sm text-text-secondary mt-1">
-            Commission commercial agreements, deposit funds in Monad escrow, and oversee milestone delivery.
-          </p>
-        </div>
+      {/* Workflow Stepper: 5 Clean Stages */}
+      <section className="space-y-3">
+        <h2 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+          Agreement workflow
+        </h2>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <Link href="/initiator/intent">
-            <Button
-              variant="primary"
-              size="md"
-              leftIcon={<Plus className="w-4 h-4" />}
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 sm:gap-2.5">
+          {[
+            { step: '01', title: 'What do you need?', desc: 'Describe commercial need in plain text.' },
+            { step: '02', title: 'Agreement terms', desc: 'Scope, deposit amount, and deadline.' },
+            { step: '03', title: 'Who receives it?', desc: 'Designate counterparty seller address.' },
+            { step: '04', title: 'Evidence', desc: 'Define checklist for independent review.' },
+            { step: '05', title: 'Review & create', desc: 'Commit terms onchain and share code.' },
+          ].map((item) => (
+            <div
+              key={item.step}
+              className="p-3 rounded-control bg-surface border border-border flex sm:flex-col items-start gap-2.5 sm:gap-1 text-left"
             >
-              Create Agreement
-            </Button>
-          </Link>
-          <Link href="/receivers">
-            <Button variant="secondary" size="md">
-              Find Sellers
-            </Button>
-          </Link>
+              <span className="text-[11px] font-bold text-accent shrink-0">{item.step}</span>
+              <div className="space-y-0.5">
+                <div className="text-xs font-semibold text-text-primary">{item.title}</div>
+                <p className="text-[11px] text-text-secondary leading-normal">{item.desc}</p>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* 4-Stat Metric Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card padding="sm" className="space-y-1">
-          <span className="text-xs text-text-tertiary block">Active Requests</span>
-          <div className="text-2xl font-bold text-text-primary font-mono">{requests.length}</div>
-          <span className="text-[11px] text-text-secondary block">Registered commercial deals</span>
-        </Card>
-
-        <Card padding="sm" className="space-y-1">
-          <span className="text-xs text-text-tertiary block">Active Escrows</span>
-          <div className="text-2xl font-bold text-status-success font-mono">
-            {requests.filter((r) => r.status === 'AGREEMENT_ACTIVE' && r.isOnchain).length}
-          </div>
-          <span className="text-[11px] text-text-secondary block">Funded on Monad testnet</span>
-        </Card>
-
-        <Card padding="sm" className="space-y-1">
-          <span className="text-xs text-text-tertiary block">Spending Policy</span>
-          <div className="text-lg font-bold text-text-primary">Not Configured</div>
-          <span className="text-[11px] text-text-secondary block">Manual wallet authorization</span>
-        </Card>
-
-        <Card padding="sm" className="space-y-1">
-          <span className="text-xs text-text-tertiary block">Trust Receipts</span>
-          <div className="text-2xl font-bold text-accent font-mono">0</div>
-          <span className="text-[11px] text-text-secondary block">Settled milestone receipts</span>
-        </Card>
-      </div>
-
-      {/* Policy Card */}
-      <Card className="space-y-4">
-        <CardHeader
-          title="Policy &amp; Verification Rules"
-          subtitle="Architectural bounds governing your autonomous agents and smart contracts"
-          action={
-            <Link href="/account">
-              <Button variant="ghost" size="sm">
-                Account Settings →
-              </Button>
-            </Link>
-          }
-        />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          <div className="p-3.5 rounded-control bg-surface-elevated/60 border border-border space-y-1.5">
-            <span className="text-text-primary font-semibold block">Pre-Authorized Verification</span>
-            <p className="text-text-secondary leading-relaxed">
-              When accredited verification attests PASS, policy rules qualify the transaction for settlement. State changes remain subject to cryptographic authorization.
-            </p>
-          </div>
-          <div className="p-3.5 rounded-control bg-surface-elevated/60 border border-border space-y-1.5">
-            <span className="text-text-primary font-semibold block">Deterministic 3-Judge Median</span>
-            <p className="text-text-secondary leading-relaxed">
-              If physical delivery is disputed, escrow locks onchain and 3 independent judges vote on refund basis points.
-            </p>
-          </div>
-          <div className="p-3.5 rounded-control bg-surface-elevated/60 border border-border space-y-1.5">
-            <span className="text-text-primary font-semibold block">Configured Verifier</span>
-            <p className="text-text-secondary leading-relaxed">
-              Operator-Controlled Verifier (<code className="font-mono text-text-primary">0xb064...2c48</code>) mandated to review deliverables before payout.
-            </p>
-          </div>
-        </div>
-      </Card>
-
-      {/* Active Deal Requests Section */}
-      <div className="space-y-4">
+      {/* Active Buyer Requests List */}
+      <section className="space-y-3 pt-4 border-t border-border">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-text-primary">
-            Active Requests ({requests.length})
+          <h2 className="text-base sm:text-lg font-bold text-text-primary">
+            Your active proposals ({requests.length})
           </h2>
-          <Link href="/requests" className="text-xs font-medium text-accent hover:underline">
-            Manage all requests →
+          <Link href="/initiator/intent">
+            <Button variant="secondary" size="sm" rightIcon={<Plus className="w-3.5 h-3.5" />}>
+              New proposal
+            </Button>
           </Link>
         </div>
 
         {requests.length === 0 ? (
           <EmptyState
-            icon={<FileText className="w-6 h-6 text-text-tertiary" />}
-            title="No active requests"
-            description="Create a commercial proposal to define deliverables, set verification rules, and establish an escrow agreement on Monad."
+            icon={<FileText className="w-5 h-5 text-text-tertiary" />}
+            title="No active agreements created yet"
+            description="Start by describing what deliverable you need and generating a canonical proposal code."
             action={
               <Link href="/initiator/intent">
-                <Button variant="primary" size="sm" leftIcon={<Plus className="w-3.5 h-3.5" />}>
-                  Create Commercial Intent
+                <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
+                  Create first agreement
                 </Button>
               </Link>
             }
@@ -214,47 +169,50 @@ export default function InitiatorDashboardPage() {
         ) : (
           <div className="space-y-3">
             {requests.map((req) => (
-              <Card key={req.id} variant="default" className="space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-text-tertiary">{req.id}</span>
-                      <span className="text-border">•</span>
-                      <span className="font-medium text-text-primary text-sm">{req.deliverable}</span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
-                      <span>Counterparty: <strong className="text-text-primary">{req.receiver}</strong></span>
-                      <span>•</span>
-                      <span>Amount: <strong className="font-mono text-status-success">{req.escrowAmountMon} MON</strong></span>
-                      <span>•</span>
-                      <span>Deadline: {req.deadlineDays} days</span>
-                    </div>
-                  </div>
+              <Card key={req.id} variant="default" className="p-4 sm:p-5 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-accent uppercase tracking-wider">
+                    {req.isOnchain ? 'Monad Escrow' : 'Draft Proposal'}
+                  </span>
+                  <StatusChip
+                    status={req.status === 'AGREEMENT_ACTIVE' ? 'success' : 'neutral'}
+                    size="sm"
+                    label={req.status.replace(/_/g, ' ')}
+                  />
+                </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    <StatusChip
-                      status={
-                        req.status === 'AGREEMENT_ACTIVE'
-                          ? 'success'
-                          : req.status === 'COUNTERED'
-                          ? 'warning'
-                          : 'accent'
-                      }
-                      size="sm"
-                      label={req.status.replace(/_/g, ' ')}
-                    />
-                    <Link href="/requests">
-                      <Button variant="secondary" size="sm">
-                        View Terms
+                <div className="space-y-1">
+                  <h3 className="text-base font-bold text-text-primary">
+                    {req.title || req.deliverable}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-secondary">
+                    <span>
+                      Escrow: <strong className="font-mono text-status-success">{req.escrowAmountMon} MON</strong>
+                    </span>
+                    <span>•</span>
+                    <span>Receiver: <code className="font-mono text-text-tertiary">{req.receiverWallet ? `${req.receiverWallet.slice(0, 6)}...${req.receiverWallet.slice(-4)}` : 'Unassigned'}</code></span>
+                    <span>•</span>
+                    <span>Window: {req.deadlineDays} days</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center justify-between border-t border-border gap-3">
+                  <span className="text-[11px] text-text-tertiary font-mono">
+                    ID: {req.id.slice(0, 12)}...
+                  </span>
+                  {req.transactionId && (
+                    <Link href={`/transactions/${req.transactionId}`}>
+                      <Button variant="secondary" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
+                        View transaction
                       </Button>
                     </Link>
-                  </div>
+                  )}
                 </div>
               </Card>
             ))}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

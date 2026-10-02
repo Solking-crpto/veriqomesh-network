@@ -264,26 +264,26 @@ function TransactionsContent() {
   const tabsConfig = [
     {
       id: 'personal',
-      label: 'Your Transactions',
+      label: 'Your transactions',
       count: wallet.isConnected ? personalTransactions.length : 0,
     },
     {
       id: 'demo',
-      label: 'Public Benchmarks',
+      label: 'Public demo',
       count: demoTransactions.length,
     },
   ];
 
   return (
-    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-8">
+    <div className="py-6 sm:py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
+        <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
-            Transactions Directory
+            Transactions
           </h1>
-          <p className="text-xs sm:text-sm text-text-secondary mt-1">
-            Authenticated personal workspace and verifiable Monad testnet benchmarks.
+          <p className="text-sm text-text-secondary">
+            Your personal transaction activity.
           </p>
         </div>
 
@@ -299,34 +299,39 @@ function TransactionsContent() {
 
       {/* TAB 1: YOUR TRANSACTIONS (Personal Workspace) */}
       {activeTab === 'personal' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {!wallet.isConnected ? (
             /* Scenario A: Disconnected State */
-            <EmptyState
-              icon={<Wallet className="w-6 h-6 text-accent" />}
-              title="Connect Wallet to View Transactions"
-              description="Your transactions are cryptographically isolated to your authenticated Monad account. Disconnected sessions display zero private activity."
-              action={
-                <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
-                  <Button
-                    variant="primary"
-                    size="md"
-                    onClick={() => wallet.connect()}
-                    isLoading={wallet.isConnecting}
-                    leftIcon={<Wallet className="w-4 h-4" />}
-                  >
-                    Connect Wallet
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    onClick={() => handleSelectTab('demo')}
-                  >
-                    View Public Benchmarks
-                  </Button>
-                </div>
-              }
-            />
+            <Card className="p-5 bg-surface border-border space-y-3">
+              <div className="space-y-1">
+                <h2 className="text-sm font-semibold text-text-primary">
+                  Wallet not connected
+                </h2>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  Connect your wallet to view your transactions.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={() => wallet.connect()}
+                  isLoading={wallet.isConnecting}
+                  leftIcon={<Wallet className="w-4 h-4" />}
+                  className="sm:w-auto"
+                >
+                  Connect wallet
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={() => handleSelectTab('demo')}
+                  className="sm:w-auto"
+                >
+                  View public demo
+                </Button>
+              </div>
+            </Card>
           ) : personalTransactions.length === 0 ? (
             /* Scenario B: Connected with No Transactions */
             <EmptyState

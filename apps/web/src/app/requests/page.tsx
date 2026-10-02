@@ -473,15 +473,15 @@ export default function RequestsPage() {
   const targetCounterReq = allRequests.find((r) => r.id === activeCounterModal);
 
   return (
-    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
-        <div>
+    <div className="py-6 sm:py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6">
+      {/* Header & Tabs */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
+        <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
-            Requests Inbox
+            Requests for you
           </h1>
-          <p className="text-xs sm:text-sm text-text-secondary mt-1">
-            Review inbound deal proposals, ratify canonical agreements, or counter terms on Monad.
+          <p className="text-sm text-text-secondary">
+            Review agreements and authorize the ones you accept.
           </p>
         </div>
 
@@ -522,88 +522,80 @@ export default function RequestsPage() {
       )}
 
       {/* Main Content Area */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {!wallet.isConnected ? (
-          <EmptyState
-            icon={<Inbox className="w-6 h-6 text-accent" />}
-            title="Connect Wallet to View Inbox"
-            description="Your proposals and inbound invitations are cryptographically isolated to your authenticated Monad account."
-            action={
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => wallet.connect()}
-                isLoading={wallet.isConnecting}
-              >
-                Connect Wallet
-              </Button>
-            }
-          />
+          <Card className="p-5 bg-surface border-border space-y-3">
+            <div className="space-y-1">
+              <h2 className="text-sm font-semibold text-text-primary">
+                Wallet required
+              </h2>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Connect your wallet to see agreements addressed to you.
+              </p>
+            </div>
+            <Button
+              variant="primary"
+              size="md"
+              fullWidth
+              onClick={() => wallet.connect()}
+              isLoading={wallet.isConnecting}
+              className="sm:w-auto"
+            >
+              Connect wallet
+            </Button>
+          </Card>
         ) : displayList.length === 0 ? (
           <EmptyState
-            icon={<Inbox className="w-6 h-6 text-text-tertiary" />}
+            icon={<Inbox className="w-5 h-5 text-text-tertiary" />}
             title={
               activeTab === 'AWAITING'
-                ? 'No requests awaiting your action'
+                ? '0 awaiting your action'
                 : activeTab === 'PROCESSED'
                 ? 'No processed requests yet'
                 : 'Your inbox is clear'
             }
-            description="When buyers designate your wallet for commercial deals, their proposals will appear here for review and ratification."
+            description="When counterparties designate your wallet for commercial deals, their proposals will appear here for review."
             action={
               <Link href="/initiator/intent">
-                <Button variant="secondary" size="md">
-                  Create Commercial Agreement
+                <Button variant="secondary" size="sm">
+                  Create agreement
                 </Button>
               </Link>
             }
           />
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {displayList.map((req) => {
               const isAwaiting = isAwaitingAction(req);
               const isRatified = isRequestRatified(req);
               const isAcceptingThis = acceptingId === req.id;
 
               return (
-                <Card key={req.id} variant="default" className="space-y-4">
+                <Card key={req.id} variant="default" className="p-4 sm:p-5 space-y-3">
                   {/* Card Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {req.invitationCode && (
-                          <Badge variant="accent">{req.invitationCode}</Badge>
-                        )}
-                        <Badge variant="default">
-                          {req.isOnchain ? 'Monad Escrow' : 'Deal Proposal'}
-                        </Badge>
-                      </div>
-                      <h3 className="text-base sm:text-lg font-bold text-text-primary">
-                        {req.title}
-                      </h3>
-                    </div>
-
-                    <div className="shrink-0">
-                      <StatusChip
-                        status={
-                          isRatified
-                            ? 'success'
-                            : isAwaiting
-                            ? 'warning'
-                            : req.status === 'DECLINED'
-                            ? 'error'
-                            : 'neutral'
-                        }
-                        size="md"
-                        label={
-                          isRatified
-                            ? 'Agreement Active'
-                            : isAwaiting
-                            ? 'Awaiting Your Signature'
-                            : req.status.replace(/_/g, ' ')
-                        }
-                      />
-                    </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-accent uppercase tracking-wider">
+                      {req.isOnchain ? 'Monad Escrow' : 'Agreement Proposal'}
+                    </span>
+                    <StatusChip
+                      status={
+                        isRatified
+                          ? 'success'
+                          : isAwaiting
+                          ? 'warning'
+                          : req.status === 'DECLINED'
+                          ? 'error'
+                          : 'neutral'
+                      }
+                      size="sm"
+                      label={
+                        isRatified
+                          ? 'Agreement active'
+                          : isAwaiting
+                          ? 'Awaiting your authorization'
+                          : req.status.replace(/_/g, ' ')
+                      }
+                    />
                   </div>
 
                   {/* Summary Grid */}
