@@ -75,7 +75,7 @@ export function Navigation() {
             className="px-2.5 py-0.5 rounded bg-purple-950/90 hover:bg-purple-900 border border-purple-600/70 text-purple-200 font-bold transition flex items-center gap-1.5 text-[10px]"
           >
             <span className="text-purple-400">▶</span>
-            <span>Watch Video Demo (04:15)</span>
+            <span>Watch Submission Video (02:55)</span>
           </Link>
         </div>
       </div>
