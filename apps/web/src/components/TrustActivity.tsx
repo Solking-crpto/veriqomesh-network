@@ -335,12 +335,14 @@ export default function TrustActivity() {
   const [latestBlock, setLatestBlock] = useState<number | null>(66714476);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Check if an Envio GraphQL URL is configured in the environment
-  const envioGraphqlUrl = process.env.NEXT_PUBLIC_ENVIO_GRAPHQL_URL;
+  // Check if an Envio GraphQL URL is configured in the environment with public fallback
+  const envioGraphqlUrl =
+    process.env.NEXT_PUBLIC_ENVIO_GRAPHQL_URL ||
+    'https://indexer.dev.hyperindex.xyz/bd02c3f/v1/graphql';
   const isEnvioConfigured = Boolean(envioGraphqlUrl);
 
   const [sessionEvents, setSessionEvents] = useState<ProvenanceEvent[]>([]);
-  const [dataSource, setDataSource] = useState<'envio' | 'rpc_fallback'>('rpc_fallback');
+  const [dataSource, setDataSource] = useState<'envio' | 'rpc_fallback'>('envio');
 
   const fetchEnvioEvents = useCallback(async () => {
     if (!envioGraphqlUrl) {
