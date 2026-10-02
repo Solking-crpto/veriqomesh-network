@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Play, ExternalLink, ShieldCheck, Mail } from 'lucide-react';
+import { ExternalLink, ShieldCheck, Mail } from 'lucide-react';
 
 export function PublicSafetyNotice() {
   return (
@@ -28,15 +28,6 @@ export function PublicSafetyNotice() {
             <p className="text-xs text-text-tertiary leading-relaxed">
               Programmable trust layer and cryptographic escrow protocol for commerce between humans and AI agents.
             </p>
-            <div className="pt-1">
-              <Link
-                href="/demo-video"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-control bg-accent/10 border border-accent/25 text-[#9D85FF] font-medium hover:bg-accent/20 transition text-xs"
-              >
-                <Play className="w-3.5 h-3.5 fill-current" />
-                <span>Watch Product Walkthrough</span>
-              </Link>
-            </div>
           </div>
 
           {/* Protocol Links */}

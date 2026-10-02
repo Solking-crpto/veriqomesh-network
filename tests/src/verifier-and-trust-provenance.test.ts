@@ -328,4 +328,93 @@ describe('17. Verifier Manual Entry & Trust Provenance UI Invariants', () => {
       );
     });
   });
+
+  describe('Part D: Clean Account State & Video CTA Removal Invariants', () => {
+    const rootCandidate1 = resolve(process.cwd());
+    const rootCandidate2 = resolve(process.cwd(), '..');
+    const rootDir = existsSync(resolve(rootCandidate1, 'apps')) ? rootCandidate1 : rootCandidate2;
+
+    it('1. apps/web/src/app/account/page.tsx displays WALLET REQUIRED when disconnected and hides configuration forms', () => {
+      const accountPath = resolve(rootDir, 'apps/web/src/app/account/page.tsx');
+      assert.ok(existsSync(accountPath), 'account/page.tsx must exist');
+      const content = readFileSync(accountPath, 'utf-8');
+
+      // Disconnected state assertions
+      assert.ok(content.includes('WALLET REQUIRED'), 'Must display WALLET REQUIRED in disconnected state');
+      assert.ok(
+        content.includes('Connect your Monad wallet to view balance, network credentials, and configure role policies.'),
+        'Must explain connection requirement'
+      );
+      // Ensures configuration form is enclosed within connected branch
+      assert.ok(
+        content.includes('!wallet.isConnected') && content.includes('Connect wallet'),
+        'Must render connect wallet in disconnected state'
+      );
+      // No fake solar or Dallas data
+      assert.ok(!content.includes('Dallas Solar Supply Co.'), 'Must not contain Dallas Solar Supply Co.');
+      assert.ok(!content.includes('Solar Procurement'), 'Must not contain Solar Procurement');
+      // Truthful empty state for seller fulfillment profile
+      assert.ok(content.includes('Seller Fulfillment Profile'), 'Must contain Seller Fulfillment Profile heading');
+      assert.ok(
+        content.includes('Not configured — Configure your fulfillment details to continue.'),
+        'Must contain truthful empty state description for seller'
+      );
+    });
+
+    it('2. apps/web/src/context/DemoNetworkContext.tsx initializes empty profiles without fake entity names', () => {
+      const contextPath = resolve(rootDir, 'apps/web/src/context/DemoNetworkContext.tsx');
+      assert.ok(existsSync(contextPath), 'DemoNetworkContext.tsx must exist');
+      const content = readFileSync(contextPath, 'utf-8');
+
+      assert.ok(
+        content.includes("name: ''") || content.includes('name: ""'),
+        'Default profiles must have empty entity names'
+      );
+      assert.ok(
+        !content.includes("name: 'Buyer Principal Node'"),
+        'Must not contain Buyer Principal Node'
+      );
+      assert.ok(
+        !content.includes("name: 'Fulfillment Supplier Node'"),
+        'Must not contain Fulfillment Supplier Node'
+      );
+      assert.ok(
+        !content.includes("location: 'Designated Logistics Depot'"),
+        'Must not contain prefilled Designated Logistics Depot'
+      );
+    });
+
+    it('3. Promotional video CTAs removed from Home, Navigation, Footer, and Trust pages', () => {
+      const homePath = resolve(rootDir, 'apps/web/src/app/page.tsx');
+      const bottomBarPath = resolve(rootDir, 'apps/web/src/components/layout/BottomTabBar.tsx');
+      const footerPath = resolve(rootDir, 'apps/web/src/components/PublicSafetyNotice.tsx');
+      const trustPath = resolve(rootDir, 'apps/web/src/app/trust/page.tsx');
+
+      const homeContent = readFileSync(homePath, 'utf-8');
+      assert.ok(!homeContent.includes('Watch 2:55 demo'), 'Home must not contain Watch 2:55 demo');
+      assert.ok(homeContent.includes('Explore Trust Layer'), 'Home must contain Explore Trust Layer');
+
+      const bottomBarContent = readFileSync(bottomBarPath, 'utf-8');
+      assert.ok(!bottomBarContent.includes('Watch Walkthrough Video'), 'BottomTabBar must not contain Watch Walkthrough Video');
+      assert.ok(!bottomBarContent.includes('/demo-video'), 'BottomTabBar must not link to /demo-video');
+
+      const footerContent = readFileSync(footerPath, 'utf-8');
+      assert.ok(!footerContent.includes('Watch Product Walkthrough'), 'Footer must not contain Watch Product Walkthrough');
+      assert.ok(!footerContent.includes('/demo-video'), 'Footer must not link to /demo-video');
+
+      const trustContent = readFileSync(trustPath, 'utf-8');
+      assert.ok(!trustContent.includes('Walkthrough Video'), 'Trust page must not contain Walkthrough Video button');
+      assert.ok(trustContent.includes('Create Agreement'), 'Trust page must contain Create Agreement action');
+    });
+
+    it('4. /demo-video route and hackathon submission video asset are preserved', () => {
+      const demoVideoPath = resolve(rootDir, 'apps/web/src/app/demo-video/page.tsx');
+      assert.ok(existsSync(demoVideoPath), 'apps/web/src/app/demo-video/page.tsx must exist');
+      const demoVideoContent = readFileSync(demoVideoPath, 'utf-8');
+      assert.ok(demoVideoContent.includes('<video'), 'demo-video/page.tsx must render video player');
+
+      const videoAssetPath = resolve(rootDir, 'apps/web/public/video/veriqomesh-hackathon-submission.mp4');
+      assert.ok(existsSync(videoAssetPath), 'veriqomesh-hackathon-submission.mp4 must exist in public/video');
+    });
+  });
 });

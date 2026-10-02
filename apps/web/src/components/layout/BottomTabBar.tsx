@@ -13,7 +13,6 @@ import {
   Search,
   FileCheck2,
   User,
-  Play,
   X,
 } from 'lucide-react';
 import { useDemoNetwork } from '../../context/DemoNetworkContext';
@@ -146,14 +145,6 @@ export function BottomTabBar() {
               >
                 <User className="w-4 h-4 text-text-secondary" />
                 <span>Account</span>
-              </Link>
-              <Link
-                href="/demo-video"
-                onClick={() => setMoreMenuOpen(false)}
-                className="col-span-2 flex items-center justify-center gap-2 p-3 rounded-control bg-accent/10 border border-accent/25 text-[#9D85FF] font-medium min-h-[44px]"
-              >
-                <Play className="w-4 h-4 fill-current" />
-                <span>Watch Walkthrough Video (02:55)</span>
               </Link>
             </div>
           </div>

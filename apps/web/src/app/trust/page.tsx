@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Shield, ArrowRight, ExternalLink, Play, Lock, CheckCircle2 } from 'lucide-react';
+import { Shield, ArrowRight, ExternalLink, Lock, CheckCircle2 } from 'lucide-react';
 import TrustActivity from '@/components/TrustActivity';
 import { Button } from '../../components/ui/Button';
 import { Card, CardHeader } from '../../components/ui/Card';
@@ -31,9 +31,9 @@ export default function TrustReceiptsPage() {
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <Link href="/demo-video">
-            <Button variant="secondary" size="md" leftIcon={<Play className="w-4 h-4 fill-current" />}>
-              Walkthrough Video
+          <Link href="/initiator/intent">
+            <Button variant="secondary" size="md">
+              Create Agreement
             </Button>
           </Link>
           <Link href="/transactions">

@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   ArrowRight,
-  Play,
   Shield,
   FileText,
   Inbox,
@@ -72,15 +71,15 @@ export default function LandingPage() {
             >
               Create an agreement
             </Button>
-            <Link href="/demo-video" className="w-full sm:w-auto">
+            <Link href="/trust" className="w-full sm:w-auto">
               <Button
                 variant="secondary"
                 size="md"
                 fullWidth
                 className="whitespace-nowrap px-5 py-2.5"
-                leftIcon={<Play className="w-3.5 h-3.5 fill-current" />}
+                leftIcon={<Shield className="w-3.5 h-3.5 text-accent" />}
               >
-                Watch 2:55 demo
+                Explore Trust Layer
               </Button>
             </Link>
           </div>

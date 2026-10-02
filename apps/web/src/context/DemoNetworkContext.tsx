@@ -173,11 +173,11 @@ const DemoNetworkContext = createContext<DemoNetworkContextType | undefined>(und
 const SESSION_STORAGE_KEY = 'veriqomesh:session:v3';
 
 const DEFAULT_INITIATOR: InitiatorProfile = {
-  name: 'Buyer Principal Node',
+  name: '',
   type: 'Business',
   wallet: '',
   agentName: '',
-  spendingLimitMon: 'Not Configured',
+  spendingLimitMon: '',
   autoExecution: false,
   humanFallback: true,
   policyStatus: 'SPENDING POLICY: NOT CONFIGURED',
@@ -185,11 +185,11 @@ const DEFAULT_INITIATOR: InitiatorProfile = {
 };
 
 const DEFAULT_RECEIVER: ReceiverProfile = {
-  name: 'Fulfillment Supplier Node',
+  name: '',
   type: 'Business',
-  provides: 'Commercial fulfillment & verifiable delivery services',
-  location: 'Designated Logistics Depot',
-  capabilities: ['Delivery', 'Inspection', 'Freight', 'Attestation'],
+  provides: '',
+  location: '',
+  capabilities: [],
   wallet: '',
   status: 'WALLET REQUIRED',
   stats: {
@@ -252,10 +252,17 @@ export function DemoNetworkProvider({ children }: { children: React.ReactNode })
           const safeBuyer =
             storedBuyer && storedBuyer.toLowerCase() !== TARGET_SELLER_ADDRESS.toLowerCase()
               ? storedBuyer
-              : TARGET_BUYER_ADDRESS;
+              : '';
           setInitiator((prev) => ({ ...prev, ...parsed.initiator, wallet: safeBuyer }));
         }
-        if (parsed.receiver) setReceiver((prev) => ({ ...prev, ...parsed.receiver, wallet: TARGET_SELLER_ADDRESS }));
+        if (parsed.receiver) {
+          const storedSeller = parsed.receiver.wallet;
+          const safeSeller =
+            storedSeller && storedSeller.toLowerCase() !== TARGET_BUYER_ADDRESS.toLowerCase()
+              ? storedSeller
+              : '';
+          setReceiver((prev) => ({ ...prev, ...parsed.receiver, wallet: safeSeller }));
+        }
         if (parsed.intent) setIntent((prev) => ({ ...prev, ...parsed.intent }));
         if (Array.isArray(parsed.requests) && parsed.requests.length > 0) {
           // Filter out any historical benchmark records to ensure public interface shows only real user requests

@@ -47,6 +47,7 @@ export default function DemoVideoPage() {
           className="w-full h-full object-contain"
           poster="/brand/veriqomesh-og.png"
         >
+          <source src="/video/veriqomesh-hackathon-submission.mp4" type="video/mp4" />
           <source src="/veriqomesh-hackathon-submission.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
