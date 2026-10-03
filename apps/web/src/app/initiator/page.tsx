@@ -123,7 +123,7 @@ export default function InitiatorDashboardPage() {
             { step: '01', title: 'What do you need?', desc: 'Describe commercial need in plain text.' },
             { step: '02', title: 'Agreement terms', desc: 'Scope, deposit amount, and deadline.' },
             { step: '03', title: 'Who receives it?', desc: 'Designate counterparty seller address.' },
-            { step: '04', title: 'Evidence', desc: 'Define checklist for independent review.' },
+            { step: '04', title: 'Evidence', desc: 'Define checklist for designated verifier review.' },
             { step: '05', title: 'Review & create', desc: 'Commit terms onchain and share code.' },
           ].map((item) => (
             <div

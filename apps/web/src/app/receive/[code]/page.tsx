@@ -612,9 +612,9 @@ export default function ReceiveInvitationPage({
 
             <div className="space-y-1 border-t md:border-t-0 md:border-l border-gray-800 pt-3 md:pt-0 md:pl-4">
               <span className="text-[10px] text-emerald-400 uppercase tracking-wide">
-                DESIGNATED INDEPENDENT VERIFIER
+                DESIGNATED VERIFIER
               </span>
-              <div className="text-white font-bold text-sm">Accredited Inspection</div>
+              <div className="text-white font-bold text-sm">Registered Verification</div>
               <div className="text-[11px] text-gray-400 truncate">
                 <code>{invitation.roles.verifier}</code>
               </div>

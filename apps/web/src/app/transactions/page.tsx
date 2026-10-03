@@ -181,7 +181,7 @@ function TransactionsContent() {
       sourceLabel: 'PUBLIC AUDIT: HISTORICAL RUN (VERIFICATION STAGE)',
       title: 'Commercial Deliverable (Parked at Verification)',
       deliverable:
-        'Historical diagnostic trace on Monad Testnet parked at independent verification review.',
+        'Historical diagnostic trace on Monad Testnet parked at designated verifier review.',
       buyer: 'Commercial Buyer (Team Wallet)',
       buyerWallet: TARGET_BUYER_ADDRESS,
       seller: 'Commercial Seller (Team Wallet)',

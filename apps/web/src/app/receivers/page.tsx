@@ -68,6 +68,10 @@ export default function ReceiversDirectoryPage() {
 
       {/* Directory Section */}
       <section className="space-y-3">
+        <div className="p-3.5 rounded-control bg-surface border border-border text-xs text-text-secondary">
+          Demo directory: sample counterparties for the testnet benchmark.
+        </div>
+
         <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
           Public counterparty directory
         </h2>
@@ -100,7 +104,7 @@ export default function ReceiversDirectoryPage() {
             </code>
           </div>
           <p className="text-[11px] text-text-tertiary">
-            The TrustReceiptRegistry records participant capabilities, accredited verifier credentials, and soulbound trust receipts on Monad.
+            The TrustReceiptRegistry records participant capabilities, registered verifier credentials, and soulbound trust receipts on Monad.
           </p>
         </div>
       </section>

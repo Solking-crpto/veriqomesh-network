@@ -315,7 +315,7 @@ export default function AccountPage() {
                 </div>
 
                 <Input
-                  label="Accredited Capabilities & Services"
+                  label="Registered Capabilities & Services"
                   value={provides}
                   onChange={(e) => setProvides(e.target.value)}
                   placeholder="e.g. Freight, Cold Storage, Inspection, Bill of Lading"

@@ -113,7 +113,7 @@ export default function LandingPage() {
                   <span className="text-text-primary font-medium">Verifiers verify</span>
                 </div>
                 <p className="text-[11px] sm:text-xs text-text-secondary leading-relaxed">
-                  Designated verifiers inspect deliverables and submit onchain attestation outcomes.
+                  Designated verifiers attest delivery outcomes onchain.
                 </p>
               </div>
 
@@ -123,7 +123,7 @@ export default function LandingPage() {
                   <span className="text-text-primary font-medium">Blockchain enforces</span>
                 </div>
                 <p className="text-[11px] sm:text-xs text-text-secondary leading-relaxed">
-                  Monad smart contracts hold escrow deposits and execute settlement or dispute resolution.
+                  Monad smart contracts hold deposits and execute settlement; disputes go to an authorized resolver.
                 </p>
               </div>
             </div>
@@ -162,7 +162,7 @@ export default function LandingPage() {
                 Procure &amp; Fund Escrow
               </h3>
               <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-                Describe commercial deliverables in natural language, configure independent verification gates, and deposit escrow on Monad.
+                Describe commercial deliverables in natural language, configure designated verifier gates, and deposit escrow on Monad.
               </p>
             </div>
             <div className="pt-2 flex items-center text-xs font-semibold text-accent gap-1 group-hover:underline">

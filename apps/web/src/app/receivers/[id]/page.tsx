@@ -63,7 +63,12 @@ export default function ReceiverDetailPage() {
           </div>
         </div>
 
-        {/* Operational Capabilities & Accreditations */}
+        {/* Benchmark Demo Notice */}
+        <div className="p-3.5 rounded-xl bg-gray-950/80 border border-gray-800 text-xs text-gray-400">
+          Demo directory: sample counterparties for the testnet benchmark.
+        </div>
+
+        {/* Operational Capabilities */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
           <div className="p-4 rounded-xl bg-gray-900/60 border border-gray-800 space-y-1">
             <span className="text-gray-400 text-[10px]">FULFILLMENT CAPACITY</span>
@@ -77,15 +82,15 @@ export default function ReceiverDetailPage() {
             <span className="text-gray-400 text-[10px]">EVIDENCE INTEGRATION</span>
             <div className="text-white font-bold text-sm">Cryptographic Evidence Anchoring</div>
             <p className="text-gray-400 text-[11px] font-sans mt-1">
-              Supports electronic BOLs, geotagged depot imagery, and serialized manifests hashed to Keccak-256 onchain roots.
+              Supports deliverable documentation and serialized manifests hashed to Keccak-256 onchain roots.
             </p>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-900/60 border border-gray-800 space-y-1">
             <span className="text-gray-400 text-[10px]">VERIFIER COMPATIBILITY</span>
-            <div className="text-white font-bold text-sm">Independent Attestation</div>
+            <div className="text-white font-bold text-sm">Designated Verifier Attestation</div>
             <p className="text-gray-400 text-[11px] font-sans mt-1">
-              Supports accredited verifier node (<code className="text-purple-300">{`${effectiveVerifier.slice(0, 6)}...${effectiveVerifier.slice(-4)}`}</code>) attestation prior to escrow release.
+              Supports registered verifier (<code className="text-purple-300">{`${effectiveVerifier.slice(0, 6)}...${effectiveVerifier.slice(-4)}`}</code>) attestation prior to escrow release.
             </p>
           </div>
         </div>

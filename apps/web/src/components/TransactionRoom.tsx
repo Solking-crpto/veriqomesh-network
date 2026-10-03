@@ -180,10 +180,10 @@ export function TransactionRoom({
   const presets = {
     storyA: {
       prompt:
-        'Procure 100 commercial solar panels (550W Tier 1) delivered to Dallas distribution depot with independent physical inspection before funds release.',
+        'Procure 100 commercial solar panels (550W Tier 1) delivered to Dallas distribution depot with designated verifier physical inspection before funds release.',
       title: 'Commercial Solar Procurement (Autonomous Agent Mandate)',
       description:
-        'Delivery of 4 wooden pallets containing 100 Tier-1 mono-crystalline solar panels to Dallas Depot. Mandate authorized under Buyer Agent policy with independent depot inspection (Simulated Demo Model).',
+        'Delivery of 4 wooden pallets containing 100 Tier-1 mono-crystalline solar panels to Dallas Depot. Mandate authorized under Buyer Agent policy with designated verifier inspection (Simulated Demo Model).',
       id: '0x8f4c2e1b7d5a3f0e8c6b4a2d1f9e7c5b3a1d0f8e6c4b2a0d8f6e4c2b0a9f1e42',
       sourceLabel: 'SIMULATED AUTONOMOUS AGENT DEMO' as const,
       buyer: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
@@ -1455,7 +1455,7 @@ export function TransactionRoom({
               <span>✦</span> AI TRANSACTION PREFLIGHT (POLICY & EVIDENCE PRE-CHECK)
             </span>
             <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 border border-emerald-700 text-emerald-300 font-bold">
-              AI RESULT: READY FOR INDEPENDENT VERIFICATION
+              AI RESULT: READY FOR DESIGNATED VERIFICATION
             </span>
           </div>
           <span className="text-[10px] text-gray-400">Advisory Pipeline Gate</span>
@@ -1494,7 +1494,7 @@ export function TransactionRoom({
 
         {/* Mandatory Advisory Notice */}
         <div className="p-2.5 rounded bg-purple-950/30 border border-purple-700/50 text-[11px] text-gray-300 font-sans leading-relaxed">
-          <strong className="text-purple-300">Important Advisory Boundary:</strong> AI preflight is advisory. The independent verifier provides the authoritative verification outcome.
+          <strong className="text-purple-300">Important Advisory Boundary:</strong> AI preflight is advisory. The designated verifier provides the authoritative verification outcome.
         </div>
       </section>
 
@@ -1861,7 +1861,7 @@ export function TransactionRoom({
                   <span className="text-[10px] font-mono text-gray-400">Actor: Receiver</span>
                 </div>
                 <p className="text-xs text-gray-400 leading-relaxed font-sans">
-                  Cargo delivered to Dallas Depot. Request designated independent verifier to perform physical audit.
+                  Deliverable submitted. Request designated verifier to perform verification.
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
                   <button
@@ -1896,7 +1896,7 @@ export function TransactionRoom({
               <div className="p-4 rounded-lg bg-blue-950/20 border border-blue-800/40 space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-semibold text-blue-200 uppercase font-mono">
-                    Independent Verifier Inspection Gate
+                    Designated Verifier Inspection Gate
                   </h4>
                   <span className="text-[10px] font-mono px-2 py-0.5 bg-blue-900 border border-blue-700 text-blue-300 rounded">
                     Verifier: {tx.verifier.slice(0, 6)}...{tx.verifier.slice(-4)}
@@ -2004,7 +2004,7 @@ export function TransactionRoom({
                       ✓ VERIFICATION PASSED: All 100 units verified intact and conforming.
                     </div>
                     <p className="text-[11px] text-gray-300 font-sans leading-relaxed">
-                      <strong>Verification PASS Satisfies Policy:</strong> Independent verifier attestation PASS satisfies the prerequisite condition for settlement eligibility. Final funds release requires cryptographic authorization from the buyer wallet and is enforced onchain by the escrow contract. AI assists. Humans authorize. Verifiers verify. Blockchain enforces.
+                      <strong>Verification PASS Satisfies Policy:</strong> Designated verifier attestation PASS satisfies the prerequisite condition for settlement eligibility. Final funds release requires cryptographic authorization from the buyer wallet and is enforced onchain by the escrow contract. AI assists. Humans authorize. Verifiers verify. Blockchain enforces.
                     </p>
                     <div className="flex flex-wrap items-center gap-3 pt-1">
                       <button
@@ -2508,7 +2508,7 @@ export function TransactionRoom({
                   <div>
                     <span className="text-gray-500">VERIFIER POLICY: </span>
                     <span className="text-blue-400">
-                      Mode A: Designated Independent Verifier
+                      Mode A: Designated Verifier
                     </span>
                   </div>
                   <div>
@@ -2578,7 +2578,7 @@ export function TransactionRoom({
                       <a href="https://testnet.monadvision.com/tx/0xb085f04396db481be7d06034a6b86c345d522b5ce79bf968fb24b05b3dfb470b" target="_blank" rel="noreferrer" className="text-purple-300 hover:underline">Block 66098350 ↗</a>
                     </div>
                     <div className="flex items-center justify-between p-1.5 rounded bg-gray-900/60 border border-gray-800">
-                      <span className="text-gray-300">5. Evidence Anchored (anchorEvidence: Bill of Lading)</span>
+                      <span className="text-gray-300">5. Evidence Anchored (anchorEvidence: Deliverable Hash)</span>
                       <a href="https://testnet.monadvision.com/tx/0x698ef9bed9a8007db66a6047187783dd97d026055b0f2e30cfe75826ad7b923e" target="_blank" rel="noreferrer" className="text-purple-300 hover:underline">Block 66434952 ↗</a>
                     </div>
                     <div className="flex items-center justify-between p-1.5 rounded bg-gray-900/60 border border-gray-800">
@@ -2586,7 +2586,7 @@ export function TransactionRoom({
                       <a href="https://testnet.monadvision.com/tx/0x0c1a3b6b468da55a01f11bf77ae0b016a6053cef4d3673aabf56c5995131a121" target="_blank" rel="noreferrer" className="text-purple-300 hover:underline">Block 66436074 ↗</a>
                     </div>
                     <div className="flex items-center justify-between p-1.5 rounded bg-gray-900/60 border border-gray-800">
-                      <span className="text-gray-300">7. Independent Attestation (submitVerification: PASS)</span>
+                      <span className="text-gray-300">7. Designated Verifier Attestation (submitVerification: PASS)</span>
                       <a href="https://testnet.monadvision.com/tx/0x4d4ff904821b9d3fe145b00a0e27f2096e567155a6d20c50e7b6913095f29bb0" target="_blank" rel="noreferrer" className="text-purple-300 hover:underline">Block 66436440 ↗</a>
                     </div>
                     <div className="flex items-center justify-between p-1.5 rounded bg-gray-900/60 border border-gray-800">
