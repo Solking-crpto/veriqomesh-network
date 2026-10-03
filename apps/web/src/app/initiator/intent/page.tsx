@@ -556,6 +556,9 @@ export default function CreateIntentPage() {
                 placeholder="e.g. Supply and delivery of 100 Tier-1 bifacial solar PV modules (550W) to Dallas freight warehouse, with verified bill of lading and independent inspection attestation..."
                 helperText="Minimum 10 characters. VeriqoMesh will bind this intent into the deterministic canonical agreement."
               />
+              <p className="text-[11px] text-text-tertiary">
+                Drafting uses a mock provider in this testnet build.
+              </p>
             </Card>
 
             {/* Step 2: Agreement details */}

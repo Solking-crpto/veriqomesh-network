@@ -90,10 +90,10 @@ export default function LandingPage() {
               <div className="p-3 sm:p-4 rounded-card bg-surface border border-border space-y-1">
                 <div className="flex items-center gap-1.5 text-accent font-semibold text-xs">
                   <span>01</span>
-                  <span className="text-text-primary font-medium">AI assists</span>
+                  <span className="text-text-primary font-medium">AI-assisted drafting</span>
                 </div>
                 <p className="text-[11px] sm:text-xs text-text-secondary leading-relaxed">
-                  Translates natural commercial intent into structured canonical terms.
+                  Structures plain-language intent into canonical terms. The AI layer has no financial authority.
                 </p>
               </div>
 
