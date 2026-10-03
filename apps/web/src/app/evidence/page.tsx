@@ -64,7 +64,7 @@ export default function EvidenceExplorerPage() {
           <span>Onchain Evidence Commitment Standard</span>
         </div>
         <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-          VeriqoMesh anchors commercial deliverables on Monad Testnet using immutable 32-byte Keccak-256 deliverable content hashes. Before escrow release or dispute resolution, designated verifiers audit the anchored evidence onchain.
+          VeriqoMesh anchors commercial deliverables on Monad Testnet using immutable 32-byte Keccak-256 deliverable content hashes. Before escrow release or dispute resolution, the designated verifier attests the anchored evidence onchain.
         </p>
       </Card>
 
@@ -204,7 +204,7 @@ export default function EvidenceExplorerPage() {
           <span className="text-[11px] font-semibold text-text-tertiary uppercase">Onchain Attestation</span>
           <div className="text-sm font-bold text-text-primary">Keccak256 Anchors</div>
           <p className="text-xs text-text-secondary leading-relaxed">
-            Deliverable hashes are immutably anchored in TrustMeshEscrow prior to designated verifier inspection.
+            Deliverable hashes are immutably anchored in TrustMeshEscrow prior to verification.
           </p>
         </Card>
 

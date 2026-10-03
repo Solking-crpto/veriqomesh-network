@@ -162,7 +162,7 @@ export default function LandingPage() {
                 Procure &amp; Fund Escrow
               </h3>
               <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-                Describe commercial deliverables in natural language, configure designated verifier gates, and deposit escrow on Monad.
+                Describe commercial deliverables in natural language, configure verification gates, and deposit escrow on Monad.
               </p>
             </div>
             <div className="pt-2 flex items-center text-xs font-semibold text-accent gap-1 group-hover:underline">
