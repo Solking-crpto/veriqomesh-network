@@ -4,191 +4,140 @@
   <img src="apps/web/public/brand/veriqomesh-logo.png" alt="VeriqoMesh Network" width="220" />
 </p>
 
-> **The programmable trust layer for human and AI commerce on Monad.**  
+> **A programmable trust layer for commerce between humans and AI agents, built on Monad.**
 > *Define the deal. Protect the transaction. Verify the outcome.*
 
-**Hackathon Track:** Trust, Identity & AI Infrastructure (Monad Metropolis Hackathon)
+- **Live app:** https://veriqomesh.xyz
+- **Public benchmark (no wallet needed):** https://veriqomesh.xyz/transactions?tab=demo
+- **Trust receipts and provenance:** https://veriqomesh.xyz/trust
+- **Demo video:** `[ADD YouTube link once uploaded]`
+- **Hackathon:** Monad Metropolis, track 4 (Trust / Identity & AI Infrastructure)
+- **Network:** Monad Testnet (chain ID 10143). Testnet assets only, no real value.
 
 ---
 
-## 1. Executive Summary
+## 1. Summary
 
-**VeriqoMesh Network** connects humans, businesses, and AI agents through verifiable agreements, protected escrow execution, evidence-based independent verification, and accountable consensus-driven dispute resolution.
+### The problem
+When businesses and AI agents transact, identity, payment, evidence and dispute handling live in separate places: chats, tracking portals, spreadsheets and private databases. Nobody can easily prove who agreed to what, what was delivered, who verified it, and how a disagreement was settled. AI agents also need a financial boundary: they must be able to help without holding funds.
 
-### The Problem
-Modern distributed commerce and autonomous AI agent workflows separate what should be a unified lifecycle:
-- Identity and mandates are fragmented;
-- Payments are either uncollateralized or locked in opaque, custodial silos;
-- Evidence is scattered across offchain chats, tracking portals, and spreadsheets;
-- AI agents lack accountable financial firewalls—either risking autonomous unauthorized treasury loss or operating with zero economic enforceability;
-- When outcomes are contested, dispute resolution is manual, subjective, or non-existent.
+### The solution
+VeriqoMesh puts the lifecycle on chain:
 
-### The Solution: Programmable Trust Fabric
-VeriqoMesh unifies these isolated layers into an end-to-end, non-custodial, programmable transaction lifecycle:
-$$\text{Intent} \longrightarrow \text{Agreement} \longrightarrow \text{Protection} \longrightarrow \text{Execution} \longrightarrow \text{Evidence} \longrightarrow \text{Verification} \longrightarrow \text{Dispute (Contested Only)} \longrightarrow \text{Settlement} \longrightarrow \text{Trust Receipt}$$
+Intent → Agreement → Escrow → Execution → Evidence → Verification → (Dispute, if contested) → Settlement → Trust Receipt
 
-1. **Intent & Agreement**: Human principals or AI-assisted workflows negotiate structured commercial terms, milestone criteria, and designated verification roles under explicit policy constraints.
-2. **Escrow Protection**: Non-custodial escrow on high-throughput Monad locks native MON or ERC-20 assets under a formal 14-state machine ensuring mathematical solvency ($V_{\text{bal}} \ge \sum L$).
-3. **Execution & Evidence Anchoring**: Raw deliverables remain offchain; cryptographic commitments (Keccak-256 content hashes, metadata hashes, and storage URI hashes) are immutably anchored onchain.
-4. **Independent Verification**: A designated independent verifier evaluates deliverable evidence and registers factual attestations (`PASS`, `FAIL`, `INCONCLUSIVE`).
-5. **Consensus Dispute Resolution (Contested Only)**: For contested outcomes, advisory AI generates chronological dossiers with zero financial execution power; an independent 3-judge human panel renders deterministic median consensus.
-6. **Settlement & Trust Receipt**: Terminal settlement automatically mints an immutable, non-transferable **VeriqoMesh Trust Receipt** carrying cryptographic proof of the transaction's history and final outcome.
+| Step | Role | What happens |
+|---|---|---|
+| 1 | **AI assists** | Plain-language intent is drafted into structured, canonical terms. The AI has no financial authority and never holds or moves funds. |
+| 2 | **Humans authorize** | Counterparties ratify the terms with wallet signatures (EIP-191). |
+| 3 | **Verifiers verify** | A designated verifier attests the delivery outcome onchain (PASS, FAIL or INCONCLUSIVE). |
+| 4 | **Blockchain enforces** | The escrow contract holds the deposit and settles. An inconclusive outcome opens a dispute, which is resolved as a split in basis points. |
 
----
+Every terminal outcome mints a **non-transferable ERC-5192 soulbound Trust Receipt** in the registry.
 
-## 2. Why Monad?
-
-VeriqoMesh is designed to leverage Monad Metropolis as its target execution environment, relying on Monad's architectural capabilities:
-- **Target 10,000 TPS & 1-Second Finality (Monad Network Architecture)**: Monad's designed high throughput and rapid finality provide the necessary infrastructure for sub-second escrow state transitions and multi-party verification attestations without long settlement stalls.
-- **Parallel EVM Execution (Monad Design)**: Monad's parallel execution engine is designed to allow high-volume concurrent micro-escrows and independent judge ballot submissions to process in parallel across independent state paths.
-- **Micro-Fee Predictability (Testnet Economics)**: Monad's gas efficiency is well suited to high-frequency commercial micro-escrows, including the 0.001 MON live testnet transaction demonstrated here.
+### Why Monad
+Multi-step escrow lifecycles (create, agree, fund, start, anchor, verify, settle) need cheap, fast transactions to be practical. Monad's parallel EVM design goals (high throughput and fast finality) suit many small concurrent escrows. Our recorded flows use 0.001 MON per agreement.
 
 ---
 
-## 3. Core Architecture & Safety Models
+## 2. Try it in 2 minutes
 
-### The AI Firewall & Safety Boundary
-VeriqoMesh implements a strict, non-negotiable **AI Firewall**:
-- **Zero Direct Financial Execution Authority**: AI models may structure natural language intent, extract terms, summarize evidence, and construct case dossiers. AI **never** releases funds, refunds escrow, alters terms, or bypasses verification.
-- **Human & Wallet Policy Gates**: All onchain state changes, deposits, and settlement releases require explicit cryptographic signatures from authorized wallets. AI models do not possess unrestricted financial execution authority.
-- **No Hidden Private Keys**: The protocol architecture never relies on embedded or server-side private keys for normal user or verifier roles.
+**No wallet (30 seconds):**
+1. Open https://veriqomesh.xyz/trust and scroll the ledger. It shows two complete flows, with every event linked to the explorer.
+2. Click any `tx:` link to confirm it on https://testnet.monadvision.com.
+3. Scroll to **Soulbound Trust Receipts** to see Receipts #1, #2 and #3.
 
-### Evidence Model: Anchors vs References
-- **Onchain Evidence Anchor**: A 32-byte cryptographic hash commitment (`contentHash`, `metadataHash`, `storageUriHash`, `submitter`, `timestamp`, `isEncrypted`) immutably logged on Monad.
-- **Offchain Storage Pointer**: Reference URIs (e.g., `ipfs://<hash>`) point to external data storage. Pointers serve as reference commitments and are never falsely marketed as verified decentralized storage without independent verification.
-
-### Verification Model vs Dispute Adjudication
-VeriqoMesh enforces two distinct paths:
-1. **Normal Transaction (Independent Verification Flow)**:
-   $$\text{AI-Assisted Intent / Policy} \to \text{Authorized Wallet Signing} \to \text{Agreement} \to \text{Escrow Funding} \to \text{Evidence Anchoring} \to \text{Independent Verifier PASS} \to \text{Authorized Release} \to \text{Trust Receipt}$$
-   *Normal verified transactions proceed through AI-assisted intent and policy processing, followed by authorized wallet- or policy-controlled onchain financial execution, with release gated by designated independent verification. Autonomous AI models never hold direct or unconstrained financial execution authority.*
-2. **Contested Transaction (Human Dispute Adjudication)**:
-   $$\text{Evidence Conflict} \to \text{Escrow Protected} \to \text{Advisory AI Dossier} \to \text{3 Independent Human Judges} \to \text{Deterministic Median Consensus} \to \text{Onchain Resolution} \to \text{Trust Receipt}$$
-   *Human adjudication is strictly invoked when verification is INCONCLUSIVE or disputed.*
-
-### Privacy Model
-- **Selective Cryptographic Disclosure**: Commercial contracts, invoices, and serial numbers remain offchain. Only cryptographic roots, hashes, and commitments touch the public blockchain.
-- **Audit Trails**: Counterparties can selectively prove fulfillment and receipt issuance to auditors or regulators using offchain preimage data matching onchain commitments.
+**With a wallet (about 2 minutes):**
+1. Add Monad Testnet to your wallet: chain ID `10143`, RPC `https://testnet-rpc.monad.xyz`.
+2. Get testnet MON from the faucet linked in the official Monad docs (https://docs.monad.xyz).
+3. Open https://veriqomesh.xyz, click **Connect Wallet**, then **Create**.
+4. Describe a deal in plain language, review the structured terms, and sign.
+5. Enter a **second wallet address of your own** as the counterparty. The team wallets listed on `/receivers` are for the recorded benchmark flows and will not respond to new agreements.
 
 ---
 
-## 4. Deployed Testnet Infrastructure (Monad Metropolis)
+## 3. Safety model
 
-The smart contracts are deployed and verified on **Monad Metropolis Testnet** (`Chain ID: 10143`):
+### AI boundary
+- **No financial execution authority.** AI may structure natural-language intent, extract terms, summarize evidence and prepare case summaries. It never releases funds, refunds escrow, alters terms or bypasses verification.
+- **Wallet gates.** Every onchain state change, deposit and release requires a signature from an authorized wallet.
+- **No embedded keys.** The protocol does not rely on server-side private keys for normal user or verifier roles.
 
-| Contract Component | Onchain Address | MonadVision Explorer | Function |
-| :--- | :--- | :--- | :--- |
-| **TrustMeshEscrow** | `0x925ea880cA53DE0352b84B24d0C0dee5B258015A` | [View on Explorer](https://testnet.monadvision.com/address/0x925ea880cA53DE0352b84B24d0C0dee5B258015A) | 14-State Escrow Vault with Solvency Invariant |
-| **TrustReceiptRegistry** | `0xE1994e0dF7CD5A836be4b02AE2164A542418B819` | [View on Explorer](https://testnet.monadvision.com/address/0xE1994e0dF7CD5A836be4b02AE2164A542418B819) | Soulbound Non-Transferable Accountability Receipts |
-| **Active Dispute Resolver** | `0x12f9e53c31F7629aCAE0BA70588794945EC6c35E` | [View on Explorer](https://testnet.monadvision.com/address/0x12f9e53c31F7629aCAE0BA70588794945EC6c35E) | Authorized Stage 4 Dispute Dispatcher |
+### Evidence model
+- **Onchain anchor:** a 32-byte Keccak-256 content hash commitment, plus metadata hash, storage URI hash, submitter, timestamp and an encryption flag, logged in the escrow contract.
+- **Files stay offchain.** We anchor commitments, not documents. This project does not claim decentralized file storage or retrieval.
 
----
+### Two resolution paths
+1. **Normal:** funded escrow → evidence anchored → designated verifier attests PASS → authorized release → Trust Receipt.
+2. **Contested:** verification INCONCLUSIVE or disputed → escrow stays protected → dispute resolved by a three-judge process → allocation dispatched onchain → Trust Receipt.
 
-## 5. Authoritative Live Onchain Transactions
-
-### Live Flow A: Complete End-to-End Normal Settlement (Receipt #3)
-- **Transaction ID**: `0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1`
-- **Buyer**: `0xa4bCC57d40311D715ECe34940191820d4a81C50F`
-- **Seller**: `0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8`
-- **Designated Verifier**: `0xb064d69428B9838C2a3e408cF995ea8eb5182c48`
-- **Amount**: `0.001 MON`
-- **Final Onchain State**: **`11 (SETTLED)`**
-- **Verification Result**: **`1 (PASS)`**
-- **Settlement Transaction**: [`0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52`](https://testnet.monadvision.com/tx/0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52) (Block `66436615`)
-- **Trust Receipt**: **Receipt #3** on `TrustReceiptRegistry`
-
-#### Complete 10-Step Onchain Lifecycle Trace:
-1. **Transaction Proposed**: `createTransactionWithVerifier` — Tx [`0xeddd26b0...`](https://testnet.monadvision.com/tx/0xeddd26b03699fa0dd8aabd5a8ff260abca029ece60c13dae916fe4060f33e2cd) (Block `65963660`)
-2. **Mutual Agreement**: `agreeTransaction` — Tx [`0x4ac4c4b6...`](https://testnet.monadvision.com/tx/0x4ac4c4b6cdf18b753f5e5f536f83a93545c5c185129ea58418ca9e38cdf11f8a) (Block `65963910`)
-3. **Escrow Funding**: `fundEscrow` — 0.001 MON deposited (Timestamp `1790502098`, State `4 FUNDED`)
-4. **Work Started**: `startWork` — Tx [`0xb085f043...`](https://testnet.monadvision.com/tx/0xb085f04396db481be7d06034a6b86c345d522b5ce79bf968fb24b05b3dfb470b) (Block `66098350`)
-5. **Evidence Anchored**: `anchorEvidence` (Bill of Lading) — Tx [`0x698ef9be...`](https://testnet.monadvision.com/tx/0x698ef9bed9a8007db66a6047187783dd97d026055b0f2e30cfe75826ad7b923e) (Block `66434952`)
-6. **Verification Requested**: `requestVerification` — Tx [`0x0c1a3b6b...`](https://testnet.monadvision.com/tx/0x0c1a3b6b468da55a01f11bf77ae0b016a6053cef4d3673aabf56c5995131a121) (Block `66436074`)
-7. **Verification Attestation**: `submitVerification` (`PASS`) — Tx [`0x4d4ff904...`](https://testnet.monadvision.com/tx/0x4d4ff904821b9d3fe145b00a0e27f2096e567155a6d20c50e7b6913095f29bb0) (Block `66436440`)
-8. **Authorized Release**: `releaseEscrow` — Tx [`0x691f7a80...`](https://testnet.monadvision.com/tx/0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52) (Block `66436615`)
-9. **SETTLED State**: State `11 (SETTLED)` reached; 0.001 MON delivered to Seller
-10. **Trust Receipt Issued**: `TrustReceiptIssued` event emitted; **Trust Receipt #3** recorded
+### Privacy
+Commercial contracts, invoices and serial numbers stay offchain. Only hashes and commitments touch the public chain. Counterparties can later prove fulfillment by revealing offchain data that matches the onchain commitments.
 
 ---
 
-### Live Flow B: Canonical Contested Freight Dispute (Receipt #2)
-- **Transaction ID**: `0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4`
-- **Dispute Cause**: Physical delivery of damaged solar panels (85 intact, 15 damaged in transit)
-- **Verification Outcome**: `INCONCLUSIVE` (Triggers Stage 4 Human Dispute Panel)
-- **Consensus**: 3 Independent Human Judges render 8500 BPS (85% release to Seller / 15% refund to Buyer)
-- **Onchain Settlement Dispatch**: [`0x91ff62584f4386250ccb09f28808453bb373273d9fa5f56cf04378c2a78084ba`](https://testnet.monadvision.com/tx/0x91ff62584f4386250ccb09f28808453bb373273d9fa5f56cf04378c2a78084ba) (Block `65147986`)
-- **Trust Receipt**: **Receipt #2** on `TrustReceiptRegistry`
+## 4. Contracts (Monad Testnet, chain ID 10143)
+
+| Contract | Address | Function |
+|---|---|---|
+| `TrustMeshEscrow` | [`0x925ea880cA53DE0352b84B24d0C0dee5B258015A`](https://testnet.monadvision.com/address/0x925ea880cA53DE0352b84B24d0C0dee5B258015A) | State-machine escrow with solvency checks |
+| `TrustReceiptRegistry` (ERC-5192) | [`0xE1994e0dF7CD5A836be4b02AE2164A542418B819`](https://testnet.monadvision.com/address/0xE1994e0dF7CD5A836be4b02AE2164A542418B819) | Soulbound, non-transferable receipts |
+| Authorized resolver (a wallet, not a contract) | [`0x12f9e53c31F7629aCAE0BA70588794945EC6c35E`](https://testnet.monadvision.com/address/0x12f9e53c31F7629aCAE0BA70588794945EC6c35E) | Submits dispute resolutions to the escrow |
+
+`[CONFIRM: source code verified on the explorer for all three? If yes, add "verified" and link. If not, verify them before submitting.]`
 
 ---
 
-## 6. How to Run Locally
+## 5. Verified onchain benchmarks
 
-### Prerequisites
-- Node.js `>= 20.0.0`
-- Foundry (`forge`, `cast`)
-- MetaMask or injected Web3 browser wallet
+All transactions are real Monad Testnet transactions run by the team. All wallets are team-controlled. The delivery scenario (solar procurement) is illustrative; the onchain data is limited to state transitions, hashes and amounts. Explorer: https://testnet.monadvision.com
 
-### Setup & Run
-```bash
-# Clone the repository
-git clone https://github.com/Solking-crpto/veriqomesh-network.git
-cd veriqomesh-network
+### Flow A: verified delivery, full release (Receipt #3)
 
-# Install dependencies across monorepo workspaces
-npm install
+Agreement ID `0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1`. Buyer `0xa4bCC57d40311D715ECe34940191820d4a81C50F`, seller `0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8`, designated verifier `0xb064d69428B9838C2a3e408cF995ea8eb5182c48`, amount 0.001 MON, final state 11 (SETTLED), verification result 1 (PASS).
 
-# Build all TypeScript packages & Next.js web application
-npm run build
+| Event | Tx hash | Block |
+|---|---|---|
+| TransactionCreated | `0xeddd26b03699fa0dd8aabd5a8ff260abca029ece60c13dae916fe4060f33e2cd` | 65,963,660 |
+| TransactionAgreed | `0x4ac4c4b6cdf18b753f5e5f536f83a93545c5c185129ea58418ca9e38cdf11f8a` | 65,963,910 |
+| TransactionFunded | `0xdcb8564bd5b35e8ea6f041ff34e06d9a9ba950fc1ba130da42ba687303a04f3e` | 66,096,522 |
+| TransactionStarted | `0xb085f0436d4f64f4347712d9c02d131f31f6dfeb780e0c8ee0b66bce3dfb470b` | 66,098,350 |
+| EvidenceAnchored | `0x698ef9beafecf6ffb5a610f4435cb24e64f728fa544b60a37ff29ea1ad7b923e` | 66,434,952 |
+| VerificationStarted | `0x0c1a3b6be1a04d5526cb59cae3240e94ffeb50d18e87498c4d2fe9b55131a121` | 66,436,074 |
+| VerificationSubmitted (PASS) | `0x4d4ff9041349f8746c1a84fbe3d93bfbb6e4dd79e4f509fa85b6727295f29bb0` | 66,436,440 |
+| TransactionSettled + Receipt #3 | `0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52` | 66,436,615 |
 
-# Start the production web application
-npm run start -w @trustmesh/web
-```
-Open **`http://localhost:3000`** in your browser.
+### Flow B: inconclusive verification, dispute resolution (Receipt #2)
 
----
+Agreement ID `0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4`. Outcome 3 (INCONCLUSIVE) opened a dispute, resolved as 1,500 bps (15%) to the buyer and 8,500 bps (85%) to the seller.
 
-## 7. How to Run Tests
+| Event | Tx hash | Block |
+|---|---|---|
+| TransactionCreated | `0x3a9ec0ea9cff2882c80a875812cfd63737f894867c64465038e975f233a18310` | 65,122,781 |
+| TransactionAgreed | `0xc60a3ebf14f0b36818b510d971505781b70d52e5073036fc7f051180f179d5b1` | 65,122,843 |
+| TransactionFunded | `0xf466a3acb09a0dee38525b36bbe3809ce88853098fea327d9b09c1178c3f3227` | 65,122,921 |
+| TransactionStarted | `0x7456f91e842f2842133f92b75ce80eae3b2af455a53de3d7f176c26daab8054f` | 65,122,938 |
+| EvidenceAnchored | `0x722d4a339f888b5ea50e4738b53e1dcf4ad5461e954275a50004ea3d2c05c91c` | 65,122,948 |
+| VerificationStarted | `0x753f2b5c98d1e784887e6ce0697b4596aa56ba9fa4eabe201b4f34f5dd0c5994` | 65,122,960 |
+| VerificationSubmitted (INCONCLUSIVE) | `0x5778e6a8d77db4f77bf04d9cfc9e51896b1e7a6de1a0e17d27b09f355b3f1485` | 65,122,972 |
+| DisputeOpened | `0xb01a687de4c65113a647b7bd7f3db23d440c7088eda0445bf5d32a05495106e4` | 65,122,986 |
+| DisputeResolved + Receipt #2 | `0x91ff62584f4386250ccb09f28808453bb373273d9fa5f56cf04378c2a78084ba` | 65,129,932 |
 
-### Smart Contract Tests (Foundry)
-```bash
-cd contracts
-forge test -vv
-```
-*Result: 17/17 tests passing (including fuzz tests, access control, and solvency invariant checks).*
+### Receipt #1: initial protocol validation run
+Mint tx `0x1ef8e57ee21262d1c67d1fc0d1f4ba96ff29ee79989b5c3e62f01704c98b1cb3` (block 65,092,494), run before Flows A and B.
 
-### State Machine & Integration Tests (Node.js Test Runner)
-```bash
-npm run test
-```
-*Result: 45/45 tests passing (including 14-state transitions, judge consensus, role isolation, and evidence hashing).*
-
----
-
-## 8. Navigating the Public Demo & Video Studio
-
-The web application provides both interactive exploration and verifiable blockchain auditability:
-
-1. **Verified Normal Flow (Flow A — Canonical Live Monad Testnet)**:
-   - Live settlement room for Transaction `0x961c...54e1`, demonstrating all onchain milestones from intent and funding through PASS verification, authorized wallet release, and Trust Receipt issuance.
-2. **Contested Dispute Resolution (Flow B — Canonical Live Monad Testnet)**:
-   - Live audit record of Canonical Testnet Transaction `0x2b57...afcc4`, demonstrating inconclusive evidence, the 3-judge human consensus protocol, deterministic median calculation (1,500 bps refund / 8,500 bps release), and **Trust Receipt #2**.
-3. **Demo Video Studio (`/demo-video`)**:
-   - Master video player presenting the full end-to-end architecture, dual-track execution model, and live Monad testnet settlement proof.
-4. **Trust Receipts Vault & Onchain Provenance (`/trust`)**:
-   - Live event ledger powered by Envio HyperIndex with automatic Monad RPC fallback, plus Soulbound receipt verification.
+If an explorer page fails to load for an older block, the same data can be read from the RPC (`eth_getTransactionReceipt` at https://testnet-rpc.monad.xyz) or from the indexed ledger on `/trust`.
 
 ---
 
-## 9. Onchain Provenance & Trust Activity (Powered by Envio HyperIndex)
+## 6. Envio HyperIndex
 
-VeriqoMesh Network integrates [Envio HyperIndex](https://envio.dev) as a high-performance, read-only event indexing and provenance layer for smart contracts on Monad Metropolis Testnet.
+[Envio HyperIndex](https://envio.dev) is the read-only indexing layer for the Trust page.
+- **12 lifecycle event types** indexed from block 65,000,000, from `TransactionCreated` through `DisputeResolved` and `TrustReceiptIssued`.
+- **GraphQL API** with `Transaction`, `EvidenceAnchor`, `VerificationAttestation`, `DisputeRecord`, `TrustReceipt` and chronological `LifecycleEvent` entities.
+- **Visible status.** The Trust page shows the indexed block, chain head and lag in blocks, and the source: "Envio HyperIndex" when GraphQL is used, "Monad RPC fallback" when it is not.
 
-### Key Capabilities
-- **12 Lifecycle Events Indexed**: Full coverage from `TransactionCreated`, `EvidenceAnchored`, and `VerificationSubmitted` to `DisputeResolved` and `TrustReceiptIssued`.
-- **Unified GraphQL API**: Queryable schema for `Transaction`, `EvidenceAnchor`, `VerificationAttestation`, `DisputeRecord`, `TrustReceipt`, and chronological `LifecycleEvent` entities.
-- **Resilient Fallback**: The Next.js frontend (`apps/web`) seamlessly reads from the Envio HyperIndex GraphQL endpoint when active, and automatically falls back to direct Monad RPC queries and authoritative onchain traces when GraphQL is unset or offline, ensuring 100% uptime and data integrity.
-
-### Running the Indexer Locally
+Run the indexer locally:
 ```bash
 cd indexer
 npm install
@@ -198,46 +147,75 @@ npm run dev
 
 ---
 
-## 10. Known Limitations & Security Assumptions
+## 7. Run locally and test
 
-- **Testnet Environment**: Operates exclusively on Monad Metropolis Testnet (`Chain ID: 10143`). Testnet assets have no real-world monetary value.
-- **Storage References**: Offchain IPFS references (`ipfs://`) serve as content-hash integrity commitments. Production mainnet deployment will integrate permanent decentralized storage pinning (e.g., Filecoin/Arweave).
-- **Resolver Centralization in Testnet**: Stage 4 human dispute settlement is currently dispatched via a designated testnet resolver address (`0x12f9...c35E`) that enforces consensus signatures offchain before dispatching `resolveDispute`. Future iterations will deploy onchain multi-sig or ZK consensus verification.
+**Prerequisites:** Node.js 20 or later; Foundry (`forge`) for contract tests; a browser wallet.
+
+```bash
+git clone https://github.com/Solking-crpto/veriqomesh-network.git
+cd veriqomesh-network
+npm install
+npm run build
+npm run start -w @trustmesh/web      # then open http://localhost:3000
+```
+
+`[FILL IN: .env.example variable names (RPC URL, Envio GraphQL URL, contract addresses). Never commit real keys.]`
+
+**Tests**
+```bash
+npm test                 # application, state-machine and invariant suites: 189 tests across 27 suites
+cd contracts && forge test -vv   # contract tests, including fuzz and solvency checks
+```
+`[CONFIRM: run forge test and put the real passing count here.]`
 
 ---
 
-## 11. Monorepo Structure
+## 8. Repository structure
 
 ```
 trustmesh/
-├── apps/
-│   └── web/                   # Next.js 15 Web Application, Trust Activity & Video Studio
-├── contracts/
-│   ├── src/                   # Solidity Contracts: TrustMeshEscrow, TrustReceiptRegistry
-│   └── test/                  # Foundry Unit, Fuzz, and Solvency Invariant Tests
-├── indexer/                   # Envio HyperIndex GraphQL Indexer (Monad Testnet 10143)
-│   ├── config.yaml            # Envio contract & event configuration
-│   ├── schema.graphql         # Provenance data model & entity definitions
-│   ├── abis/                  # Authoritative Escrow & Registry ABIs
-│   └── src/EventHandlers.ts   # Event processing handlers
+├── apps/web/            Next.js 15 application (workspace, trust ledger, evidence explorer)
+├── contracts/           Solidity contracts (TrustMeshEscrow, TrustReceiptRegistry) and Foundry tests
+├── indexer/             Envio HyperIndex indexer (config.yaml, schema.graphql, ABIs, handlers)
 ├── services/
-│   ├── ai/                    # Advisory AI Intent & Docket Generator
-│   ├── api/                   # Orchestration API
-│   ├── dispute/               # 3-Judge Assignment & Median Consensus Engine
-│   └── verification/          # Evidence Verification Attestation Service
-├── packages/
-│   ├── config/                # Deployed contract addresses, constants, RPC configs
-│   ├── sdk/                   # TypeScript SDK with complete typed contract methods
-│   └── types/                 # Shared domain types & 14-State Machine definitions
-├── tests/                     # Integration, role isolation, & regression test suites
-└── scripts/                   # Monad deployment, lifecycle monitors, & audit tools
+│   ├── ai/              Advisory AI intent and case-summary generator
+│   ├── api/             Orchestration API
+│   ├── dispute/         Three-judge assignment and median consensus engine
+│   └── verification/    Evidence verification attestation service
+├── packages/            config (addresses, constants), sdk (typed contract methods), types
+├── tests/               Integration, role-isolation and regression suites
+└── scripts/             Deployment, lifecycle monitoring and audit tools
 ```
 
 ---
 
-## 12. Hackathon Provenance & License
+## 9. Hackathon build log
 
-- **Hackathon Build Window**: September 23, 2026 – September 28, 2026.
-- **Built for**: Monad Metropolis Hackathon
-- **License**: MIT
+Monad Metropolis build window: **September 1 to October 13, 2026.**
 
+**Repository history.** The public repository's first commit is `e0bba32` on 2026-09-29 ("publish VeriqoMesh Network Monad implementation"). `[FILL IN: an honest sentence on when development began and where it lived before that commit, and whether any code predates Sept 1.]` The onchain record is independent of git history: the first Trust Receipt was minted on 2026-09-23 (block 65,092,494) and Flow B ran the same day. `[FILL IN: contract deployment date from the explorer's contract-creation transaction.]`
+
+| Date | Work |
+|---|---|
+| Sept 29 | Published the Monad implementation; Vercel deployment config; Envio HyperIndex provenance layer and Envio Cloud deployment (`9034d11`, `d16707f`, `061d78e`, `d612714`) |
+| Sept 29 to 30 | Indexer fixes: Envio v3 config, HyperSync endpoint with RPC fallback, handler restructuring, ESM and Node 22, event handlers migrated, numeric and transaction-hash field handling (`f322f52` to `19601c3`) |
+| Sept 30 | Production trust view connected to Envio (`7461005`); user workspace separated from the public demo (`b3c3542`); persistent invitations and receiver action inbox (`2b15eb0`); signature-authorized invitation updates (`711783d`) |
+| Oct 1 | Persona dashboards and actionable requests (`194c45d`); wallet identity separated from application role (`04426e4`); open agreement creation (`8bfaee8`); public benchmark data isolated from personal transactions; demo fixtures removed from the public interface; brand identity (`d9d6380`) |
+| Oct 2 onward | Responsive mobile, tablet and desktop redesign (`ddcd1d4`, `3f1ca25`); audit of our own public data against the hackathon rules: replaced it with chain-verified transactions, corrected block order, timestamps and receipt actors, added live Envio status (indexed block, chain head, lag), a single explorer, and removed claims the contracts do not support (`22a5ae2` to `c143205`) |
+
+---
+
+## 10. Known limitations and assumptions
+
+- **Testnet only.** Tokens carry no real value. The contracts are unaudited.
+- **Designated roles.** In the recorded flows the verifier and the resolver are team-controlled wallets assigned by role. There is no open or decentralized verifier or judge network yet.
+- **Dispute resolution is dispatched by a resolver wallet.** The three-judge median is computed by the dispute service, and the authorized resolver wallet (`0x12f9…c35E`) then calls `resolveDispute` on the escrow with the result. Future work: onchain multi-signature or verifiable consensus. `[CONFIRM: whether the three ballots in Flow B came from three distinct wallets, and whether any ballots are recorded onchain, by checking the input data of the DisputeResolved transaction.]`
+- **AI is advisory.** It drafts terms and case summaries. It has no financial authority. `[CONFIRM: whether services/ai calls an external model API, and which one.]`
+- **Evidence is hash-anchored.** Files are not stored or retrieved by this project. Storage URIs are committed as hashes only.
+- **Illustrative scenario.** The solar-procurement narrative is an example; the onchain data is limited to state transitions, hashes and amounts.
+
+---
+
+## 11. License and contact
+
+MIT. veriqomeshnetwork@gmail.com · [@veriqomesh_ai](https://x.com/veriqomesh_ai)
