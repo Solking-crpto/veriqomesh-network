@@ -193,10 +193,10 @@ export default function EvidenceExplorerPage() {
       {/* Protocol Specs Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-border">
         <Card padding="sm" className="space-y-1.5">
-          <span className="text-[11px] font-semibold text-text-tertiary uppercase">Content Addressing</span>
-          <div className="text-sm font-bold text-text-primary">IPFS CIDs</div>
+          <span className="text-[11px] font-semibold text-text-tertiary uppercase">Cryptographic Hashes</span>
+          <div className="text-sm font-bold text-text-primary">Deliverable Digests</div>
           <p className="text-xs text-text-secondary leading-relaxed">
-            Storage pointers reference content-hash commitments immutable across carrier and depot handoffs.
+            Cryptographic digests reference deliverable commitments immutable across carrier and depot handoffs.
           </p>
         </Card>
 

@@ -2390,8 +2390,8 @@ export function TransactionRoom({
                             <span className="text-gray-300 truncate max-w-xs">{tx.termsHash}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-500">IPFS ADJUDICATION CID:</span>
-                            <span className="text-purple-300">ipfs://bafy-adjudication-stage4-canonical</span>
+                            <span className="text-gray-500">ADJUDICATION DIGEST:</span>
+                            <span className="text-purple-300 font-mono text-[10px] truncate max-w-xs">{tx.termsHash}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-500">QUORUM VERIFICATION:</span>

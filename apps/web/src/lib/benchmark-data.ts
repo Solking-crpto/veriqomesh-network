@@ -31,6 +31,10 @@ export function getExplorerBlockUrl(blockNumber: number): string {
   return `${MONAD_EXPLORER_URL}/block/${blockNumber}`;
 }
 
+export function getExplorerSearchUrl(query: string): string {
+  return `${MONAD_EXPLORER_URL}/search?q=${encodeURIComponent(query)}`;
+}
+
 export interface BenchmarkEvent {
   id: string;
   eventType: string;

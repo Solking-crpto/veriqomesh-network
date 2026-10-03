@@ -75,7 +75,7 @@ export default function ReceiverDetailPage() {
 
           <div className="p-4 rounded-xl bg-gray-900/60 border border-gray-800 space-y-1">
             <span className="text-gray-400 text-[10px]">EVIDENCE INTEGRATION</span>
-            <div className="text-white font-bold text-sm">IPFS Content Anchoring</div>
+            <div className="text-white font-bold text-sm">Cryptographic Evidence Anchoring</div>
             <p className="text-gray-400 text-[11px] font-sans mt-1">
               Supports electronic BOLs, geotagged depot imagery, and serialized manifests hashed to Keccak-256 onchain roots.
             </p>

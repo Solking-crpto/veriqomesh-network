@@ -54,3 +54,5 @@ tools/
 
 .vercel/
 scripts/video-production/segments/
+.vercel
+.env*

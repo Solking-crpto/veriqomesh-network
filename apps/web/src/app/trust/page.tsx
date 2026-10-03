@@ -13,6 +13,7 @@ import {
   getExplorerTxUrl,
   getExplorerAddressUrl,
   getExplorerBlockUrl,
+  getExplorerSearchUrl,
   DEPLOYED_REGISTRY_ADDRESS,
 } from '@/lib/benchmark-data';
 
@@ -85,9 +86,17 @@ export default function TrustReceiptsPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-mono text-text-primary underline hover:text-accent"
+                  title={DEPLOYED_REGISTRY_ADDRESS}
                 >
                   0xE1994e...B819 ↗
-                </a>{' '}
+                </a>
+                <button
+                  onClick={() => copyToClipboard(DEPLOYED_REGISTRY_ADDRESS, 'registry-vault')}
+                  className="inline-flex ml-1.5 text-text-tertiary hover:text-text-primary"
+                  title="Copy registry address"
+                >
+                  {copiedId === 'registry-vault' ? '✓' : <Copy className="w-3 h-3 inline" />}
+                </button>{' '}
                 on Monad Testnet.
               </p>
             </div>
@@ -191,10 +200,22 @@ export default function TrustReceiptsPage() {
 
               <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs">
                 <div className="flex items-center gap-2 text-text-tertiary font-mono text-[11px]">
-                  <span>TxId: <span className="text-text-secondary">{rcpt.transactionId.slice(0, 10)}...{rcpt.transactionId.slice(-6)}</span></span>
+                  <span>
+                    TxId:{' '}
+                    <a
+                      href={getExplorerSearchUrl(rcpt.transactionId)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-text-secondary hover:text-accent underline"
+                      title={rcpt.transactionId}
+                    >
+                      {rcpt.transactionId.slice(0, 10)}...{rcpt.transactionId.slice(-6)} ↗
+                    </a>
+                  </span>
                   <button
                     onClick={() => copyToClipboard(rcpt.transactionId, `txid-${rcpt.receiptId}`)}
                     className="hover:text-text-primary"
+                    title="Copy full transaction ID"
                   >
                     {copiedId === `txid-${rcpt.receiptId}` ? '✓' : <Copy className="w-3 h-3" />}
                   </button>

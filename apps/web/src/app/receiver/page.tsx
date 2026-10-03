@@ -198,7 +198,7 @@ export default function ReceiverDashboardPage() {
               <span>Evidence Anchoring</span>
             </div>
             <p className="text-xs text-text-secondary leading-relaxed">
-              Upload bills of lading, delivery proofs, and serial numbers to IPFS when deliverables are ready.
+              Anchor bills of lading, delivery proofs, and serial numbers as cryptographic deliverable hashes on Monad.
             </p>
             <div className="pt-1">
               <Link href="/evidence" className="text-xs text-accent hover:underline inline-flex items-center gap-1 font-medium">

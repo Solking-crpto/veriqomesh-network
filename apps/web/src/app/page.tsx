@@ -314,7 +314,7 @@ export default function LandingPage() {
                 <span className="font-bold text-text-primary text-sm">Evidence Explorer</span>
               </div>
               <p className="text-xs text-text-secondary leading-relaxed">
-                Dual commitments linking IPFS content CIDs and 32-byte Keccak256 deliverable hashes.
+                Cryptographic commitments anchoring 32-byte Keccak-256 deliverable hashes directly on Monad.
               </p>
             </Card>
           </Link>

@@ -7,9 +7,12 @@ import { isDefinitiveBenchmark, CANONICAL_FLOW_A_TX_ID, CANONICAL_FLOW_B_TX_ID }
 import {
   VERIFIED_BENCHMARK_PROVENANCE_EVENTS,
   VERIFIED_BENCHMARK_RECEIPTS,
+  DEPLOYED_ESCROW_ADDRESS,
+  DEPLOYED_REGISTRY_ADDRESS,
   getExplorerTxUrl,
   getExplorerAddressUrl,
   getExplorerBlockUrl,
+  getExplorerSearchUrl,
   MONAD_EXPLORER_URL,
   DEFAULT_ENVIO_GRAPHQL_URL,
 } from '../lib/benchmark-data';
@@ -344,6 +347,14 @@ export default function TrustActivity() {
     return [...AUTHORITATIVE_PROVENANCE_EVENTS, ...sessionEvents];
   }, [selectedTxFilter, sessionEvents]);
 
+  const uniqueFlowsCount = useMemo(() => {
+    return new Set(displayedEvents.map((e) => e.transactionId)).size;
+  }, [displayedEvents]);
+
+  const totalReceiptsCount = useMemo(() => {
+    return VERIFIED_BENCHMARK_RECEIPTS.length;
+  }, []);
+
   const getCategoryBadge = (category: ProvenanceEvent['category']) => {
     switch (category) {
       case 'agreement':
@@ -380,7 +391,7 @@ export default function TrustActivity() {
             ) : (
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-gray-900 text-gray-400 border border-gray-700">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                Monad Testnet Direct
+                Monad RPC fallback
               </span>
             )}
           </div>
@@ -415,9 +426,10 @@ export default function TrustActivity() {
                 ? 'bg-emerald-950/60 border-emerald-700 text-emerald-300'
                 : 'bg-purple-950/60 border-purple-700 text-purple-300'
             }`}
+            title={dataSource === 'envio' ? 'Envio HyperIndex (GraphQL Primary)' : 'Monad RPC (Live Trace Fallback)'}
           >
             <span className={`w-2 h-2 rounded-full ${dataSource === 'envio' ? 'bg-emerald-400' : 'bg-purple-400'} animate-ping`} />
-            <span>{dataSource === 'envio' ? 'Envio HyperIndex (GraphQL Primary)' : 'Monad RPC (Live Trace Fallback)'}</span>
+            <span>{dataSource === 'envio' ? 'Source: Envio HyperIndex' : 'Source: Monad RPC fallback'}</span>
           </div>
 
           <button
@@ -453,24 +465,56 @@ export default function TrustActivity() {
 
         <div className="p-3.5 rounded-xl bg-gray-950/70 border border-gray-800/80">
           <span className="text-gray-500 text-[10px] block uppercase">Escrow Contract</span>
-          <span className="text-purple-300 font-bold text-xs truncate block" title="0x925ea880cA53DE0352b84B24d0C0dee5B258015A">
-            0x925e...015A
-          </span>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <a
+              href={getExplorerAddressUrl(DEPLOYED_ESCROW_ADDRESS)}
+              target="_blank"
+              rel="noreferrer"
+              className="text-purple-300 hover:text-purple-200 underline font-bold text-xs truncate"
+              title={DEPLOYED_ESCROW_ADDRESS}
+            >
+              {DEPLOYED_ESCROW_ADDRESS.slice(0, 6)}...{DEPLOYED_ESCROW_ADDRESS.slice(-4)} ↗
+            </a>
+            <button
+              onClick={() => copyToClipboard(DEPLOYED_ESCROW_ADDRESS, 'metrics-escrow')}
+              className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800 font-mono"
+              title="Copy escrow address"
+            >
+              {copiedId === 'metrics-escrow' ? '✓' : 'copy'}
+            </button>
+          </div>
           <span className="text-[10px] text-emerald-400 block mt-0.5">State: SETTLED (11)</span>
         </div>
 
         <div className="p-3.5 rounded-xl bg-gray-950/70 border border-gray-800/80">
           <span className="text-gray-500 text-[10px] block uppercase">Receipt Registry</span>
-          <span className="text-cyan-300 font-bold text-xs truncate block" title="0xE1994e0dF7CD5A836be4b02AE2164A542418B819">
-            0xE199...B819
-          </span>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <a
+              href={getExplorerAddressUrl(DEPLOYED_REGISTRY_ADDRESS)}
+              target="_blank"
+              rel="noreferrer"
+              className="text-cyan-300 hover:text-cyan-200 underline font-bold text-xs truncate"
+              title={DEPLOYED_REGISTRY_ADDRESS}
+            >
+              {DEPLOYED_REGISTRY_ADDRESS.slice(0, 6)}...{DEPLOYED_REGISTRY_ADDRESS.slice(-4)} ↗
+            </a>
+            <button
+              onClick={() => copyToClipboard(DEPLOYED_REGISTRY_ADDRESS, 'metrics-registry')}
+              className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800 font-mono"
+              title="Copy registry address"
+            >
+              {copiedId === 'metrics-registry' ? '✓' : 'copy'}
+            </button>
+          </div>
           <span className="text-[10px] text-gray-400 block mt-0.5">Soulbound Vault</span>
         </div>
 
         <div className="p-3.5 rounded-xl bg-gray-950/70 border border-gray-800/80">
           <span className="text-gray-500 text-[10px] block uppercase">Indexed Events</span>
           <span className="text-white font-bold text-sm">{displayedEvents.length} Events</span>
-          <span className="text-[10px] text-purple-400 block mt-0.5">2 Flows · 3 Receipts</span>
+          <span className="text-[10px] text-purple-400 block mt-0.5">
+            {uniqueFlowsCount} Flows · {totalReceiptsCount} Receipts
+          </span>
         </div>
       </div>
 
@@ -604,11 +648,7 @@ export default function TrustActivity() {
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getCategoryBadge(evt.category)}`}>
                           {evt.eventType}
                         </span>
-                        {evt.provenanceType === 'BENCHMARK' ? (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-purple-950/80 text-purple-300 border border-purple-800">
-                            Public Benchmark Event
-                          </span>
-                        ) : (
+                        {evt.provenanceType === 'SESSION' && (
                           <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-emerald-950/70 text-emerald-300 border border-emerald-800/80">
                             Current Session Event
                           </span>
@@ -621,6 +661,7 @@ export default function TrustActivity() {
                           target="_blank"
                           rel="noreferrer"
                           className="text-gray-500 hover:text-purple-300 text-[11px] underline"
+                          title={evt.actor}
                         >
                           {evt.actor.slice(0, 6)}...{evt.actor.slice(-4)}
                         </a>
@@ -647,6 +688,7 @@ export default function TrustActivity() {
                           target="_blank"
                           rel="noreferrer"
                           className="text-purple-400 hover:text-purple-300 underline font-mono flex items-center gap-1"
+                          title={evt.txHash}
                         >
                           <span>tx: {evt.txHash.slice(0, 8)}...</span>
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -669,7 +711,21 @@ export default function TrustActivity() {
 
                     <div className="flex items-center justify-between text-[10px] font-mono text-gray-500 pt-1 border-t border-gray-900">
                       <div className="flex items-center gap-1.5 truncate max-w-md">
-                        <span>TxId: <span className="text-gray-400">{evt.transactionId}</span></span>
+                        <span>
+                          TxId:{' '}
+                          <a
+                            href={getExplorerSearchUrl(evt.transactionId)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-gray-400 hover:text-purple-300 underline"
+                            title={evt.transactionId}
+                          >
+                            {evt.transactionId.length > 20
+                              ? `${evt.transactionId.slice(0, 10)}...${evt.transactionId.slice(-8)}`
+                              : evt.transactionId}{' '}
+                            ↗
+                          </a>
+                        </span>
                         <button
                           onClick={() => copyToClipboard(evt.transactionId, `txid-${evt.id}`)}
                           className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
@@ -722,10 +778,19 @@ export default function TrustActivity() {
               <div className="flex justify-between items-center">
                 <span className="text-gray-500">Transaction ID:</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-purple-300 font-mono">0x961c...54e1</span>
+                  <a
+                    href={getExplorerSearchUrl(CANONICAL_FLOW_A_TX_ID)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-purple-300 hover:text-purple-200 underline font-mono"
+                    title={CANONICAL_FLOW_A_TX_ID}
+                  >
+                    0x961c...54e1 ↗
+                  </a>
                   <button
                     onClick={() => copyToClipboard(CANONICAL_FLOW_A_TX_ID, 'flow-a-txid')}
                     className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                    title="Copy full transaction ID"
                   >
                     {copiedId === 'flow-a-txid' ? '✓' : 'copy'}
                   </button>
@@ -743,25 +808,75 @@ export default function TrustActivity() {
                 <span className="text-gray-500">Trust Receipt:</span>
                 <span className="text-cyan-400 font-bold">#3 (Soulbound ERC-5192)</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">Settlement Block:</span>
-                <span className="text-gray-300">66436615 (66,436,615)</span>
+                <a
+                  href={getExplorerBlockUrl(66436615)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-gray-300 hover:text-purple-300 underline font-mono"
+                >
+                  66436615 (66,436,615) ↗
+                </a>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">Designated Verifier:</span>
-                <span className="text-purple-300 font-mono text-[10px]">0xb064d69428B9838C2a3e408cF995ea8eb5182c48</span>
+                <div className="flex items-center gap-1">
+                  <a
+                    href={getExplorerAddressUrl('0xb064d69428B9838C2a3e408cF995ea8eb5182c48')}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-purple-300 hover:text-purple-200 underline font-mono text-[10px]"
+                    title="0xb064d69428B9838C2a3e408cF995ea8eb5182c48"
+                  >
+                    0xb064...2c48 ↗
+                  </a>
+                  <button
+                    onClick={() => copyToClipboard('0xb064d69428B9838C2a3e408cF995ea8eb5182c48', 'flow-a-verifier')}
+                    className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                    title="Copy full address"
+                  >
+                    {copiedId === 'flow-a-verifier' ? '✓' : 'copy'}
+                  </button>
+                </div>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">Fulfillment Seller:</span>
-                <span className="text-purple-300 font-mono text-[10px]">0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8</span>
+                <div className="flex items-center gap-1">
+                  <a
+                    href={getExplorerAddressUrl('0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8')}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-purple-300 hover:text-purple-200 underline font-mono text-[10px]"
+                    title="0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8"
+                  >
+                    0x0e73...6Ee8 ↗
+                  </a>
+                  <button
+                    onClick={() => copyToClipboard('0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8', 'flow-a-seller')}
+                    className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                    title="Copy full address"
+                  >
+                    {copiedId === 'flow-a-seller' ? '✓' : 'copy'}
+                  </button>
+                </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-500">Deliverable Hash:</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-cyan-400 font-mono">0x08a3...edff</span>
+                  <a
+                    href={getExplorerSearchUrl('0x08a30b2c4935050f1ffbda42a5a6565ab54fc1b090bb47c036afd47aaad2edff')}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-cyan-400 hover:text-cyan-300 underline font-mono"
+                    title="0x08a30b2c4935050f1ffbda42a5a6565ab54fc1b090bb47c036afd47aaad2edff"
+                  >
+                    0x08a3...edff ↗
+                  </a>
                   <button
                     onClick={() => copyToClipboard('0x08a30b2c4935050f1ffbda42a5a6565ab54fc1b090bb47c036afd47aaad2edff', 'flow-a-content')}
                     className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                    title="Copy full deliverable hash"
                   >
                     {copiedId === 'flow-a-content' ? '✓' : 'copy'}
                   </button>
@@ -779,12 +894,14 @@ export default function TrustActivity() {
                     target="_blank"
                     rel="noreferrer"
                     className="text-purple-400 hover:text-purple-300 underline font-mono"
+                    title="0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52"
                   >
                     0x691f...3b52 ↗
                   </a>
                   <button
                     onClick={() => copyToClipboard('0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52', 'flow-a-tx')}
                     className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                    title="Copy settlement tx hash"
                   >
                     {copiedId === 'flow-a-tx' ? '✓' : 'copy'}
                   </button>
@@ -825,10 +942,19 @@ export default function TrustActivity() {
               <div className="flex justify-between items-center">
                 <span className="text-gray-500">Transaction ID:</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-purple-300 font-mono">0x2b57...cfc4</span>
+                  <a
+                    href={getExplorerSearchUrl(CANONICAL_FLOW_B_TX_ID)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-purple-300 hover:text-purple-200 underline font-mono"
+                    title={CANONICAL_FLOW_B_TX_ID}
+                  >
+                    0x2b57...cfc4 ↗
+                  </a>
                   <button
                     onClick={() => copyToClipboard(CANONICAL_FLOW_B_TX_ID, 'flow-b-txid')}
                     className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                    title="Copy full transaction ID"
                   >
                     {copiedId === 'flow-b-txid' ? '✓' : 'copy'}
                   </button>
@@ -846,17 +972,33 @@ export default function TrustActivity() {
                 <span className="text-gray-500">Trust Receipt:</span>
                 <span className="text-cyan-400 font-bold">#2 (Soulbound ERC-5192)</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">Settlement Block:</span>
-                <span className="text-gray-300">65,129,932</span>
+                <a
+                  href={getExplorerBlockUrl(65129932)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-gray-300 hover:text-purple-300 underline font-mono"
+                >
+                  65,129,932 ↗
+                </a>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-500">Deliverable Hash:</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-cyan-400 font-mono">0xe8fd...3ad4</span>
+                  <a
+                    href={getExplorerSearchUrl('0xe8fd73f129c4c1124fa548c0d28ed31a769f983186b08cf51ed849f177903ad4')}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-cyan-400 hover:text-cyan-300 underline font-mono"
+                    title="0xe8fd73f129c4c1124fa548c0d28ed31a769f983186b08cf51ed849f177903ad4"
+                  >
+                    0xe8fd...3ad4 ↗
+                  </a>
                   <button
                     onClick={() => copyToClipboard('0xe8fd73f129c4c1124fa548c0d28ed31a769f983186b08cf51ed849f177903ad4', 'flow-b-content')}
                     className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                    title="Copy full deliverable hash"
                   >
                     {copiedId === 'flow-b-content' ? '✓' : 'copy'}
                   </button>
@@ -878,12 +1020,14 @@ export default function TrustActivity() {
                     target="_blank"
                     rel="noreferrer"
                     className="text-purple-400 hover:text-purple-300 underline font-mono"
+                    title="0x91ff62584f4386250ccb09f28808453bb373273d9fa5f56cf04378c2a78084ba"
                   >
                     0x91ff...84ba ↗
                   </a>
                   <button
                     onClick={() => copyToClipboard('0x91ff62584f4386250ccb09f28808453bb373273d9fa5f56cf04378c2a78084ba', 'flow-b-tx')}
                     className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                    title="Copy settlement tx hash"
                   >
                     {copiedId === 'flow-b-tx' ? '✓' : 'copy'}
                   </button>

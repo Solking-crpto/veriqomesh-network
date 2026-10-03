@@ -14,6 +14,7 @@ import {
   FileText,
   Search,
   Filter,
+  Copy,
 } from 'lucide-react';
 import {
   useDemoNetwork,
@@ -87,6 +88,13 @@ function TransactionsContent() {
   const [demoFilter, setDemoFilter] = useState<'ALL' | 'FLOW_A' | 'FLOW_B' | 'AUTONOMOUS'>('ALL');
   const [liveOnchainStates, setLiveOnchainStates] = useState<Record<string, string>>({});
   const [isLoadingOnchain, setIsLoadingOnchain] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   // Query live onchain state for fresh testnet transactions
   useEffect(() => {
@@ -424,8 +432,24 @@ function TransactionsContent() {
 
                   {/* Actions Footer */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-border text-xs">
-                    <div className="font-mono text-text-tertiary text-[11px]">
-                      ID: <span className="text-text-secondary">{tx.id.slice(0, 14)}...{tx.id.slice(-6)}</span>
+                    <div className="flex items-center gap-1.5 font-mono text-text-tertiary text-[11px]">
+                      <span>ID:</span>
+                      <a
+                        href={`https://testnet.monadvision.com/search?q=${encodeURIComponent(tx.id)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-text-secondary hover:text-accent underline"
+                        title={tx.id}
+                      >
+                        {tx.id.slice(0, 14)}...{tx.id.slice(-6)} ↗
+                      </a>
+                      <button
+                        onClick={() => copyToClipboard(tx.id, `personal-id-${tx.id}`)}
+                        className="hover:text-text-primary text-[10px] text-text-tertiary"
+                        title="Copy full transaction ID"
+                      >
+                        {copiedId === `personal-id-${tx.id}` ? '✓' : <Copy className="w-3 h-3" />}
+                      </button>
                     </div>
 
                     <Link href={`/transactions/${tx.id}`} className="w-full sm:w-auto">
@@ -570,21 +594,44 @@ function TransactionsContent() {
                 {/* Footer */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-border text-xs">
                   <div className="space-y-1 font-mono text-[11px] text-text-tertiary">
-                    <div>
-                      ID: <span className="text-text-secondary">{tx.id.slice(0, 14)}...{tx.id.slice(-6)}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span>ID:</span>
+                      <a
+                        href={`https://testnet.monadvision.com/search?q=${encodeURIComponent(tx.id)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-text-secondary hover:text-accent underline"
+                        title={tx.id}
+                      >
+                        {tx.id.slice(0, 14)}...{tx.id.slice(-6)} ↗
+                      </a>
+                      <button
+                        onClick={() => copyToClipboard(tx.id, `demo-id-${tx.id}`)}
+                        className="hover:text-text-primary text-[10px] text-text-tertiary"
+                        title="Copy full transaction ID"
+                      >
+                        {copiedId === `demo-id-${tx.id}` ? '✓' : <Copy className="w-3 h-3" />}
+                      </button>
                     </div>
                     {tx.onchainTxHash && (
-                      <div>
-                        Settlement Tx:{' '}
+                      <div className="flex items-center gap-1.5">
+                        <span>Settlement Tx:</span>
                         <a
                           href={`https://testnet.monadvision.com/tx/${tx.onchainTxHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-accent hover:underline inline-flex items-center gap-1"
+                          title={tx.onchainTxHash}
                         >
-                          <span>{tx.onchainTxHash.slice(0, 12)}...{tx.onchainTxHash.slice(-6)}</span>
-                          <ExternalLink className="w-3 h-3" />
+                          <span>{tx.onchainTxHash.slice(0, 12)}...{tx.onchainTxHash.slice(-6)} ↗</span>
                         </a>
+                        <button
+                          onClick={() => copyToClipboard(tx.onchainTxHash!, `demo-tx-${tx.id}`)}
+                          className="hover:text-text-primary text-[10px] text-text-tertiary"
+                          title="Copy full tx hash"
+                        >
+                          {copiedId === `demo-tx-${tx.id}` ? '✓' : <Copy className="w-3 h-3" />}
+                        </button>
                       </div>
                     )}
                   </div>
