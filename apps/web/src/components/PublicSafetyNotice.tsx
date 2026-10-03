@@ -75,7 +75,7 @@ export function PublicSafetyNotice() {
                   Testnet Assets Only
                 </span>
                 <p>
-                  Operates on Monad Metropolis Testnet (Chain ID 10143). Tokens and deposits carry zero real-world financial value.
+                  Operates on Monad Testnet (Chain ID 10143). Tokens and deposits carry zero real-world financial value.
                 </p>
               </div>
               <div className="p-3 rounded-card bg-surface/60 border border-border space-y-1">
@@ -93,7 +93,7 @@ export function PublicSafetyNotice() {
         {/* Smart Contracts Row */}
         <div className="pt-6 border-t border-border/60 flex flex-wrap items-center justify-between gap-4 text-xs">
           <div className="flex flex-wrap items-center gap-4 text-text-tertiary font-mono text-[11px]">
-            <span>Monad Metropolis Testnet (10143)</span>
+            <span>Monad Testnet (10143)</span>
             <span>•</span>
             <span>Escrow: <code className="text-text-secondary">0x925ea8...015A</code></span>
             <span>•</span>

@@ -456,7 +456,7 @@ function TransactionsContent() {
               <span>Public Demonstration &amp; Audit Benchmarks</span>
             </div>
             <p className="text-text-secondary leading-relaxed">
-              These records represent canonical verification and dispute scenarios executed on Monad Metropolis Testnet (Chain ID 10143). They are read-only and independent of authenticated personal workspaces.
+              These records represent canonical verification and dispute scenarios executed on Monad Testnet (Chain ID 10143). They are read-only and independent of authenticated personal workspaces.
             </p>
           </div>
 

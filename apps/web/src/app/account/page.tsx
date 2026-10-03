@@ -171,7 +171,7 @@ export default function AccountPage() {
           <Card className="p-5 space-y-4">
             <CardHeader
               title="Active Session"
-              subtitle="Monad Metropolis Testnet (Chain ID 10143)"
+              subtitle="Monad Testnet (Chain ID 10143)"
               action={
                 <StatusChip
                   status={wallet.isMonadTestnet ? 'success' : 'warning'}

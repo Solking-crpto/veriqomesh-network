@@ -4,6 +4,15 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useDemoNetwork, type DealRequest } from '../context/DemoNetworkContext';
 import { isDefinitiveBenchmark, CANONICAL_FLOW_A_TX_ID, CANONICAL_FLOW_B_TX_ID } from '../lib/invitation-utils';
+import {
+  VERIFIED_BENCHMARK_PROVENANCE_EVENTS,
+  VERIFIED_BENCHMARK_RECEIPTS,
+  getExplorerTxUrl,
+  getExplorerAddressUrl,
+  getExplorerBlockUrl,
+  MONAD_EXPLORER_URL,
+  DEFAULT_ENVIO_GRAPHQL_URL,
+} from '../lib/benchmark-data';
 
 export interface ProvenanceEvent {
   id: string;
@@ -29,167 +38,19 @@ const DEV_FIXTURE_TX_IDS = new Set([
   '0x0bb2eaa948a832b6ef45773bf29b81febf1b8342e7479ba518c7d495905b250a',
 ]);
 
-const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = [
-  // --- FLOW A: Verified Normal Flow & Authorized Release ---
-  {
-    id: 'flow-a-1',
-    eventType: 'TransactionCreated',
-    transactionId: '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1',
-    actor: '0xa4bCC57d40311D715ECe34940191820d4a81C50F',
-    actorRole: 'Buyer',
-    details: 'Initiated commercial mandate for 0.001 MON with designated verifier 0xb064...c48',
-    blockNumber: 65963660,
-    timestamp: '2026-09-24T09:15:00Z',
-    txHash: '0xeddd26b03699fa0dd8aabd5a8ff260abca029ece60c13dae916fe4060f33e2cd',
-    category: 'agreement',
-    provenanceType: 'BENCHMARK',
-  },
-  {
-    id: 'flow-a-2',
-    eventType: 'TransactionAgreed',
-    transactionId: '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1',
-    actor: '0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8',
-    actorRole: 'Seller',
-    details: 'Seller accepted terms hash 0xebb9...125f onchain',
-    blockNumber: 65963910,
-    timestamp: '2026-09-24T09:20:00Z',
-    txHash: '0x4ac4c4b6cdf18b753f5e5f536f83a93545c5c185129ea58418ca9e38cdf11f8a',
-    category: 'agreement',
-    provenanceType: 'BENCHMARK',
-  },
-  {
-    id: 'flow-a-3',
-    eventType: 'EscrowFunded',
-    transactionId: '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1',
-    actor: '0xa4bCC57d40311D715ECe34940191820d4a81C50F',
-    actorRole: 'Buyer',
-    details: 'Funded escrow liabilities with 0.001 MON',
-    blockNumber: 66096522,
-    timestamp: '2026-09-24T09:25:00Z',
-    txHash: '0xdcb8564b899b06f9bd8eb2d6bcacc92d9f51838cf23bfb0ac3faba7703a04f3e',
-    category: 'escrow',
-    provenanceType: 'BENCHMARK',
-  },
-  {
-    id: 'flow-a-4',
-    eventType: 'WorkStarted',
-    transactionId: '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1',
-    actor: '0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8',
-    actorRole: 'Seller',
-    details: 'Seller marked deliverable execution commenced',
-    blockNumber: 66098350,
-    timestamp: '2026-09-24T09:35:00Z',
-    txHash: '0xb085f04396db481be7d06034a6b86c345d522b5ce79bf968fb24b05b3dfb470b',
-    category: 'evidence',
-    provenanceType: 'BENCHMARK',
-  },
-  {
-    id: 'flow-a-5',
-    eventType: 'EvidenceAnchored',
-    transactionId: '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1',
-    actor: '0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8',
-    actorRole: 'Seller',
-    details: 'Anchored deliverable content hash 0x08a30b2c4935050f1ffbda42a5a6565ab54fc1b090bb47c036afd47aaad2edff',
-    blockNumber: 66434952,
-    timestamp: '2026-09-24T10:10:00Z',
-    txHash: '0x698ef9bed9a8007db66a6047187783dd97d026055b0f2e30cfe75826ad7b923e',
-    category: 'evidence',
-    provenanceType: 'BENCHMARK',
-  },
-  {
-    id: 'flow-a-6',
-    eventType: 'VerificationSubmitted',
-    transactionId: '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1',
-    actor: '0xb064d69428B9838C2a3e408cF995ea8eb5182c48',
-    actorRole: 'Designated Verifier',
-    details: 'Audited evidence deliverables; attestation outcome: VALID (Outcome 1 / PASS)',
-    blockNumber: 66436440,
-    timestamp: '2026-09-24T10:20:00Z',
-    txHash: '0x4d4ff904821b9d3fe145b00a0e27f2096e567155a6d20c50e7b6913095f29bb0',
-    category: 'verification',
-    provenanceType: 'BENCHMARK',
-  },
-  {
-    id: 'flow-a-7',
-    eventType: 'EscrowSettled',
-    transactionId: '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1',
-    actor: '0xa4bCC57d40311D715ECe34940191820d4a81C50F',
-    actorRole: 'Authorized Wallet',
-    details: 'Executed releaseEscrow(): 0.001 MON disbursed to seller; 0.0 MON refunded; State: SETTLED (11)',
-    blockNumber: 66436615,
-    timestamp: '2026-09-24T10:25:00Z',
-    txHash: '0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52',
-    category: 'settlement',
-    provenanceType: 'BENCHMARK',
-  },
-  {
-    id: 'flow-a-8',
-    eventType: 'TrustReceiptIssued',
-    transactionId: '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1',
-    actor: '0x925ea880cA53DE0352b84B24d0C0dee5B258015A',
-    actorRole: 'Escrow / Registry',
-    details: 'Trust Receipt #3 issued: Soulbound attestation for terminal verified release. Verification Outcome: VALID (Outcome 1 / PASS). Transaction State: SETTLED (11)',
-    blockNumber: 66436615,
-    timestamp: '2026-09-24T10:25:00Z',
-    txHash: '0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52',
-    category: 'receipt',
-    provenanceType: 'BENCHMARK',
-  },
-
-  // --- FLOW B: Contested Inconclusive Deliverable & 3-Judge Quorum ---
-  {
-    id: 'flow-b-1',
-    eventType: 'VerificationSubmitted',
-    transactionId: '0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4',
-    actor: '0xb064d69428B9838C2a3e408cF995ea8eb5182c48',
-    actorRole: 'Verifier',
-    details: 'Attestation returned INCONCLUSIVE (Outcome 3) due to depot physical damage; normal release halted',
-    blockNumber: 65147800,
-    timestamp: '2026-09-24T11:00:00Z',
-    txHash: '0x7ce453f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4',
-    category: 'verification',
-    provenanceType: 'BENCHMARK',
-  },
-  {
-    id: 'flow-b-2',
-    eventType: 'DisputeOpened',
-    transactionId: '0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4',
-    actor: '0xa4bCC57d40311D715ECe34940191820d4a81C50F',
-    actorRole: 'Buyer',
-    details: 'Dispute opened in Escrow; state moved to DISPUTED (8); escalated to multi-judge review',
-    blockNumber: 65147850,
-    timestamp: '2026-09-24T11:15:00Z',
-    txHash: '0x8df564a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5',
-    category: 'dispute',
-    provenanceType: 'BENCHMARK',
-  },
-  {
-    id: 'flow-b-3',
-    eventType: 'DisputeResolved',
-    transactionId: '0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4',
-    actor: '0x12f9e53c31F7629aCAE0BA70588794945EC6c35E',
-    actorRole: 'Dispute Resolver',
-    details: 'Deterministic 3-Judge median consensus executed: 1,500 bps (15%) buyer refund, 8,500 bps (85%) seller release; State: SETTLED (11)',
-    blockNumber: 65147986,
-    timestamp: '2026-09-24T12:00:00Z',
-    txHash: '0x91ff6d2105eb0d4a6f95c029b9f71bfb5c2a122675d654261fa25ca6b7bc84ba',
-    category: 'dispute',
-    provenanceType: 'BENCHMARK',
-  },
-  {
-    id: 'flow-b-4',
-    eventType: 'TrustReceiptIssued',
-    transactionId: '0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4',
-    actor: '0xE1994e0dF7CD5A836be4b02AE2164A542418B819',
-    actorRole: 'TrustReceiptRegistry',
-    details: 'Trust Receipt #2 issued: Soulbound attestation recording 15% refund / 85% release settlement facts. Verification Outcome: INCONCLUSIVE (Outcome 3). Transaction State: SETTLED (11)',
-    blockNumber: 65147986,
-    timestamp: '2026-09-24T12:00:00Z',
-    txHash: '0x91ff6d2105eb0d4a6f95c029b9f71bfb5c2a122675d654261fa25ca6b7bc84ba',
-    category: 'receipt',
-    provenanceType: 'BENCHMARK',
-  },
-];
+const AUTHORITATIVE_PROVENANCE_EVENTS: ProvenanceEvent[] = VERIFIED_BENCHMARK_PROVENANCE_EVENTS.map((e) => ({
+  id: e.id,
+  eventType: e.eventType,
+  transactionId: e.transactionId,
+  actor: e.actor,
+  actorRole: e.actorRole,
+  details: e.details,
+  blockNumber: e.blockNumber,
+  timestamp: e.timestamp,
+  txHash: e.txHash,
+  category: e.category,
+  provenanceType: 'BENCHMARK',
+}));
 
 function deriveActorRole(eventType: string, actor: string, connectedWallet?: string | null): string {
   const a = (actor || '').toLowerCase();
@@ -343,6 +204,7 @@ export default function TrustActivity() {
 
   const [sessionEvents, setSessionEvents] = useState<ProvenanceEvent[]>([]);
   const [dataSource, setDataSource] = useState<'envio' | 'rpc_fallback'>('envio');
+  const [envioIndexedBlock, setEnvioIndexedBlock] = useState<number | null>(null);
 
   const fetchEnvioEvents = useCallback(async () => {
     if (!envioGraphqlUrl) {
@@ -356,6 +218,10 @@ export default function TrustActivity() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: `{
+            _meta {
+              progressBlock
+              isReady
+            }
             LifecycleEvent(order_by: { blockNumber: desc }, limit: 50) {
               id
               eventType
@@ -373,6 +239,10 @@ export default function TrustActivity() {
         throw new Error(`Envio HTTP ${res.status}`);
       }
       const data = await res.json();
+      const metaBlock = data?.data?._meta?.[0]?.progressBlock;
+      if (metaBlock) {
+        setEnvioIndexedBlock(metaBlock);
+      }
       const rawEvents = data?.data?.LifecycleEvent;
 
       if (Array.isArray(rawEvents) && rawEvents.length > 0) {
@@ -502,10 +372,17 @@ export default function TrustActivity() {
             <span className="text-xs font-mono font-bold text-purple-400 uppercase tracking-wider">
               PUBLIC ONCHAIN PROVENANCE
             </span>
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-700">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Powered by Envio HyperIndex
-            </span>
+            {dataSource === 'envio' ? (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-700">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Powered by Envio HyperIndex
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-gray-900 text-gray-400 border border-gray-700">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                Monad Testnet Direct
+              </span>
+            )}
           </div>
           <h2 className="text-2xl font-bold text-white">Immutable Event Ledger</h2>
           <p className="text-xs text-gray-400 font-mono mt-0.5">
@@ -515,11 +392,21 @@ export default function TrustActivity() {
 
         {/* Status Indicator & Live Block */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="px-3 py-1.5 rounded-xl bg-gray-950 border border-gray-800 font-mono text-xs flex items-center gap-2">
-            <span className="text-gray-500">INDEXED BLOCK:</span>
+          <div className="px-3 py-1.5 rounded-xl bg-gray-950 border border-gray-800 font-mono text-xs flex flex-wrap items-center gap-2">
+            <span className="text-gray-500">ENVIO INDEXED:</span>
             <span className="text-emerald-400 font-bold">
+              {envioIndexedBlock ? `#${envioIndexedBlock.toLocaleString()}` : 'Querying...'}
+            </span>
+            <span className="text-gray-600">|</span>
+            <span className="text-gray-500">CHAIN HEAD:</span>
+            <span className="text-purple-300 font-bold">
               {latestBlock ? `#${latestBlock.toLocaleString()}` : 'Connecting...'}
             </span>
+            {envioIndexedBlock && latestBlock ? (
+              <span className="text-[10px] text-gray-400">
+                (Lag: {Math.max(0, latestBlock - envioIndexedBlock)} blocks)
+              </span>
+            ) : null}
           </div>
 
           <div
@@ -560,7 +447,7 @@ export default function TrustActivity() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
         <div className="p-3.5 rounded-xl bg-gray-950/70 border border-gray-800/80">
           <span className="text-gray-500 text-[10px] block uppercase">Network</span>
-          <span className="text-white font-bold text-sm">Monad Metropolis</span>
+          <span className="text-white font-bold text-sm">Monad Testnet</span>
           <span className="text-[10px] text-purple-400 block mt-0.5">Chain ID: 10143</span>
         </div>
 
@@ -582,8 +469,8 @@ export default function TrustActivity() {
 
         <div className="p-3.5 rounded-xl bg-gray-950/70 border border-gray-800/80">
           <span className="text-gray-500 text-[10px] block uppercase">Indexed Events</span>
-          <span className="text-white font-bold text-sm">12 Lifecycle Types</span>
-          <span className="text-[10px] text-purple-400 block mt-0.5">From Block 65,000,000</span>
+          <span className="text-white font-bold text-sm">{displayedEvents.length} Events</span>
+          <span className="text-[10px] text-purple-400 block mt-0.5">2 Flows · 3 Receipts</span>
         </div>
       </div>
 
@@ -643,7 +530,22 @@ export default function TrustActivity() {
 
       {/* Tab 1: Chronological Lifecycle Events */}
       {activeTab === 'events' && (
-        <div className="space-y-3">
+        <div className="space-y-4">
+          {/* Benchmark Team Disclosure Banner */}
+          <div className="p-3.5 rounded-xl bg-purple-950/30 border border-purple-800/60 font-mono text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-900/60 text-purple-300 border border-purple-700">
+                Public Benchmark Event
+              </span>
+              <span className="text-purple-300/80 text-[11px] font-sans">
+                Public Demo / Architectural Benchmark
+              </span>
+            </div>
+            <p className="text-gray-300 text-xs font-sans">
+              These are testnet transactions executed by the VeriqoMesh team to demonstrate Flow A and Flow B. They are not your transactions.
+            </p>
+          </div>
+
           {displayedEvents.length === 0 ? (
             <div className="p-8 rounded-xl bg-gray-950/40 border border-gray-800 text-center font-mono space-y-3">
               {selectedTxFilter === 'session' && !wallet.isConnected ? (
@@ -667,7 +569,7 @@ export default function TrustActivity() {
                     0 live session provenance events recorded for this account.
                   </div>
                   <p className="text-gray-500 text-[11px] max-w-md mx-auto font-sans">
-                    Initiate or fulfill commercial agreements on Monad Metropolis Testnet to record onchain lifecycle events.
+                    Initiate or fulfill commercial agreements on Monad Testnet to record onchain lifecycle events.
                   </p>
                   <div className="pt-2">
                     <Link
@@ -684,7 +586,7 @@ export default function TrustActivity() {
                     No provenance events found for selected filter.
                   </div>
                   <p className="text-gray-500 text-[11px] max-w-md mx-auto font-sans">
-                    Events are indexed automatically as commercial agreements are proposed, funded, attested, and settled on Monad Metropolis Testnet.
+                    Events are indexed automatically as commercial agreements are proposed, funded, attested, and settled on Monad Testnet.
                   </p>
                 </>
               )}
@@ -703,14 +605,9 @@ export default function TrustActivity() {
                           {evt.eventType}
                         </span>
                         {evt.provenanceType === 'BENCHMARK' ? (
-                          <>
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-purple-950/70 text-purple-300 border border-purple-800/80">
-                              Public Benchmark Event
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-purple-950/60 text-purple-400 border border-purple-800/50">
-                              Public Demo / Architectural Benchmark
-                            </span>
-                          </>
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-purple-950/80 text-purple-300 border border-purple-800">
+                            Public Benchmark Event
+                          </span>
                         ) : (
                           <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-emerald-950/70 text-emerald-300 border border-emerald-800/80">
                             Current Session Event
@@ -719,20 +616,34 @@ export default function TrustActivity() {
                         <span className="text-gray-400">
                           by <strong className="text-gray-200">{evt.actorRole}</strong>
                         </span>
-                        <span
-                          className="text-gray-500 hover:text-purple-300 cursor-pointer text-[11px]"
-                          onClick={() => copyToClipboard(evt.actor, `actor-${evt.id}`)}
-                          title="Click to copy actor address"
+                        <a
+                          href={getExplorerAddressUrl(evt.actor)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-gray-500 hover:text-purple-300 text-[11px] underline"
                         >
                           {evt.actor.slice(0, 6)}...{evt.actor.slice(-4)}
-                          {copiedId === `actor-${evt.id}` && <span className="text-emerald-400 ml-1">copied!</span>}
-                        </span>
+                        </a>
+                        <button
+                          onClick={() => copyToClipboard(evt.actor, `actor-${evt.id}`)}
+                          className="text-gray-600 hover:text-gray-300 text-[10px] px-1 py-0.5 bg-gray-900 rounded border border-gray-800"
+                          title="Copy full address"
+                        >
+                          {copiedId === `actor-${evt.id}` ? '✓' : 'copy'}
+                        </button>
                       </div>
 
                       <div className="flex items-center gap-3 text-gray-400 text-[11px]">
-                        <span>Block #{evt.blockNumber.toLocaleString()}</span>
                         <a
-                          href={`https://testnet.monadexplorer.com/tx/${evt.txHash}`}
+                          href={getExplorerBlockUrl(evt.blockNumber)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:text-purple-300 underline"
+                        >
+                          Block #{evt.blockNumber.toLocaleString()}
+                        </a>
+                        <a
+                          href={getExplorerTxUrl(evt.txHash)}
                           target="_blank"
                           rel="noreferrer"
                           className="text-purple-400 hover:text-purple-300 underline font-mono flex items-center gap-1"
@@ -742,6 +653,13 @@ export default function TrustActivity() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                           </svg>
                         </a>
+                        <button
+                          onClick={() => copyToClipboard(evt.txHash, `tx-${evt.id}`)}
+                          className="text-gray-600 hover:text-gray-300 text-[10px] px-1 py-0.5 bg-gray-900 rounded border border-gray-800 font-mono"
+                          title="Copy full tx hash"
+                        >
+                          {copiedId === `tx-${evt.id}` ? '✓' : 'copy'}
+                        </button>
                       </div>
                     </div>
 
@@ -750,9 +668,16 @@ export default function TrustActivity() {
                     </p>
 
                     <div className="flex items-center justify-between text-[10px] font-mono text-gray-500 pt-1 border-t border-gray-900">
-                      <span className="truncate max-w-md">
-                        TxId: <span className="text-gray-400">{evt.transactionId}</span>
-                      </span>
+                      <div className="flex items-center gap-1.5 truncate max-w-md">
+                        <span>TxId: <span className="text-gray-400">{evt.transactionId}</span></span>
+                        <button
+                          onClick={() => copyToClipboard(evt.transactionId, `txid-${evt.id}`)}
+                          className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                          title="Copy full transaction ID"
+                        >
+                          {copiedId === `txid-${evt.id}` ? '✓' : 'copy'}
+                        </button>
+                      </div>
                       <span>{evt.timestamp}</span>
                     </div>
                   </div>
@@ -783,14 +708,28 @@ export default function TrustActivity() {
             <div>
               <h4 className="text-base font-bold text-white">Normal Verified Execution &amp; Authorized Release</h4>
               <p className="text-xs text-gray-400 font-mono mt-0.5">
-                Buyer funded 0.001 MON; independent verifier attested PASS; authorized wallet executed releaseEscrow().
+                Buyer funded 0.001 MON; designated verifier attested PASS; escrow contract automatically released full payout.
               </p>
             </div>
 
             <div className="space-y-1.5 bg-gray-950/80 p-3 rounded-lg font-mono text-[11px] border border-gray-800">
-              <div className="flex justify-between">
+              <div className="p-2 rounded bg-purple-950/40 border border-purple-800/60 text-purple-300 text-[10px] space-y-0.5 mb-2">
+                <div className="font-semibold">Trust Receipt #3 issued</div>
+                <div>Verification Outcome: VALID (Outcome 1 / PASS)</div>
+                <div>Transaction State: SETTLED (11)</div>
+              </div>
+
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">Transaction ID:</span>
-                <span className="text-purple-300">0x961c...54e1</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-purple-300 font-mono">0x961c...54e1</span>
+                  <button
+                    onClick={() => copyToClipboard(CANONICAL_FLOW_A_TX_ID, 'flow-a-txid')}
+                    className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                  >
+                    {copiedId === 'flow-a-txid' ? '✓' : 'copy'}
+                  </button>
+                </div>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Transaction State:</span>
@@ -806,26 +745,50 @@ export default function TrustActivity() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Settlement Block:</span>
-                <span className="text-gray-300">66,436,615</span>
+                <span className="text-gray-300">66436615 (66,436,615)</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-gray-500">Designated Verifier:</span>
+                <span className="text-purple-300 font-mono text-[10px]">0xb064d69428B9838C2a3e408cF995ea8eb5182c48</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Fulfillment Seller:</span>
+                <span className="text-purple-300 font-mono text-[10px]">0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8</span>
+              </div>
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">Deliverable Hash:</span>
-                <span className="text-cyan-400">0x08a3...edff</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-cyan-400 font-mono">0x08a3...edff</span>
+                  <button
+                    onClick={() => copyToClipboard('0x08a30b2c4935050f1ffbda42a5a6565ab54fc1b090bb47c036afd47aaad2edff', 'flow-a-content')}
+                    className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                  >
+                    {copiedId === 'flow-a-content' ? '✓' : 'copy'}
+                  </button>
+                </div>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Settlement Payout:</span>
                 <span className="text-white font-bold">RELEASED TO SELLER (0.001 MON)</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">Settlement Tx:</span>
-                <a
-                  href="https://testnet.monadexplorer.com/tx/0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-purple-400 hover:text-purple-300 underline"
-                >
-                  0x691f...3b52 ↗
-                </a>
+                <div className="flex items-center gap-1.5">
+                  <a
+                    href={getExplorerTxUrl('0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52')}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-purple-400 hover:text-purple-300 underline font-mono"
+                  >
+                    0x691f...3b52 ↗
+                  </a>
+                  <button
+                    onClick={() => copyToClipboard('0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52', 'flow-a-tx')}
+                    className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                  >
+                    {copiedId === 'flow-a-tx' ? '✓' : 'copy'}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -859,9 +822,17 @@ export default function TrustActivity() {
             </div>
 
             <div className="space-y-1.5 bg-gray-950/80 p-3 rounded-lg font-mono text-[11px] border border-gray-800">
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">Transaction ID:</span>
-                <span className="text-purple-300">0x2b57...cfc4</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-purple-300 font-mono">0x2b57...cfc4</span>
+                  <button
+                    onClick={() => copyToClipboard(CANONICAL_FLOW_B_TX_ID, 'flow-b-txid')}
+                    className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                  >
+                    {copiedId === 'flow-b-txid' ? '✓' : 'copy'}
+                  </button>
+                </div>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Transaction State:</span>
@@ -876,6 +847,22 @@ export default function TrustActivity() {
                 <span className="text-cyan-400 font-bold">#2 (Soulbound ERC-5192)</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-gray-500">Settlement Block:</span>
+                <span className="text-gray-300">65,129,932</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-500">Deliverable Hash:</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-cyan-400 font-mono">0xe8fd...3ad4</span>
+                  <button
+                    onClick={() => copyToClipboard('0xe8fd73f129c4c1124fa548c0d28ed31a769f983186b08cf51ed849f177903ad4', 'flow-b-content')}
+                    className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                  >
+                    {copiedId === 'flow-b-content' ? '✓' : 'copy'}
+                  </button>
+                </div>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-gray-500">3 Judges Median:</span>
                 <span className="text-white font-bold">1,500 bps (15% Buyer Refund)</span>
               </div>
@@ -883,16 +870,24 @@ export default function TrustActivity() {
                 <span className="text-gray-500">Settlement Payout:</span>
                 <span className="text-emerald-400 font-bold">0.00085 MON (85% RELEASED TO SELLER)</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">Settlement Tx:</span>
-                <a
-                  href="https://testnet.monadexplorer.com/tx/0x91ff6d2105eb0d4a6f95c029b9f71bfb5c2a122675d654261fa25ca6b7bc84ba"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-purple-400 hover:text-purple-300 underline"
-                >
-                  0x91ff...84ba ↗
-                </a>
+                <div className="flex items-center gap-1.5">
+                  <a
+                    href={getExplorerTxUrl('0x91ff62584f4386250ccb09f28808453bb373273d9fa5f56cf04378c2a78084ba')}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-purple-400 hover:text-purple-300 underline font-mono"
+                  >
+                    0x91ff...84ba ↗
+                  </a>
+                  <button
+                    onClick={() => copyToClipboard('0x91ff62584f4386250ccb09f28808453bb373273d9fa5f56cf04378c2a78084ba', 'flow-b-tx')}
+                    className="text-gray-600 hover:text-gray-300 text-[9px] px-1 bg-gray-900 rounded border border-gray-800"
+                  >
+                    {copiedId === 'flow-b-tx' ? '✓' : 'copy'}
+                  </button>
+                </div>
               </div>
             </div>
 

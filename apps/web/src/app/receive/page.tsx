@@ -41,7 +41,7 @@ export default function ReceiveLookupPage() {
           Receive &amp; Review Proposal
         </h1>
         <p className="text-xs sm:text-sm text-text-secondary max-w-md mx-auto">
-          Enter your VeriqoMesh invitation code to review commercial terms, inspect evidence requirements, and sign bilateral agreements on Monad Metropolis Testnet.
+          Enter your VeriqoMesh invitation code to review commercial terms, inspect evidence requirements, and sign bilateral agreements on Monad Testnet.
         </p>
       </div>
 
@@ -86,7 +86,7 @@ export default function ReceiveLookupPage() {
               <strong className="text-text-primary">Cross-device persistence:</strong> Invitations are stored offchain and resolved globally by code.
             </li>
             <li>
-              <strong className="text-text-primary">Authoritative onchain escrow:</strong> Acceptance invokes <code className="font-mono text-accent">agreeTransaction()</code> on the Monad Metropolis Testnet.
+              <strong className="text-text-primary">Authoritative onchain escrow:</strong> Acceptance invokes <code className="font-mono text-accent">agreeTransaction()</code> on the Monad Testnet.
             </li>
             <li>
               <strong className="text-text-primary">Role isolation:</strong> Only the designated counterparty wallet address can sign the agreement.

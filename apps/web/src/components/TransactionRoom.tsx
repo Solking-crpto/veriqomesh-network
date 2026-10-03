@@ -249,9 +249,9 @@ export function TransactionRoom({
     : isFreshOnchainTx
     ? {
         prompt:
-          'Commercial procurement agreement initialized on Monad Metropolis Testnet. Counterparties ratify deliverables and anchor cryptographic evidence before escrow settlement.',
-        title: 'Commercial Procurement Agreement (Live Monad Metropolis Testnet)',
-        description: 'Live onchain transaction initialized on Monad Metropolis Testnet (Chain ID: 10143)',
+          'Commercial procurement agreement initialized on Monad Testnet. Counterparties ratify deliverables and anchor cryptographic evidence before escrow settlement.',
+        title: 'Commercial Procurement Agreement (Live Monad Testnet)',
+        description: 'Live onchain transaction initialized on Monad Testnet (Chain ID: 10143)',
         id: txId!,
         sourceLabel: (txId === HISTORICAL_LIVE_TESTNET_TX_ID
           ? ('LIVE MONAD TESTNET RECORD' as const)
@@ -409,7 +409,7 @@ export function TransactionRoom({
               termsSummaryHash: rec.termsSummaryHash,
               evidenceRoot: rec.evidenceRoot,
               issuedAt: rec.issuedAt,
-              accountabilityProperty: 'Non-transferable accountability record (Monad Metropolis Testnet)',
+              accountabilityProperty: 'Non-transferable accountability record (Monad Testnet)',
               onchainTxHash: prev.receipt?.onchainTxHash || lastTxHash || undefined,
             } : prev.receipt,
           };
@@ -466,8 +466,8 @@ export function TransactionRoom({
           verifier: INDEPENDENT_VERIFIER_ADDRESS,
           amountMon: '0.001',
           deadlineDays: 14,
-          termsTitle: 'Commercial Procurement Agreement (Live Monad Metropolis Testnet)',
-          termsDescription: 'Live onchain transaction initialized on Monad Metropolis Testnet (Chain ID: 10143)',
+          termsTitle: 'Commercial Procurement Agreement (Live Monad Testnet)',
+          termsDescription: 'Live onchain transaction initialized on Monad Testnet (Chain ID: 10143)',
           termsHash: txId === FRESH_LIVE_TESTNET_TX_ID ? FRESH_LIVE_TESTNET_TERMS_HASH : '0xebb931936199ae988129d1eed8501a6ad3311035f0d72dd0e52e0c92454a125f',
           state: TransactionState.PROPOSED,
           verificationOutcome: VerificationOutcome.NONE,
@@ -649,8 +649,8 @@ export function TransactionRoom({
       verifier: req?.verifierAddress || INDEPENDENT_VERIFIER_ADDRESS,
       amountMon: req?.escrowAmountMon || '0.001',
       deadlineDays: req?.deadlineDays || 14,
-      termsTitle: req?.title || 'Commercial Procurement Agreement (Live Monad Metropolis Testnet)',
-      termsDescription: req?.deliverable || 'Live onchain transaction on Monad Metropolis Testnet',
+      termsTitle: req?.title || 'Commercial Procurement Agreement (Live Monad Testnet)',
+      termsDescription: req?.deliverable || 'Live onchain transaction on Monad Testnet',
       termsHash:
         freshTxId === FRESH_LIVE_TESTNET_TX_ID
           ? FRESH_LIVE_TESTNET_TERMS_HASH
@@ -961,7 +961,7 @@ export function TransactionRoom({
           termsSummaryHash: prev.termsHash,
           evidenceRoot: prev.evidenceList[0]?.contentHash || '0x0',
           issuedAt: new Date().toISOString(),
-          accountabilityProperty: 'Non-transferable accountability record (Monad Metropolis Testnet)',
+          accountabilityProperty: 'Non-transferable accountability record (Monad Testnet)',
           onchainTxHash: hash,
         },
       }));
@@ -1230,7 +1230,7 @@ export function TransactionRoom({
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="font-bold text-white uppercase text-[11px] tracking-wide">
-              Monad Metropolis Testnet Integration Gateway (Chain ID: 10143)
+              Monad Testnet Integration Gateway (Chain ID: 10143)
             </span>
           </div>
           <div className="flex items-center gap-2 text-[10px]">
@@ -1411,7 +1411,7 @@ export function TransactionRoom({
                 <span className="text-[10px] px-1.5 py-0.2 rounded bg-gray-800 text-gray-400 font-mono">STEP B ONCHAIN</span>
               </div>
               <div className="text-[11px] text-gray-500 mt-0.5 font-sans">
-                Deploy fresh 0.001 MON escrow on Monad Metropolis Testnet with connected wallet.
+                Deploy fresh 0.001 MON escrow on Monad Testnet with connected wallet.
               </div>
             </div>
           </Link>
@@ -1604,7 +1604,7 @@ export function TransactionRoom({
               <div className="mb-4 p-3 bg-emerald-950/70 border border-emerald-500/70 rounded-xl text-xs font-mono text-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <span className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Transaction confirmed on Monad Metropolis Testnet!</span>
+                  <span>Transaction confirmed on Monad Testnet!</span>
                 </span>
                 <a
                   href={`https://testnet.monadvision.com/tx/${lastTxHash}`}
@@ -1645,7 +1645,7 @@ export function TransactionRoom({
                 </div>
 
                 <p className="text-xs text-gray-300 font-sans leading-relaxed">
-                  This transaction (<code className="text-purple-300">0x2b57...afcc4</code>) represents the canonical Stage 4 contested freight adjudication executed on Monad Metropolis Testnet. The deliverable was audited as <strong className="text-amber-300">INCONCLUSIVE</strong> (85 intact, 15 damaged in transit), locked in escrow, and resolved via a 3-Judge Human Quorum (1500 bps median consensus).
+                  This transaction (<code className="text-purple-300">0x2b57...afcc4</code>) represents the canonical Stage 4 contested freight adjudication executed on Monad Testnet. The deliverable was audited as <strong className="text-amber-300">INCONCLUSIVE</strong> (85 intact, 15 damaged in transit), locked in escrow, and resolved via a 3-Judge Human Quorum (1500 bps median consensus).
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-[11px]">
@@ -2551,7 +2551,7 @@ export function TransactionRoom({
                   </div>
                 </div>
 
-                {/* 10-Step Live Onchain Lifecycle Trace (Monad Metropolis Testnet) */}
+                {/* 10-Step Live Onchain Lifecycle Trace (Monad Testnet) */}
                 <div className="p-4 bg-gray-950/80 rounded border border-purple-800/40 font-mono text-xs space-y-2.5">
                   <div className="flex items-center justify-between border-b border-gray-800 pb-2">
                     <span className="text-purple-300 font-bold uppercase text-[11px] flex items-center gap-1.5">

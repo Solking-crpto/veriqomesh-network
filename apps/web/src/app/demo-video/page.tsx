@@ -21,7 +21,7 @@ export default function DemoVideoPage() {
             Product Walkthrough &amp; Submission Video
           </h1>
           <p className="text-xs sm:text-sm text-text-secondary mt-1">
-            Complete end-to-end commercial workflow demonstration on Monad Metropolis Testnet (Chain ID 10143).
+            Complete end-to-end commercial workflow demonstration on Monad Testnet (Chain ID 10143).
           </p>
         </div>
 

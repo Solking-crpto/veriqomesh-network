@@ -18,11 +18,11 @@ export const HISTORICAL_RUN1_LIVE_TX_HASH = '0xe87b628e60038c1e190652d619220b854
 export const HISTORICAL_LIVE_TESTNET_TX_ID = HISTORICAL_RUN1_LIVE_TX_ID;
 export const HISTORICAL_LIVE_TESTNET_TX_HASH = HISTORICAL_RUN1_LIVE_TX_HASH;
 
-// Historical Parked Monad Metropolis Testnet Transaction (Unrecoverable Verifier: 0x16D7...4EA)
+// Historical Parked Monad Testnet Transaction (Unrecoverable Verifier: 0x16D7...4EA)
 export const HISTORICAL_PARKED_TESTNET_TX_ID = '0xbbd0176291d62b32c3e096d0314c0fab6bcfa9131c1b26a825b3ce994e645f5e';
 export const HISTORICAL_PARKED_TESTNET_TX_HASH = '0xe15f3dcfd500afe658b1703e36bb4d3de58305343f25997b4b59694d3366b39c';
 
-// Fresh Live Monad Metropolis Testnet Transaction (Approved Operator Verifier: 0xb064...2c48)
+// Fresh Live Monad Testnet Transaction (Approved Operator Verifier: 0xb064...2c48)
 export const APPROVED_OPERATOR_VERIFIER_TX_ID = '0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1';
 export const APPROVED_OPERATOR_VERIFIER_TX_HASH = '0xeddd26b03699fa0dd8aabd5a8ff260abca029ece60c13dae916fe4060f33e2cd';
 export const FRESH_LIVE_TESTNET_TX_ID = APPROVED_OPERATOR_VERIFIER_TX_ID;

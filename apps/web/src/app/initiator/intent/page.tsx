@@ -241,7 +241,7 @@ export default function CreateIntentPage() {
         return;
       }
       if (!wallet.isMonadTestnet) {
-        setBroadcastError('Please switch your wallet network to Monad Metropolis Testnet (Chain ID 10143).');
+        setBroadcastError('Please switch your wallet network to Monad Testnet (Chain ID 10143).');
         return;
       }
       if (!initiatorCompatibility.isCompatible) {
@@ -453,7 +453,7 @@ export default function CreateIntentPage() {
               </h3>
               <p className="text-xs sm:text-sm text-text-secondary">
                 {createdTxId && broadcastTxHash
-                  ? `Onchain transaction confirmed on Monad Metropolis Testnet (Chain ID 10143) with escrow commitment of ${escrowAmount} MON.`
+                  ? `Onchain transaction confirmed on Monad Testnet (Chain ID 10143) with escrow commitment of ${escrowAmount} MON.`
                   : 'Proposal persisted to database. Share the invitation code with your counterparty to proceed.'}
               </p>
             </div>
@@ -738,7 +738,7 @@ export default function CreateIntentPage() {
                 rows={3}
                 value={additionalConditions}
                 onChange={(e) => setAdditionalConditions(e.target.value)}
-                placeholder="e.g. Any damage over 5% requires immediate 3-judge mediation on Monad Metropolis..."
+                placeholder="e.g. Any damage over 5% requires immediate 3-judge mediation on Monad Testnet..."
               />
             </Card>
 

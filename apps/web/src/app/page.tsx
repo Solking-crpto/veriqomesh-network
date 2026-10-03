@@ -24,7 +24,7 @@ import { StatusChip } from '../components/ui/StatusChip';
 
 export default function LandingPage() {
   const router = useRouter();
-  const { switchRole } = useDemoNetwork();
+  const { switchRole, wallet } = useDemoNetwork();
 
   const handleEnterInitiator = () => {
     switchRole('INITIATOR');
@@ -152,7 +152,11 @@ export default function LandingPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Badge variant="accent">BUYER WORKSPACE</Badge>
-                <span className="text-[11px] text-text-tertiary font-mono">0xa4bC...C50F</span>
+                <span className="text-[11px] text-text-tertiary font-mono">
+                  {wallet.isConnected && wallet.address
+                    ? `${wallet.address.slice(0, 6)}...${wallet.address.slice(-4)}`
+                    : 'Wallet not connected'}
+                </span>
               </div>
               <h3 className="text-base sm:text-lg font-bold text-text-primary">
                 Procure &amp; Fund Escrow
@@ -176,7 +180,11 @@ export default function LandingPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Badge variant="default">SELLER WORKSPACE</Badge>
-                <span className="text-[11px] text-text-tertiary font-mono">0x0e73...6Ee8</span>
+                <span className="text-[11px] text-text-tertiary font-mono">
+                  {wallet.isConnected && wallet.address
+                    ? `${wallet.address.slice(0, 6)}...${wallet.address.slice(-4)}`
+                    : 'Wallet not connected'}
+                </span>
               </div>
               <h3 className="text-base sm:text-lg font-bold text-text-primary">
                 Review &amp; Deliver Work
@@ -202,7 +210,7 @@ export default function LandingPage() {
                 Verified Testnet Benchmarks
               </h2>
               <p className="text-xs sm:text-sm text-text-secondary">
-                Immutable production executions recorded on Monad Metropolis Testnet and indexed by Envio.
+                Immutable testnet executions recorded on Monad Testnet and indexed by Envio.
               </p>
             </div>
             <Link href="/transactions?tab=demo" className="shrink-0">
@@ -210,6 +218,17 @@ export default function LandingPage() {
                 Inspect Benchmark Directory
               </Button>
             </Link>
+          </div>
+
+          {/* Team benchmark notice banner */}
+          <div className="rounded-lg border border-border/80 bg-surface-elevated/70 p-3.5 sm:p-4 text-xs text-text-secondary flex items-start gap-3">
+            <Shield className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <span className="font-semibold text-text-primary block">Team Testnet Benchmark Notice</span>
+              <p>
+                These are testnet transactions executed by the VeriqoMesh team to demonstrate Flow A and Flow B. They are not your transactions.
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -225,7 +244,11 @@ export default function LandingPage() {
               <p className="text-xs text-text-secondary leading-relaxed">
                 Commercial solar panel supply. Seller anchored serial numbers and waybill; designated verifier attested PASS; escrow contract automatically released full payout.
               </p>
-              <div className="pt-1 flex items-center justify-between text-xs">
+              <div className="text-[11px] text-text-tertiary flex items-center gap-2">
+                <span className="px-1.5 py-0.5 rounded bg-surface border border-border text-[10px] font-medium text-text-tertiary uppercase">Team demo wallet</span>
+                <span className="font-mono truncate">Buyer 0xa4bC...C50F · Seller 0x0e73...6Ee8</span>
+              </div>
+              <div className="pt-1 flex items-center justify-between text-xs border-t border-border/50">
                 <span className="font-mono text-text-secondary">0.001 MON</span>
                 <a
                   href="https://testnet.monadvision.com/tx/0x691f7a80d65fe1deece2f45e8b6600ee4b2b0ffc14f3fe733d995566e2d83b52"
@@ -251,7 +274,11 @@ export default function LandingPage() {
               <p className="text-xs text-text-secondary leading-relaxed">
                 Inconclusive depot inspection triggered human adjudication fallback. Three independent accredited judges cast cryptographic ballots; atomic median consensus enforced settlement.
               </p>
-              <div className="pt-1 flex items-center justify-between text-xs">
+              <div className="text-[11px] text-text-tertiary flex items-center gap-2">
+                <span className="px-1.5 py-0.5 rounded bg-surface border border-border text-[10px] font-medium text-text-tertiary uppercase">Team demo wallet</span>
+                <span className="font-mono truncate">Buyer 0xa4bC...C50F · Seller 0x0e73...6Ee8</span>
+              </div>
+              <div className="pt-1 flex items-center justify-between text-xs border-t border-border/50">
                 <span className="font-mono text-text-secondary">0.001 MON</span>
                 <a
                   href="https://testnet.monadvision.com/tx/0x91ff62584f4386250ccb09f28808453bb373273d9fa5f56cf04378c2a78084ba"
@@ -275,7 +302,7 @@ export default function LandingPage() {
             Architecture Modules
           </h2>
           <p className="text-xs sm:text-sm text-text-secondary">
-            Core components of the VeriqoMesh trust layer running on Monad Metropolis Testnet.
+            Core components of the VeriqoMesh trust layer running on Monad Testnet.
           </p>
         </div>
 

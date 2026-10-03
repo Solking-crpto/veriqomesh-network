@@ -168,7 +168,7 @@ export default function ReceiveInvitationPage({
 
     setIsAccepting(true);
     try {
-      // 1. Broadcast agreeTransaction to Monad Metropolis Testnet
+      // 1. Broadcast agreeTransaction to Monad Testnet
       const txHash = await client.agreeTransaction(invitation.transactionId);
       setAcceptPendingHash(txHash);
 
@@ -518,7 +518,7 @@ export default function ReceiveInvitationPage({
                   <span className="text-gray-500">Pending Onchain Broadcast</span>
                 )}
               </div>
-              <div className="text-[10px] text-gray-400">Monad Metropolis Testnet</div>
+              <div className="text-[10px] text-gray-400">Monad Testnet</div>
             </div>
           </div>
         </div>
@@ -742,7 +742,7 @@ export default function ReceiveInvitationPage({
               ) : !wallet.isMonadTestnet ? (
                 <div className="p-4 rounded-xl bg-red-950/40 border border-red-600/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
                   <div className="text-red-200">
-                    Your wallet is connected to Chain ID {wallet.chainId || 'unknown'}. Please switch to Monad Metropolis Testnet (10143).
+                    Your wallet is connected to Chain ID {wallet.chainId || 'unknown'}. Please switch to Monad Testnet (10143).
                   </div>
                   <button
                     onClick={() => wallet.switchNetwork()}
@@ -843,7 +843,7 @@ export default function ReceiveInvitationPage({
 
                   {acceptTxHash && (
                     <div className="p-3 rounded-lg bg-emerald-950/60 border border-emerald-500/60 text-xs font-mono text-emerald-200 flex items-center justify-between">
-                      <span>✓ Agreement ratified on Monad Metropolis Testnet!</span>
+                      <span>✓ Agreement ratified on Monad Testnet!</span>
                       <a
                         href={`https://testnet.monadvision.com/tx/${acceptTxHash}`}
                         target="_blank"

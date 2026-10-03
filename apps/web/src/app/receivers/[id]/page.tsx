@@ -37,14 +37,14 @@ export default function ReceiverDetailPage() {
                   RECEIVER FULFILLMENT NODE
                 </span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
-                  Monad Metropolis Testnet
+                  Monad Testnet
                 </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white break-all">
                 {id}
               </h1>
               <div className="text-xs font-mono text-gray-400 mt-1">
-                Designated counterparty fulfillment profile on Monad Metropolis (Chain ID: 10143)
+                Designated counterparty fulfillment profile on Monad Testnet (Chain ID: 10143)
               </div>
             </div>
 

@@ -160,7 +160,7 @@ export function useMonadWallet(): MonadWalletState {
           await adapter.switchToMonad();
           setChainId(MONAD_CHAIN_ID);
         } catch {
-          setError('Connected, but wrong network. Please switch to Monad Metropolis Testnet (10143).');
+          setError('Connected, but wrong network. Please switch to Monad Testnet (10143).');
         }
       }
 
