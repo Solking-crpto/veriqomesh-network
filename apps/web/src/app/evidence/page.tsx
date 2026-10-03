@@ -79,7 +79,7 @@ export default function EvidenceExplorerPage() {
         <EmptyState
           icon={<FileCheck2 className="w-6 h-6 text-accent" />}
           title="No Live Evidence Records Anchored Yet"
-          description="Evidence records (carrier Bills of Lading, depot inspection photos, and serial manifests) are created when counterparties anchor deliverables for active escrow transactions on Monad."
+          description="Evidence records (deliverable documentation, inspection reports, and cryptographic manifests) are created when counterparties anchor deliverables for active escrow transactions on Monad."
           action={
             <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
               <Link href="/initiator/intent">
@@ -196,7 +196,7 @@ export default function EvidenceExplorerPage() {
           <span className="text-[11px] font-semibold text-text-tertiary uppercase">Cryptographic Hashes</span>
           <div className="text-sm font-bold text-text-primary">Deliverable Digests</div>
           <p className="text-xs text-text-secondary leading-relaxed">
-            Cryptographic digests reference deliverable commitments immutable across carrier and depot handoffs.
+            Cryptographic digests reference deliverable commitments recorded immutably onchain.
           </p>
         </Card>
 
@@ -212,7 +212,7 @@ export default function EvidenceExplorerPage() {
           <span className="text-[11px] font-semibold text-text-tertiary uppercase">Verifier Dispatch</span>
           <div className="text-sm font-bold text-status-success">PASS / INCONCLUSIVE</div>
           <p className="text-xs text-text-secondary leading-relaxed">
-            Independent auditor nodes issue signed verdicts that directly unlock settlement or human mediation.
+            Designated verifiers issue onchain verdicts that directly unlock settlement or dispute escalation.
           </p>
         </Card>
       </div>

@@ -113,7 +113,7 @@ export default function LandingPage() {
                   <span className="text-text-primary font-medium">Verifiers verify</span>
                 </div>
                 <p className="text-[11px] sm:text-xs text-text-secondary leading-relaxed">
-                  Independent auditors attest bills of lading, serials, and inspection proofs.
+                  Designated verifiers inspect deliverables and submit onchain attestation outcomes.
                 </p>
               </div>
 
@@ -123,7 +123,7 @@ export default function LandingPage() {
                   <span className="text-text-primary font-medium">Blockchain enforces</span>
                 </div>
                 <p className="text-[11px] sm:text-xs text-text-secondary leading-relaxed">
-                  Monad smart contracts hold deposits and execute settlement or 3-judge mediation.
+                  Monad smart contracts hold escrow deposits and execute settlement or dispute resolution.
                 </p>
               </div>
             </div>
@@ -242,7 +242,7 @@ export default function LandingPage() {
                 Solar Procurement (Verified Delivery)
               </h3>
               <p className="text-xs text-text-secondary leading-relaxed">
-                Commercial solar panel supply. Seller anchored serial numbers and waybill; designated verifier attested PASS; escrow contract automatically released full payout.
+                Deliverable evidence anchored onchain; designated verifier attested VALID (Outcome 1 / PASS); escrow contract released full payout to seller.
               </p>
               <div className="text-[11px] text-text-tertiary flex items-center gap-2">
                 <span className="px-1.5 py-0.5 rounded bg-surface border border-border text-[10px] font-medium text-text-tertiary uppercase">Team demo wallet</span>
@@ -265,18 +265,18 @@ export default function LandingPage() {
             {/* Flow B Card */}
             <Card padding="md" className="space-y-3">
               <div className="flex items-center justify-between">
-                <StatusChip status="warning" label="Flow B: 3-Judge Median Dispute" />
+                <StatusChip status="warning" label="Flow B: Dispute Resolution (15% Refund)" />
                 <span className="font-mono text-xs text-text-tertiary">Receipt #2</span>
               </div>
               <h3 className="text-sm sm:text-base font-bold text-text-primary">
                 Solar PV Modules (Disputed Delivery)
               </h3>
               <p className="text-xs text-text-secondary leading-relaxed">
-                Inconclusive depot inspection triggered human adjudication fallback. Three independent accredited judges cast cryptographic ballots; atomic median consensus enforced settlement.
+                Verifier submitted INCONCLUSIVE (Outcome 3) outcome. Dispute escalated onchain and resolved with 1,500 bps (15%) buyer refund and 85% seller payout.
               </p>
               <div className="text-[11px] text-text-tertiary flex items-center gap-2">
                 <span className="px-1.5 py-0.5 rounded bg-surface border border-border text-[10px] font-medium text-text-tertiary uppercase">Team demo wallet</span>
-                <span className="font-mono truncate">Buyer 0xa4bC...C50F · Seller 0x0e73...6Ee8</span>
+                <span className="font-mono truncate">Buyer 0x2871...58A0 · Seller 0x6f30...c873</span>
               </div>
               <div className="pt-1 flex items-center justify-between text-xs border-t border-border/50">
                 <span className="font-mono text-text-secondary">0.001 MON</span>
@@ -338,7 +338,7 @@ export default function LandingPage() {
                 <span className="font-bold text-text-primary text-sm">Counterparty Directory</span>
               </div>
               <p className="text-xs text-text-secondary leading-relaxed">
-                Find accredited fulfillment suppliers, verifier nodes, and human adjudication judges.
+                Find counterparties, verifiers, and settlement resolvers.
               </p>
             </Card>
           </Link>

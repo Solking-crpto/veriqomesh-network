@@ -18,7 +18,7 @@ export const HISTORICAL_RUN1_LIVE_TX_HASH = '0xe87b628e60038c1e190652d619220b854
 export const HISTORICAL_LIVE_TESTNET_TX_ID = HISTORICAL_RUN1_LIVE_TX_ID;
 export const HISTORICAL_LIVE_TESTNET_TX_HASH = HISTORICAL_RUN1_LIVE_TX_HASH;
 
-// Historical Parked Monad Testnet Transaction (Unrecoverable Verifier: 0x16D7...4EA)
+// Historical Parked Monad Testnet Transaction (Unrecoverable Verifier: 0x16D7...F4EA)
 export const HISTORICAL_PARKED_TESTNET_TX_ID = '0xbbd0176291d62b32c3e096d0314c0fab6bcfa9131c1b26a825b3ce994e645f5e';
 export const HISTORICAL_PARKED_TESTNET_TX_HASH = '0xe15f3dcfd500afe658b1703e36bb4d3de58305343f25997b4b59694d3366b39c';
 

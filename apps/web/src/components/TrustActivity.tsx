@@ -206,7 +206,7 @@ export default function TrustActivity() {
   const isEnvioConfigured = Boolean(envioGraphqlUrl);
 
   const [sessionEvents, setSessionEvents] = useState<ProvenanceEvent[]>([]);
-  const [dataSource, setDataSource] = useState<'envio' | 'rpc_fallback'>('envio');
+  const [dataSource, setDataSource] = useState<'connecting' | 'envio' | 'rpc_fallback'>('connecting');
   const [envioIndexedBlock, setEnvioIndexedBlock] = useState<number | null>(null);
 
   const fetchEnvioEvents = useCallback(async () => {
@@ -215,6 +215,8 @@ export default function TrustActivity() {
       setDataSource('rpc_fallback');
       return;
     }
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     try {
       const res = await fetch(envioGraphqlUrl, {
         method: 'POST',
@@ -237,7 +239,9 @@ export default function TrustActivity() {
             }
           }`,
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
       if (!res.ok) {
         throw new Error(`Envio HTTP ${res.status}`);
       }
@@ -284,6 +288,7 @@ export default function TrustActivity() {
         setDataSource('rpc_fallback');
       }
     } catch {
+      clearTimeout(timeoutId);
       // Graceful fallback to RPC state
       setSessionEvents([]);
       setDataSource('rpc_fallback');
@@ -388,10 +393,15 @@ export default function TrustActivity() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Powered by Envio HyperIndex
               </span>
-            ) : (
+            ) : dataSource === 'rpc_fallback' ? (
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-gray-900 text-gray-400 border border-gray-700">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                 Monad RPC fallback
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-gray-900 text-gray-400 border border-gray-700">
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                Connecting to indexer…
               </span>
             )}
           </div>
@@ -424,12 +434,34 @@ export default function TrustActivity() {
             className={`px-3 py-1.5 rounded-xl font-mono text-xs flex items-center gap-2 border ${
               dataSource === 'envio'
                 ? 'bg-emerald-950/60 border-emerald-700 text-emerald-300'
-                : 'bg-purple-950/60 border-purple-700 text-purple-300'
+                : dataSource === 'rpc_fallback'
+                ? 'bg-purple-950/60 border-purple-700 text-purple-300'
+                : 'bg-gray-950/60 border-gray-700 text-gray-400'
             }`}
-            title={dataSource === 'envio' ? 'Envio HyperIndex (GraphQL Primary)' : 'Monad RPC (Live Trace Fallback)'}
+            title={
+              dataSource === 'envio'
+                ? 'Envio HyperIndex (GraphQL Primary)'
+                : dataSource === 'rpc_fallback'
+                ? 'Monad RPC (Live Trace Fallback)'
+                : 'Connecting to indexer…'
+            }
           >
-            <span className={`w-2 h-2 rounded-full ${dataSource === 'envio' ? 'bg-emerald-400' : 'bg-purple-400'} animate-ping`} />
-            <span>{dataSource === 'envio' ? 'Source: Envio HyperIndex' : 'Source: Monad RPC fallback'}</span>
+            <span
+              className={`w-2 h-2 rounded-full ${
+                dataSource === 'envio'
+                  ? 'bg-emerald-400 animate-ping'
+                  : dataSource === 'rpc_fallback'
+                  ? 'bg-purple-400'
+                  : 'bg-gray-400'
+              }`}
+            />
+            <span>
+              {dataSource === 'envio'
+                ? 'Source: Envio HyperIndex'
+                : dataSource === 'rpc_fallback'
+                ? 'Source: Monad RPC fallback'
+                : 'Connecting to indexer…'}
+            </span>
           </div>
 
           <button
@@ -576,18 +608,24 @@ export default function TrustActivity() {
       {activeTab === 'events' && (
         <div className="space-y-4">
           {/* Benchmark Team Disclosure Banner */}
-          <div className="p-3.5 rounded-xl bg-purple-950/30 border border-purple-800/60 font-mono text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-900/60 text-purple-300 border border-purple-700">
-                Public Benchmark Event
-              </span>
-              <span className="text-purple-300/80 text-[11px] font-sans">
-                Public Demo / Architectural Benchmark
-              </span>
+          <div className="p-3.5 rounded-xl bg-purple-950/30 border border-purple-800/60 font-mono text-xs space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-900/60 text-purple-300 border border-purple-700">
+                  Public Benchmark Event
+                </span>
+                <span className="text-purple-300/80 text-[11px] font-sans">
+                  Public Demo / Architectural Benchmark
+                </span>
+              </div>
+              <p className="text-gray-300 text-xs font-sans">
+                These are testnet transactions executed by the VeriqoMesh team to demonstrate Flow A and Flow B. They are not your transactions.
+              </p>
             </div>
-            <p className="text-gray-300 text-xs font-sans">
-              These are testnet transactions executed by the VeriqoMesh team to demonstrate Flow A and Flow B. They are not your transactions.
-            </p>
+            <div className="text-[11px] text-gray-400 font-sans border-t border-purple-900/40 pt-2 space-y-0.5">
+              <div>All wallets shown are team-controlled testnet wallets.</div>
+              <div>Scenario (solar PV delivery) is illustrative; onchain data is limited to state transitions, hashes and amounts.</div>
+            </div>
           </div>
 
           {displayedEvents.length === 0 ? (
@@ -932,9 +970,9 @@ export default function TrustActivity() {
             </div>
 
             <div>
-              <h4 className="text-base font-bold text-white">Contested Outcome &amp; 3-Judge Quorum Consensus</h4>
+              <h4 className="text-base font-bold text-white">Contested Outcome &amp; Dispute Resolution</h4>
               <p className="text-xs text-gray-400 font-mono mt-0.5">
-                Verifier flagged inconclusive deliverable; 3 human judges submitted signed ballots; median consensus executed atomic split.
+                Verifier flagged inconclusive deliverable; dispute escalated onchain and resolved by authorized resolver.
               </p>
             </div>
 
@@ -1005,7 +1043,7 @@ export default function TrustActivity() {
                 </div>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">3 Judges Median:</span>
+                <span className="text-gray-500">Dispute Allocation:</span>
                 <span className="text-white font-bold">1,500 bps (15% Buyer Refund)</span>
               </div>
               <div className="flex justify-between">
