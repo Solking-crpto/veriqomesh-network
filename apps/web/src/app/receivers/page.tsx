@@ -46,11 +46,6 @@ export default function ReceiversDirectoryPage() {
         </p>
       </div>
 
-      {/* Benchmark Banner */}
-      <div className="p-3.5 rounded-control bg-surface border border-border text-xs text-text-secondary">
-        Team-controlled testnet wallets used in the benchmark flows.
-      </div>
-
       {/* Direct Engagement Input */}
       <Card className="p-4 sm:p-5 space-y-3">
         <div className="space-y-1">
@@ -87,6 +82,10 @@ export default function ReceiversDirectoryPage() {
           Team-controlled testnet wallets used in the benchmark flows.
         </h2>
 
+        <div className="p-3.5 rounded-control bg-surface border border-border text-xs text-text-secondary">
+          These team wallets do not respond to new agreements. To test, enter your own second wallet address in the field above.
+        </div>
+
         <div className="space-y-2">
           {BENCHMARK_PARTICIPANTS.map((participant, idx) => (
             <Card
@@ -95,14 +94,9 @@ export default function ReceiversDirectoryPage() {
               className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5"
             >
               <div className="space-y-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-semibold text-text-primary">
-                    {participant.role}
-                  </span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-elevated border border-border text-text-tertiary">
-                    {participant.flow}
-                  </span>
-                </div>
+                <span className="text-xs font-semibold text-text-primary block">
+                  {participant.role}
+                </span>
                 <div className="flex items-center gap-2">
                   <a
                     href={getExplorerAddressUrl(participant.address)}
@@ -127,21 +121,6 @@ export default function ReceiversDirectoryPage() {
                     )}
                   </button>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setCustomAddress(participant.address);
-                    switchRole('INITIATOR');
-                    router.push(`/initiator/intent?receiver=${participant.address}`);
-                  }}
-                  className="text-xs"
-                >
-                  Select as receiver
-                </Button>
               </div>
             </Card>
           ))}

@@ -433,32 +433,32 @@ export interface BenchmarkParticipant {
 
 export const BENCHMARK_PARTICIPANTS: BenchmarkParticipant[] = [
   {
-    role: 'Flow A Buyer',
+    role: 'Buyer · Flow A',
     flow: 'Flow A',
     address: '0xa4bCC57d40311D715ECe34940191820d4a81C50F',
   },
   {
-    role: 'Flow A Seller',
+    role: 'Seller · Flow A',
     flow: 'Flow A',
     address: '0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8',
   },
   {
-    role: 'Flow A Designated Verifier',
+    role: 'Designated Verifier · Flow A',
     flow: 'Flow A',
     address: '0xb064d69428B9838C2a3e408cF995ea8eb5182c48',
   },
   {
-    role: 'Flow B Buyer',
+    role: 'Buyer · Flow B',
     flow: 'Flow B',
     address: '0x287196Cdbf41da13Cb7083392e47eaAf105b58A0',
   },
   {
-    role: 'Flow B Seller',
+    role: 'Seller · Flow B',
     flow: 'Flow B',
     address: '0x6f30D20b8c5bE781bADD86341415b556fB13c873',
   },
   {
-    role: 'Flow B Designated Verifier',
+    role: 'Designated Verifier · Flow B',
     flow: 'Flow B',
     address: '0x16D7bD08Ad79bBCdBa116A652f68589FE5d6F4EA',
   },
