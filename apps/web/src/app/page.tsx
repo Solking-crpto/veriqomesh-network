@@ -338,7 +338,7 @@ export default function LandingPage() {
                 <span className="font-bold text-text-primary text-sm">Counterparty Directory</span>
               </div>
               <p className="text-xs text-text-secondary leading-relaxed">
-                Find counterparties, verifiers, and settlement resolvers.
+                Participants and roles used in the benchmark flows.
               </p>
             </Card>
           </Link>

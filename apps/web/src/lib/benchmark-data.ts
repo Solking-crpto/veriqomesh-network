@@ -421,3 +421,51 @@ export const VERIFIED_BENCHMARK_EVIDENCE: EvidenceRecord[] = [
     txHash: '0x698ef9bed9a8007db66a6047187783dd97d026055b0f2e30cfe75826ad7b923e',
   },
 ];
+
+/**
+ * Real participant wallets used in Flow A and Flow B benchmarks.
+ */
+export interface BenchmarkParticipant {
+  role: string;
+  flow: 'Flow A' | 'Flow B' | 'Protocol Resolver';
+  address: string;
+}
+
+export const BENCHMARK_PARTICIPANTS: BenchmarkParticipant[] = [
+  {
+    role: 'Flow A Buyer',
+    flow: 'Flow A',
+    address: '0xa4bCC57d40311D715ECe34940191820d4a81C50F',
+  },
+  {
+    role: 'Flow A Seller',
+    flow: 'Flow A',
+    address: '0x0e73dBFf9047423b520FA9fc23a95645fC986Ee8',
+  },
+  {
+    role: 'Flow A Designated Verifier',
+    flow: 'Flow A',
+    address: '0xb064d69428B9838C2a3e408cF995ea8eb5182c48',
+  },
+  {
+    role: 'Flow B Buyer',
+    flow: 'Flow B',
+    address: '0x287196Cdbf41da13Cb7083392e47eaAf105b58A0',
+  },
+  {
+    role: 'Flow B Seller',
+    flow: 'Flow B',
+    address: '0x6f30D20b8c5bE781bADD86341415b556fB13c873',
+  },
+  {
+    role: 'Flow B Designated Verifier',
+    flow: 'Flow B',
+    address: '0x16D7bD08Ad79bBCdBa116A652f68589FE5d6F4EA',
+  },
+  {
+    role: 'Dispute Resolver',
+    flow: 'Protocol Resolver',
+    address: CANONICAL_RESOLVER_ADDRESS,
+  },
+];
+

@@ -1,13 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Users, Shield } from 'lucide-react';
+import { ArrowRight, Copy, ExternalLink } from 'lucide-react';
 import {
   useDemoNetwork,
   DEPLOYED_REGISTRY_ADDRESS,
 } from '../../context/DemoNetworkContext';
+import {
+  BENCHMARK_PARTICIPANTS,
+  getExplorerAddressUrl,
+} from '../../lib/benchmark-data';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
@@ -16,6 +19,13 @@ export default function ReceiversDirectoryPage() {
   const router = useRouter();
   const { switchRole } = useDemoNetwork();
   const [customAddress, setCustomAddress] = useState('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const handleStartDealWithAddress = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +46,9 @@ export default function ReceiversDirectoryPage() {
         </p>
       </div>
 
-      {/* Demo Directory Notice */}
+      {/* Benchmark Banner */}
       <div className="p-3.5 rounded-control bg-surface border border-border text-xs text-text-secondary">
-        Demo directory: sample counterparties for the testnet benchmark.
+        Team-controlled testnet wallets used in the benchmark flows.
       </div>
 
       {/* Direct Engagement Input */}
@@ -74,21 +84,67 @@ export default function ReceiversDirectoryPage() {
       {/* Directory Section */}
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
-          Public counterparty directory
+          Team-controlled testnet wallets used in the benchmark flows.
         </h2>
 
-        <div className="p-6 rounded-control border border-dashed border-border bg-surface text-center space-y-3">
-          <div className="w-10 h-10 mx-auto rounded-full bg-surface-elevated border border-border flex items-center justify-center text-text-tertiary">
-            <Users className="w-5 h-5" />
-          </div>
-          <div className="space-y-1 max-w-md mx-auto">
-            <p className="text-sm font-semibold text-text-primary">
-              No registered public counterparties
-            </p>
-            <p className="text-xs text-text-secondary">
-              Enter any valid Monad address in the direct field above to initiate an agreement, escrow deposit, and settlement.
-            </p>
-          </div>
+        <div className="space-y-2">
+          {BENCHMARK_PARTICIPANTS.map((participant, idx) => (
+            <Card
+              key={`${participant.role}-${participant.address}`}
+              padding="sm"
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5"
+            >
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-semibold text-text-primary">
+                    {participant.role}
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-elevated border border-border text-text-tertiary">
+                    {participant.flow}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={getExplorerAddressUrl(participant.address)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-xs text-accent hover:underline inline-flex items-center gap-1"
+                    title={`View ${participant.address} on MonadVision`}
+                  >
+                    <span>{`${participant.address.slice(0, 6)}...${participant.address.slice(-4)}`}</span>
+                    <ExternalLink className="w-3 h-3 text-text-tertiary" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(participant.address, `part-${idx}`)}
+                    className="p-1 text-text-tertiary hover:text-text-primary rounded transition inline-flex items-center gap-1 text-[11px]"
+                    title="Copy full address"
+                  >
+                    {copiedId === `part-${idx}` ? (
+                      <span className="text-emerald-400 font-mono text-[11px] font-medium">Copied</span>
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setCustomAddress(participant.address);
+                    switchRole('INITIATOR');
+                    router.push(`/initiator/intent?receiver=${participant.address}`);
+                  }}
+                  className="text-xs"
+                >
+                  Select as receiver
+                </Button>
+              </div>
+            </Card>
+          ))}
         </div>
       </section>
 
