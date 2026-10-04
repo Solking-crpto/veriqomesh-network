@@ -28,7 +28,7 @@ Intent → Agreement → Escrow → Execution → Evidence → Verification → 
 
 | Step | Role | What happens |
 |---|---|---|
-| 1 | **AI assists** | Plain-language intent is drafted into structured, canonical terms. The AI has no financial authority and never holds or moves funds. |
+| 1 | **AI-assisted drafting** | Plain-language intent is turned into structured, canonical terms through an AI-provider interface (`services/ai`). This testnet build ships with a mock provider; external model adapters are not yet wired. The AI layer has no financial authority and never holds or moves funds. |
 | 2 | **Humans authorize** | Counterparties ratify the terms with wallet signatures (EIP-191). |
 | 3 | **Verifiers verify** | A designated verifier attests the delivery outcome onchain (PASS, FAIL or INCONCLUSIVE). |
 | 4 | **Blockchain enforces** | The escrow contract holds the deposit and settles. An inconclusive outcome opens a dispute, which is resolved as a split in basis points. |
@@ -59,7 +59,7 @@ Multi-step escrow lifecycles (create, agree, fund, start, anchor, verify, settle
 ## 3. Safety model
 
 ### AI boundary
-- **No financial execution authority.** AI may structure natural-language intent, extract terms, summarize evidence and prepare case summaries. It never releases funds, refunds escrow, alters terms or bypasses verification.
+- **No financial execution authority.** The AI layer (`services/ai`) is limited to structuring natural-language intent, extracting terms, summarizing evidence and preparing case summaries. It never releases funds, refunds escrow, alters terms or bypasses verification.
 - **Wallet gates.** Every onchain state change, deposit and release requires a signature from an authorized wallet.
 - **No embedded keys.** The protocol does not rely on server-side private keys for normal user or verifier roles.
 
@@ -69,7 +69,7 @@ Multi-step escrow lifecycles (create, agree, fund, start, anchor, verify, settle
 
 ### Two resolution paths
 1. **Normal:** funded escrow → evidence anchored → designated verifier attests PASS → authorized release → Trust Receipt.
-2. **Contested:** verification INCONCLUSIVE or disputed → escrow stays protected → dispute resolved by a three-judge process → allocation dispatched onchain → Trust Receipt.
+2. **Contested:** verification INCONCLUSIVE or disputed → escrow stays protected → three-judge median computed offchain by the dispute service → authorized resolver wallet dispatches the resulting split onchain → Trust Receipt.
 
 ### Privacy
 Commercial contracts, invoices and serial numbers stay offchain. Only hashes and commitments touch the public chain. Counterparties can later prove fulfillment by revealing offchain data that matches the onchain commitments.
@@ -83,6 +83,8 @@ Commercial contracts, invoices and serial numbers stay offchain. Only hashes and
 | `TrustMeshEscrow` | [`0x925ea880cA53DE0352b84B24d0C0dee5B258015A`](https://testnet.monadvision.com/address/0x925ea880cA53DE0352b84B24d0C0dee5B258015A) | State-machine escrow with solvency checks |
 | `TrustReceiptRegistry` (ERC-5192) | [`0xE1994e0dF7CD5A836be4b02AE2164A542418B819`](https://testnet.monadvision.com/address/0xE1994e0dF7CD5A836be4b02AE2164A542418B819) | Soulbound, non-transferable receipts |
 | Authorized resolver (a wallet, not a contract) | [`0x12f9e53c31F7629aCAE0BA70588794945EC6c35E`](https://testnet.monadvision.com/address/0x12f9e53c31F7629aCAE0BA70588794945EC6c35E) | Submits dispute resolutions to the escrow |
+
+Naming note: VeriqoMesh is the product name. Contract, package and environment-variable identifiers (`TrustMeshEscrow`, `@trustmesh/web`, `TRUSTMESH_*`) keep the original working name, TrustMesh, because the contracts are already deployed.
 
 `[CONFIRM: source code verified on the explorer for all three? If yes, add "verified" and link. If not, verify them before submitting.]`
 
@@ -109,7 +111,7 @@ Agreement ID `0x961c70865bf6097eb16d1b3a19d90f950b2cdd789eda5554c93baba1de0954e1
 
 ### Flow B: inconclusive verification, dispute resolution (Receipt #2)
 
-Agreement ID `0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4`. Outcome 3 (INCONCLUSIVE) opened a dispute, resolved as 1,500 bps (15%) to the buyer and 8,500 bps (85%) to the seller.
+Agreement ID `0x2b57d6b0ef1ba16a60c4f801d90d27d23e598fd6b1381e0175077201dc6afcc4`. Outcome 3 (INCONCLUSIVE) opened a dispute, resolved as 1,500 bps (15%) to the buyer and 8,500 bps (85%) to the seller. The resolution transaction is sent by the resolver wallet and carries the agreement ID and the ratio (1,500 bps); the three-judge median behind that number is computed offchain and is not recorded onchain.
 
 | Event | Tx hash | Block |
 |---|---|---|
@@ -159,14 +161,14 @@ npm run build
 npm run start -w @trustmesh/web      # then open http://localhost:3000
 ```
 
-`[FILL IN: .env.example variable names (RPC URL, Envio GraphQL URL, contract addresses). Never commit real keys.]`
+Copy `.env.example` to `.env` (or `.env.local`) and fill in your own values. Main variables: `MONAD_RPC_URL`, `MONAD_CHAIN_ID` (10143), `MONAD_EXPLORER_URL`, `TRUSTMESH_ESCROW_CONTRACT_ADDRESS`, `TRUSTMESH_DISPUTE_CONTRACT_ADDRESS`, `TRUSTMESH_RECEIPT_CONTRACT_ADDRESS`, `DATABASE_URL` (PostgreSQL), `AI_PROVIDER` (defaults to `mock`), `STORAGE_PROVIDER`, `EVIDENCE_ENCRYPTION_KEY`, `AUTH_PROVIDER`, service ports, and the `NEXT_PUBLIC_*` frontend settings. Never commit real keys or a real `.env`.
 
 **Tests**
 ```bash
 npm test                 # application, state-machine and invariant suites: 189 tests across 27 suites
 cd contracts && forge test -vv   # contract tests, including fuzz and solvency checks
 ```
-`[CONFIRM: run forge test and put the real passing count here.]`
+Result at the time of writing: 17 contract tests passing, including fuzz tests for dispute-ratio conservation and the solvency invariant.
 
 ---
 
@@ -180,7 +182,7 @@ trustmesh/
 ├── services/
 │   ├── ai/              Advisory AI intent and case-summary generator
 │   ├── api/             Orchestration API
-│   ├── dispute/         Three-judge assignment and median consensus engine
+│   ├── dispute/         Three-judge assignment and median consensus engine (offchain)
 │   └── verification/    Evidence verification attestation service
 ├── packages/            config (addresses, constants), sdk (typed contract methods), types
 ├── tests/               Integration, role-isolation and regression suites
@@ -193,7 +195,7 @@ trustmesh/
 
 Monad Metropolis build window: **September 1 to October 13, 2026.**
 
-**Repository history.** The public repository's first commit is `e0bba32` on 2026-09-29 ("publish VeriqoMesh Network Monad implementation"). `[FILL IN: an honest sentence on when development began and where it lived before that commit, and whether any code predates Sept 1.]` The onchain record is independent of git history: the first Trust Receipt was minted on 2026-09-23 (block 65,092,494) and Flow B ran the same day. `[FILL IN: contract deployment date from the explorer's contract-creation transaction.]`
+**Repository history.** The public repository's first commit is `e0bba32` on 2026-09-29 ("publish VeriqoMesh Network Monad implementation"). All code in this repository was written during the build window; none of it predates September 1, 2026. The repository was first published to GitHub on September 29, 2026, and the `TrustMeshEscrow` contract was deployed to Monad Testnet on September 23, 2026. The onchain record is independent of git history: the first Trust Receipt was minted on 2026-09-23 (block 65,092,494) and Flow B ran the same day. `TrustMeshEscrow` was deployed on 2026-09-23 (creation tx `0xb62da9195864c4da1851ee267161a1a556595288c9e960a94147214aabf2d21e`, deployer `0x19539685BD5ceC58f00B3EfE8b76B2Cc48cb2B70`).
 
 | Date | Work |
 |---|---|
@@ -208,9 +210,9 @@ Monad Metropolis build window: **September 1 to October 13, 2026.**
 ## 10. Known limitations and assumptions
 
 - **Testnet only.** Tokens carry no real value. The contracts are unaudited.
-- **Designated roles.** In the recorded flows the verifier and the resolver are team-controlled wallets assigned by role. There is no open or decentralized verifier or judge network yet.
-- **Dispute resolution is dispatched by a resolver wallet.** The three-judge median is computed by the dispute service, and the authorized resolver wallet (`0x12f9…c35E`) then calls `resolveDispute` on the escrow with the result. Future work: onchain multi-signature or verifiable consensus. `[CONFIRM: whether the three ballots in Flow B came from three distinct wallets, and whether any ballots are recorded onchain, by checking the input data of the DisputeResolved transaction.]`
-- **AI is advisory.** It drafts terms and case summaries. It has no financial authority. `[CONFIRM: whether services/ai calls an external model API, and which one.]`
+- **Designated roles.** In the recorded flows the verifier and the resolver are team-controlled wallets assigned by role. There is no open or decentralized verifier or judge network yet. The docs use "independent verifier" in the contract sense: a verifier address distinct from the buyer and seller, which the escrow enforces (the buyer cannot verify their own transaction). In the recorded flows that address is team-controlled.
+- **Dispute resolution is dispatched by a resolver wallet.** The onchain record of a dispute is a single transaction from the authorized resolver wallet (`0x12f9…c35E`) calling `resolveDispute` with the agreement ID and a ratio in basis points (Flow B: 1,500). The three-judge median is computed offchain by the dispute service; individual ballots are not recorded onchain, so the number of judges cannot be verified from chain data. Future work: onchain multi-signature or verifiable consensus.
+- **AI is a provider interface with a mock adapter.** `services/ai` defines the adapter boundary (Gemini, Claude, GPT or local models are planned); `AI_PROVIDER` defaults to `mock`, and no external model is called in this build. The AI layer has no financial authority.
 - **Evidence is hash-anchored.** Files are not stored or retrieved by this project. Storage URIs are committed as hashes only.
 - **Illustrative scenario.** The solar-procurement narrative is an example; the onchain data is limited to state transitions, hashes and amounts.
 
