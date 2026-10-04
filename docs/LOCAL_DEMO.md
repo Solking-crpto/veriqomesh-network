@@ -190,9 +190,9 @@ cast send $ESCROW_ADDRESS "resolveDispute(bytes32,uint16)" $TX_DISPUTE 6000 \
 
 ---
 
-## 6. Monad Metropolis Testnet Deployment
+## 6. Monad Testnet Deployment
 
-To deploy directly to the live Monad Metropolis Testnet:
+To deploy directly to the live Monad Testnet:
 
 ```bash
 forge create contracts/src/TrustMeshEscrow.sol:TrustMeshEscrow \

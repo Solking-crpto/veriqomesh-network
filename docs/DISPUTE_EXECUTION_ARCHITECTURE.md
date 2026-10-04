@@ -103,7 +103,7 @@ AI models provide indexing and administrative support for human jurors but are c
 
 The dispute resolver address in `TrustMeshEscrow.sol` is part of the financial security perimeter:
 
-1. **Active Configuration**: Configured on Monad Metropolis Testnet to `0x12f9e53c31F7629aCAE0BA70588794945EC6c35E`, labeled:
+1. **Active Configuration**: Configured on Monad Testnet to `0x12f9e53c31F7629aCAE0BA70588794945EC6c35E`, labeled:
    `"Temporary designated testnet dispute resolver"`.
 2. **Historical Initial Configuration**: Deployed originally with `0x90F79bf6EB2c4f870365E785982E1f101E93b906`, subsequently rotated onchain via `setDisputeResolver()` in transaction `0x28df4640e7e77b1599096e540cf04ae25e4e1a5bb57ab00c20f2088564499c70` (block 65116905).
 3. **Authorized Replacement**: Updatable exclusively by contract `owner` via `setDisputeResolver(address newResolver)`.

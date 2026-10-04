@@ -30,7 +30,7 @@ Stage 1: Architectural Foundation (COMPLETED)
 - Implement `TrustMeshEscrow.sol` enforcing deterministic state progression and non-custodial deposits.
 - Implement `TrustReceiptRegistry.sol` issuing soulbound receipt tokens upon settlement.
 - Write Foundry unit tests and invariant fuzz tests verifying conservation of value and non-reentrancy.
-- Deploy to local Anvil devnet and Monad Metropolis testnet.
+- Deploy to local Anvil devnet and Monad Testnet.
 
 ### Stage 3: Offchain Storage & Evidence Anchoring Pipeline
 - Implement `IPFSStorageProvider` and encrypted S3/local storage providers.
@@ -55,7 +55,7 @@ Stage 1: Architectural Foundation (COMPLETED)
 - Build juror portal for case docket review and commit-reveal voting.
 
 ### Stage 7: Hackathon Hardening, Deployment & Submission
-- Deploy verified contracts to Monad Metropolis testnet.
+- Deploy verified contracts to Monad Testnet.
 - Execute end-to-end integration demo: H2H, H2AI, and dispute resolution flows.
 - Record demo video and prepare official Monad Metropolis and Crypto World's Fair submissions.
 

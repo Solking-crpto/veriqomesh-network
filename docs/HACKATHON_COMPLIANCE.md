@@ -10,10 +10,10 @@ This document tracks official requirements, technical criteria, evaluation track
 
 | Requirement / Criterion | Status / Value | Verification Source / Notes |
 | :--- | :--- | :--- |
-| **Target Blockchain** | Monad Metropolis Testnet / Devnet | Official hackathon announcement |
+| **Target Blockchain** | Monad Testnet / Devnet | Official hackathon announcement |
 | **RPC Endpoint URL** | `https://testnet-rpc.monad.xyz` | Official Monad documentation |
 | **Chain ID** | `10143` | Official Monad documentation |
-| **Block Explorer** | `https://testnet.monadexplorer.com` | Official Monad documentation |
+| **Block Explorer** | `https://testnet.monadvision.com` | Official Monad documentation |
 | **EVM Compatibility** | Standard EVM (Cancun equivalent) | Official Monad documentation |
 | **Official Tracks / Categories** | `REQUIRES_VERIFICATION` | Official track list to be confirmed from hackathon portal |
 | **Submission Deadline** | `REQUIRES_VERIFICATION` | Official submission timestamp to be confirmed |

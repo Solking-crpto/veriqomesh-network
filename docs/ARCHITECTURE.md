@@ -105,7 +105,7 @@ trustmesh/
    - Shared between frontend, backend microservices, and client SDKs.
 
 2. **`@trustmesh/config`**:
-   - Encapsulates chain configurations (Monad Metropolis Testnet 10143, Anvil Devnet 31337), protocol timeout constants, dispute bond calculations, and type-safe environment loaders.
+   - Encapsulates chain configurations (Monad Testnet 10143, Anvil Devnet 31337), protocol timeout constants, dispute bond calculations, and type-safe environment loaders.
 
 3. **`@trustmesh/sdk`**:
    - Exposes clean interfaces for `ISignerProvider`, `IStorageProvider`, and `IAIProvider`.

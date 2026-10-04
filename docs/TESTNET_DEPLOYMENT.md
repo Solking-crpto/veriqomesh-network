@@ -1,8 +1,8 @@
-# VeriqoMesh Network — Monad Metropolis Testnet Deployment & Verification Guide
+# VeriqoMesh Network — Monad Testnet Deployment & Verification Guide
 
 **Status**: Verified Operational Specification (Stage 3.6)  
 **Protocol**: VeriqoMesh Network  
-**Target Network**: Monad Metropolis Testnet  
+**Target Network**: Monad Testnet  
 **Target Chain ID**: `10143`  
 **Reference Contracts**: `contracts/src/TrustMeshEscrow.sol`, `contracts/src/TrustReceiptRegistry.sol`  
 

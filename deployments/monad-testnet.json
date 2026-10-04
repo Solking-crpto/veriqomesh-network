@@ -1,5 +1,5 @@
 {
-  "network": "Monad Metropolis Testnet",
+  "network": "Monad Testnet",
   "chainId": 10143,
   "status": "DEPLOYED",
   "contracts": {
