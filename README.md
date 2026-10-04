@@ -193,7 +193,7 @@ trustmesh/
 
 ## 9. Hackathon build log
 
-Monad Metropolis build window: **September 1 to October 13, 2026.**
+Monad Metropolis build window: **September 1, 2026 until the submission deadline (October 14, 2026, 04:59 GMT+1).**
 
 **Repository history.** The public repository's first commit is `e0bba32` on 2026-09-29 ("publish VeriqoMesh Network Monad implementation"). All code in this repository was written during the build window; none of it predates September 1, 2026. The repository was first published to GitHub on September 29, 2026, and the `TrustMeshEscrow` contract was deployed to Monad Testnet on September 23, 2026. The onchain record is independent of git history: the first Trust Receipt was minted on 2026-09-23 (block 65,092,494) and Flow B ran the same day. `TrustMeshEscrow` was deployed on 2026-09-23 (creation tx `0xb62da9195864c4da1851ee267161a1a556595288c9e960a94147214aabf2d21e`, deployer `0x19539685BD5ceC58f00B3EfE8b76B2Cc48cb2B70`).
 

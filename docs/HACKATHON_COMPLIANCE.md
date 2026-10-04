@@ -2,7 +2,7 @@
 
 VeriqoMesh Network is entered in the **Monad Metropolis** hackathon, track 4: **Trust / Identity & AI Infrastructure**.
 
-- **Build window:** September 1 to October 13, 2026 (submission deadline October 13, 2026, per the hackathon page).
+- **Build window:** September 1, 2026 until the submission deadline of October 14, 2026, 04:59 GMT+1 (per the hackathon dashboard).
 - **Network:** Monad Testnet, chain ID 10143. RPC `https://testnet-rpc.monad.xyz`. Explorer `https://testnet.monadvision.com`.
 
 ## How the project meets each requirement
