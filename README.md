@@ -11,6 +11,7 @@
 - **Public benchmark (no wallet needed):** https://veriqomesh.xyz/transactions?tab=demo
 - **Trust receipts and provenance:** https://veriqomesh.xyz/trust
 - **Demo video:** https://youtu.be/TEfji6QJnDg
+- **Pitch video:** https://youtu.be/zEkkjQ99CiE
 - **Hackathon:** Monad Metropolis, track 4 (Trust / Identity & AI Infrastructure)
 - **Network:** Monad Testnet (chain ID 10143). Testnet assets only, no real value.
 
